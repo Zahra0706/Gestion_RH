@@ -84,20 +84,6 @@ public class AdminController {
     }
 
     // Gestion des employés
-    @GetMapping("/employes")
-    public String listeEmployes(Model model) {
-        model.addAttribute("employes", employeService.getAllEmployes());
-        return "admin/employes/liste";
-    }
-
-    @GetMapping("/employes/creer")
-    public String showCreerEmployeForm(Model model) {
-        model.addAttribute("employe", new Employe());
-        model.addAttribute("departements", departementService.getAllDepartements());
-        model.addAttribute("postes", Employe.Poste.values());
-        model.addAttribute("roles", Employe.Role.values());
-        return "admin/employes/creer";
-    }
 
     @PostMapping("/employes/creer")
     public String creerEmploye(@ModelAttribute Employe employe,
@@ -199,19 +185,6 @@ public class AdminController {
         return "redirect:/admin/employes";
     }
 
-    @GetMapping("/employes/actifs")
-    public String listeEmployesActifs(Model model) {
-        model.addAttribute("employes", employeService.getEmployesActifs());
-        model.addAttribute("titre", "Employés Actifs");
-        return "admin/employes/liste";
-    }
-
-    @GetMapping("/employes/inactifs")
-    public String listeEmployesInactifs(Model model) {
-        model.addAttribute("employes", employeService.getEmployesInactifs());
-        model.addAttribute("titre", "Employés Inactifs");
-        return "admin/employes/liste";
-    }
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpServletRequest request,
@@ -267,5 +240,40 @@ public class AdminController {
         }
 
         return "admin/dashboard";
+    }
+
+    @GetMapping("/employes")
+    public String listeEmployes(Model model) {
+        model.addAttribute("employes", employeService.getAllEmployes());
+        model.addAttribute("departements", departementService.getAllDepartements());
+        model.addAttribute("roles", Employe.Role.values());
+        return "admin/employes/liste";
+    }
+
+    @GetMapping("/employes/creer")
+    public String showCreerEmployeForm(Model model) {
+        model.addAttribute("employe", new Employe());
+        model.addAttribute("departements", departementService.getAllDepartements());
+        model.addAttribute("postes", Employe.Poste.values());
+        model.addAttribute("roles", Employe.Role.values());
+        return "admin/employes/creer";
+    }
+
+    @GetMapping("/employes/actifs")
+    public String listeEmployesActifs(Model model) {
+        model.addAttribute("employes", employeService.getEmployesActifs());
+        model.addAttribute("titre", "Employés Actifs");
+        model.addAttribute("departements", departementService.getAllDepartements());
+        model.addAttribute("roles", Employe.Role.values());
+        return "admin/employes/liste";
+    }
+
+    @GetMapping("/employes/inactifs")
+    public String listeEmployesInactifs(Model model) {
+        model.addAttribute("employes", employeService.getEmployesInactifs());
+        model.addAttribute("titre", "Employés Inactifs");
+        model.addAttribute("departements", departementService.getAllDepartements());
+        model.addAttribute("roles", Employe.Role.values());
+        return "admin/employes/liste";
     }
 }

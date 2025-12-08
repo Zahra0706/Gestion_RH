@@ -113,8 +113,8 @@ public class DataInitializer {
 
                 Employe rh = Employe.builder()
                         .matricule("RH001")
-                        .nom("Martin")
-                        .prenom("Sophie")
+                        .nom("CHOKRI")
+                        .prenom("Zahra")
                         .email("rh@test.com")
                         .password(passwordEncoder.encode("rh123456"))
                         .adresse("456 Avenue RH")
@@ -137,8 +137,8 @@ public class DataInitializer {
 
                 Employe manager = Employe.builder()
                         .matricule("MGR001")
-                        .nom("Leroy")
-                        .prenom("Pierre")
+                        .nom("RAZZOUK")
+                        .prenom("Majda")
                         .email("manager@test.com")
                         .password(passwordEncoder.encode("manager123"))
                         .adresse("789 Boulevard Manager")
@@ -166,8 +166,8 @@ public class DataInitializer {
 
                 Employe employe = Employe.builder()
                         .matricule("EMP001")
-                        .nom("Dupont")
-                        .prenom("Jean")
+                        .nom("ESSAID")
+                        .prenom("Salma")
                         .email("employe@test.com")
                         .password(passwordEncoder.encode("employe123"))
                         .adresse("123 Rue Test")

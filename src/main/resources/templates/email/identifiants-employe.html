@@ -2,123 +2,139 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Vos identifiants - Plateforme RH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vos identifiants HR Manager</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
             max-width: 600px;
             margin: 0 auto;
-            background: #f9f9f9;
-            padding: 30px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
+            padding: 20px;
         }
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
             border-radius: 10px 10px 0 0;
-            margin: -30px -30px 30px -30px;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            border: 1px solid #ddd;
+            border-top: none;
         }
         .credentials {
-            background: #fff;
-            border: 2px dashed #3498db;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
             padding: 20px;
             margin: 20px 0;
-            border-radius: 5px;
         }
-        .info-item {
+        .credential-item {
             margin: 10px 0;
             padding: 10px;
             background: #f8f9fa;
             border-radius: 5px;
         }
-        .warning {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
         .button {
             display: inline-block;
-            background: #3498db;
+            background: #667eea;
             color: white;
             padding: 12px 30px;
             text-decoration: none;
             border-radius: 5px;
             margin: 20px 0;
         }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
         .footer {
+            text-align: center;
             margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
             color: #666;
             font-size: 12px;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>Bienvenue sur la Plateforme RH</h1>
-    </div>
+<div class="header">
+    <h1>HR Manager</h1>
+    <p>Système de Gestion des Ressources Humaines</p>
+</div>
 
-    <p>Bonjour <span th:text="${prenom + ' ' + nom}"></span>,</p>
+<div class="content">
+    <h2>Bonjour <span th:text="${employe.prenom}"></span>,</h2>
 
-    <p>Votre compte a été créé avec succès sur notre plateforme de gestion des ressources humaines.</p>
+    <p>Votre compte a été créé avec succès sur la plateforme HR Manager.</p>
 
     <div class="credentials">
         <h3>Vos identifiants de connexion :</h3>
 
-        <div class="info-item">
-            <strong>Matricule :</strong> <span th:text="${matricule}"></span>
+        <div class="credential-item">
+            <strong>Email :</strong>
+            <span th:text="${employe.email}"></span>
         </div>
 
-        <div class="info-item">
-            <strong>Email :</strong> <span th:text="${email}"></span>
-        </div>
-
-        <div class="info-item">
+        <div class="credential-item">
             <strong>Mot de passe temporaire :</strong>
-            <strong style="color: #e74c3c; font-size: 18px;" th:text="${password}"></strong>
+            <code style="background: #e9ecef; padding: 5px 10px; border-radius: 3px; font-size: 14px;"
+                  th:text="${password}"></code>
         </div>
 
-        <div class="info-item">
-            <strong>Poste :</strong> <span th:text="${poste}"></span>
+        <div class="credential-item">
+            <strong>Votre rôle :</strong>
+            <span th:text="${employe.role}"></span>
         </div>
 
-        <div class="info-item">
-            <strong>Rôle :</strong> <span th:text="${role}"></span>
+        <div th:if="${employe.departement != null}" class="credential-item">
+            <strong>Département :</strong>
+            <span th:text="${employe.departement.nom}"></span>
         </div>
     </div>
 
     <div class="warning">
-        <h4>⚠️ Important :</h4>
-        <p>Pour des raisons de sécurité, vous devrez changer votre mot de passe lors de votre première connexion.</p>
-        <p>Ce mot de passe est temporaire et ne doit être utilisé qu'une seule fois.</p>
+        <strong>Important :</strong>
+        <p>Pour des raisons de sécurité, vous serez obligé de changer votre mot de passe lors de votre première connexion.</p>
     </div>
 
-    <p>Pour vous connecter, veuillez cliquer sur le bouton ci-dessous :</p>
-
-    <a th:href="${appUrl + '/auth/login'}" class="button">
-        Accéder à la plateforme
+    <a th:href="${applicationUrl}" class="button">
+        Se connecter à HR Manager
     </a>
 
-    <p>Si vous rencontrez des problèmes pour vous connecter, veuillez contacter le service informatique.</p>
+    <h3>Instructions de connexion :</h3>
+    <ol>
+        <li>Rendez-vous sur : <a th:href="${applicationUrl}" th:text="${applicationUrl}"></a></li>
+        <li>Connectez-vous avec vos identifiants ci-dessus</li>
+        <li>Changez votre mot de passe lors de la première connexion</li>
+    </ol>
 
-    <div class="footer">
-        <p>Cet email a été envoyé automatiquement. Merci de ne pas y répondre.</p>
-        <p>© 2025 Plateforme de Gestion RH - Tous droits réservés.</p>
+    <div class="warning">
+        <strong>Sécurité :</strong>
+        <ul>
+            <li>Ne partagez jamais vos identifiants</li>
+            <li>Utilisez un mot de passe fort lors du changement</li>
+            <li>Déconnectez-vous toujours après utilisation</li>
+        </ul>
     </div>
+
+    <p>Pour toute question, contactez le service RH.</p>
+
+    <p>Cordialement,<br>
+        <strong>L'équipe HR Manager</strong></p>
+</div>
+
+<div class="footer">
+    <p>© 2025 HR Manager. Tous droits réservés.</p>
+    <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
 </div>
 </body>
 </html>

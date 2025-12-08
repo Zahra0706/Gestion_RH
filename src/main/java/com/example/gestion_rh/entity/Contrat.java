@@ -25,7 +25,7 @@ public class Contrat {
     private LocalDate dateFin;
 
     @Column(nullable = false)
-    private Double salaireBase; // Changé de BigDecimal à Double
+    private Double salaireBase;
 
     private Double heuresHebdomadaires;
 

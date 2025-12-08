@@ -1,39 +1,36 @@
 package com.example.gestion_rh.service;
 
 import org.springframework.stereotype.Service;
+
 import java.security.SecureRandom;
 
 @Service
 public class PasswordGeneratorService {
 
-    private static final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
-    private static final String CHAR_UPPER = CHAR_LOWER.toUpperCase();
-    private static final String NUMBER = "0123456789";
-    private static final String OTHER_CHAR = "!@#$%&*()_+-=[]?";
+    private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+    private static final String DIGITS = "0123456789";
+    private static final String SPECIAL = "!@#$%^&*()-_=+[]{}|;:,.<>?";
+    private static final String ALL_CHARS = UPPERCASE + LOWERCASE + DIGITS + SPECIAL;
 
-    private static final String PASSWORD_ALLOW_BASE = CHAR_LOWER + CHAR_UPPER + NUMBER + OTHER_CHAR;
-    private static final String PASSWORD_ALLOW = PASSWORD_ALLOW_BASE;
-
-    private static final SecureRandom random = new SecureRandom();
+    private final SecureRandom random = new SecureRandom();
 
     public String generateRandomPassword(int length) {
-        if (length < 1) throw new IllegalArgumentException("La longueur doit être positive");
+        StringBuilder password = new StringBuilder(length);
 
-        StringBuilder sb = new StringBuilder(length);
+        // Assurer au moins un caractère de chaque type
+        password.append(UPPERCASE.charAt(random.nextInt(UPPERCASE.length())));
+        password.append(LOWERCASE.charAt(random.nextInt(LOWERCASE.length())));
+        password.append(DIGITS.charAt(random.nextInt(DIGITS.length())));
+        password.append(SPECIAL.charAt(random.nextInt(SPECIAL.length())));
 
-        // Au moins un caractère de chaque type
-        sb.append(CHAR_LOWER.charAt(random.nextInt(CHAR_LOWER.length())));
-        sb.append(CHAR_UPPER.charAt(random.nextInt(CHAR_UPPER.length())));
-        sb.append(NUMBER.charAt(random.nextInt(NUMBER.length())));
-        sb.append(OTHER_CHAR.charAt(random.nextInt(OTHER_CHAR.length())));
-
-        // Remplir le reste
+        // Remplir le reste avec des caractères aléatoires
         for (int i = 4; i < length; i++) {
-            sb.append(PASSWORD_ALLOW.charAt(random.nextInt(PASSWORD_ALLOW.length())));
+            password.append(ALL_CHARS.charAt(random.nextInt(ALL_CHARS.length())));
         }
 
-        // Mélanger les caractères
-        return shuffleString(sb.toString());
+        // Mélanger le mot de passe
+        return shuffleString(password.toString());
     }
 
     private String shuffleString(String input) {

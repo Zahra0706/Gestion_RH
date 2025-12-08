@@ -22,6 +22,7 @@
                 <a th:href="@{/admin/employes}" class="menu-item">
                     <i class="fas fa-user-friends"></i>
                     <span class="menu-text">Employés</span>
+                    <span th:if="${totalEmployes != null}" class="menu-badge" th:text="${totalEmployes}">0</span>
                 </a>
             </div>
 
@@ -30,6 +31,7 @@
                 <a th:href="@{/admin/departements}" class="menu-item">
                     <i class="fas fa-building"></i>
                     <span class="menu-text">Départements</span>
+                    <span th:if="${totalDepartements != null}" class="menu-badge" th:text="${totalDepartements}">0</span>
                 </a>
             </div>
 
@@ -38,6 +40,7 @@
                 <a th:href="@{/admin/conges}" class="menu-item">
                     <i class="fas fa-calendar-alt"></i>
                     <span class="menu-text">Congés</span>
+                    <span th:if="${congesEnAttente != null}" class="menu-badge" th:text="${congesEnAttente}">0</span>
                 </a>
             </div>
 
@@ -87,7 +90,7 @@
 
             <!-- Déconnexion -->
             <div class="menu-group mt-5">
-                <form th:action="@{/auth/logout}" method="post" class="menu-item logout-form">
+                <form th:action="@{/logout}" method="post" class="menu-item logout-form">
                     <i class="fas fa-sign-out-alt"></i>
                     <span class="menu-text">Déconnexion</span>
                     <button type="submit" class="btn btn-link p-0 m-0 border-0"></button>
