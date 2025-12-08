@@ -82,8 +82,7 @@ public class SecurityConfig {
                                 "/auth/changer-mot-de-passe",
                                 "/auth/premiere-connexion",
                                 "/auth/access-denied",
-                                "/error",
-                                "/h2-console/**"  // Si vous utilisez H2
+                                "/error"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
@@ -110,7 +109,7 @@ public class SecurityConfig {
                         .accessDeniedPage("/auth/access-denied")
                 )
                 .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.disable()) // Pour H2 console
+                        .frameOptions(frameOptions -> frameOptions.disable())
                 );
 
         return http.build();

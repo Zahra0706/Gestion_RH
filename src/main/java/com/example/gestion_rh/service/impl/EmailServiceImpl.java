@@ -29,7 +29,7 @@ public class EmailServiceImpl implements EmailService {
             Context context = new Context();
             context.setVariable("employe", employe);
             context.setVariable("password", password);
-            context.setVariable("applicationUrl", "http://localhost:8080");
+            context.setVariable("applicationUrl", "http://localhost:8085");
 
             String htmlContent = templateEngine.process("email/identifiants-employe", context);
 
@@ -39,6 +39,9 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(employe.getEmail());
             helper.setSubject("HR Manager - Vos identifiants de connexion");
             helper.setText(htmlContent, true);
+            helper.setFrom("zahraechokrii@gmail.com");
+
+            log.info("Envoi de l'email...");
 
             mailSender.send(message);
             log.info("Email d'identifiants envoyé à {}", employe.getEmail());

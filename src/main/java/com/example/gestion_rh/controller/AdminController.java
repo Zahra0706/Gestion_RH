@@ -7,7 +7,6 @@ import com.example.gestion_rh.service.EmployeService;
 import com.example.gestion_rh.service.StatistiqueService;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;

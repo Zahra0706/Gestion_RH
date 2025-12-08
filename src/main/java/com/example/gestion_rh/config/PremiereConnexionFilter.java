@@ -40,11 +40,11 @@ public class PremiereConnexionFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        // Initialisation si nécessaire
+        // Initialisation
     }
 
     @Override
     public void destroy() {
-        // Nettoyage si nécessaire
+        // Nettoyage
     }
 }

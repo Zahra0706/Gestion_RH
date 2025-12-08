@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.spring6.view.ThymeleafViewResolver;
-import org.thymeleaf.templateresolver.ITemplateResolver;
 
 @Configuration
 public class ThymeleafConfig implements WebMvcConfigurer {
