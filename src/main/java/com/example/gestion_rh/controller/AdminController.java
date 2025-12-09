@@ -29,10 +29,20 @@ public class AdminController {
     private final DepartementService departementService;
     private final StatistiqueService statistiqueService;
 
-    // Gestion des départements
+    // GESTION DES DÉPARTEMENTS
+
     @GetMapping("/departements")
     public String listeDepartements(Model model) {
-        model.addAttribute("departements", departementService.getAllDepartements());
+        List<Departement> departements = departementService.getAllDepartements();
+        model.addAttribute("departements", departements);
+
+        // Calculer le nombre total d'employés
+        long totalEmployees = departements.stream()
+                .filter(d -> d.getEmployes() != null)
+                .mapToLong(d -> d.getEmployes().size())
+                .sum();
+        model.addAttribute("totalEmployees", totalEmployees);
+
         return "admin/departements/liste";
     }
 
@@ -46,9 +56,15 @@ public class AdminController {
     @PostMapping("/departements/creer")
     public String creerDepartement(@ModelAttribute Departement departement,
                                    RedirectAttributes redirectAttributes) {
-        departementService.saveDepartement(departement);
-        redirectAttributes.addFlashAttribute("success", "Département créé avec succès");
-        return "redirect:/admin/departements";
+        try {
+            departementService.saveDepartement(departement);
+            redirectAttributes.addFlashAttribute("success", "Département créé avec succès");
+            return "redirect:/admin/departements";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Erreur lors de la création du département : " + e.getMessage());
+            return "redirect:/admin/departements/creer";
+        }
     }
 
     @GetMapping("/departements/{id}/modifier")
@@ -63,12 +79,27 @@ public class AdminController {
     @PostMapping("/departements/{id}/modifier")
     public String modifierDepartement(@PathVariable Long id,
                                       @ModelAttribute Departement departement,
+                                      @RequestParam(required = false) Long managerId,
                                       RedirectAttributes redirectAttributes) {
-        departementService.updateDepartement(id, departement);
-        redirectAttributes.addFlashAttribute("success", "Département modifié avec succès");
-        return "redirect:/admin/departements";
-    }
+        try {
+            // Si un manager est spécifié, le récupérer
+            if (managerId != null) {
+                Employe manager = employeService.getEmployeById(managerId)
+                        .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
+                departement.setManager(manager);
+            } else {
+                departement.setManager(null);
+            }
 
+            departementService.updateDepartement(id, departement);
+            redirectAttributes.addFlashAttribute("success", "Département modifié avec succès");
+            return "redirect:/admin/departements";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Erreur lors de la modification : " + e.getMessage());
+            return "redirect:/admin/departements/" + id + "/modifier";
+        }
+    }
     @PostMapping("/departements/{id}/supprimer")
     public String supprimerDepartement(@PathVariable Long id,
                                        RedirectAttributes redirectAttributes) {
@@ -80,6 +111,85 @@ public class AdminController {
                     "Impossible de supprimer le département : " + e.getMessage());
         }
         return "redirect:/admin/departements";
+    }
+
+    @PostMapping("/departements/{id}/activer")
+    public String activerDepartement(@PathVariable Long id,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            departementService.activerDepartement(id);
+            redirectAttributes.addFlashAttribute("success", "Département activé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Erreur lors de l'activation : " + e.getMessage());
+        }
+        return "redirect:/admin/departements";
+    }
+
+    @PostMapping("/departements/{id}/desactiver")
+    public String desactiverDepartement(@PathVariable Long id,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            departementService.desactiverDepartement(id);
+            redirectAttributes.addFlashAttribute("success", "Département désactivé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Erreur lors de la désactivation : " + e.getMessage());
+        }
+        return "redirect:/admin/departements";
+    }
+
+    @GetMapping("/departements/{id}/details")
+    public String getDepartmentDetails(@PathVariable Long id, Model model) {
+        Departement departement = departementService.getDepartementById(id)
+                .orElse(null);
+        model.addAttribute("departement", departement);
+        return "admin/departements/details :: department-details";
+    }
+
+    @GetMapping("/departements/actifs")
+    public String listeDepartementsActifs(Model model) {
+        List<Departement> departements = departementService.getDepartementsActifs();
+        model.addAttribute("departements", departements);
+        model.addAttribute("titre", "Départements Actifs");
+
+        long totalEmployees = departements.stream()
+                .filter(d -> d.getEmployes() != null)
+                .mapToLong(d -> d.getEmployes().size())
+                .sum();
+        model.addAttribute("totalEmployees", totalEmployees);
+
+        return "admin/departements/liste";
+    }
+
+    @GetMapping("/departements/inactifs")
+    public String listeDepartementsInactifs(Model model) {
+        List<Departement> departements = departementService.getDepartementsInactifs();
+        model.addAttribute("departements", departements);
+        model.addAttribute("titre", "Départements Inactifs");
+
+        long totalEmployees = departements.stream()
+                .filter(d -> d.getEmployes() != null)
+                .mapToLong(d -> d.getEmployes().size())
+                .sum();
+        model.addAttribute("totalEmployees", totalEmployees);
+
+        return "admin/departements/liste";
+    }
+
+    @GetMapping("/departements/sans-manager")
+    public String listeDepartementsSansManager(Model model) {
+        List<Departement> departements = departementService.getDepartementsSansManager();
+        model.addAttribute("departements", departements);
+        model.addAttribute("titre", "Départements Sans Manager");
+
+        long totalEmployees = departements.stream()
+                .filter(d -> d.getEmployes() != null)
+                .mapToLong(d -> d.getEmployes().size())
+                .sum();
+        model.addAttribute("totalEmployees", totalEmployees);
+
+        return "admin/departements/liste";
     }
 
     // Gestion des employés

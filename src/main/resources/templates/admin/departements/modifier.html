@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="layouts/header :: head">
+    <title>Modifier Département - Administration</title>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="layouts/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="layouts/header :: admin-header" th:with="pageTitle='Modifier Département'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>Modifier Département:
+                            <span th:text="${departement.nom}"></span>
+                        </h5>
+                        <small class="text-dark-50">Code: <strong th:text="${departement.code}"></strong></small>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{'/admin/departements/' + ${departement.id} + '/modifier'}"
+                              method="post" th:object="${departement}">
+
+                            <!-- Basic Information -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-info-circle me-2"></i>Informations de Base
+                                    </h6>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="code" class="form-label">Code *</label>
+                                    <input type="text" class="form-control" id="code"
+                                           th:field="*{code}" required
+                                           maxlength="10">
+                                    <div class="invalid-feedback">
+                                        Le code du département est requis.
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="nom" class="form-label">Nom *</label>
+                                    <input type="text" class="form-control" id="nom"
+                                           th:field="*{nom}" required
+                                           maxlength="100">
+                                </div>
+
+                                <div class="col-12 mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description"
+                                              th:field="*{description}"
+                                              rows="3"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Manager Assignment -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-user-tie me-2"></i>Assignation du Manager
+                                    </h6>
+                                </div>
+
+                                <div class="col-12 mb-3">
+                                    <label for="manager" class="form-label">Manager du Département</label>
+                                    <select class="form-select" id="manager" name="managerId">
+                                        <option value="">Sélectionnez un manager</option>
+                                        <option th:each="manager : ${managers}"
+                                                th:value="${manager.id}"
+                                                th:text="${manager.prenom + ' ' + manager.nom + ' (' + manager.email + ')'}"
+                                                th:selected="${departement.manager != null && departement.manager.id == manager.id}">
+                                        </option>
+                                    </select>
+                                    <div th:if="${departement.manager != null}" class="mt-2">
+                                        <div class="alert alert-info">
+                                            <small>
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Manager actuel:
+                                                <strong th:text="${departement.manager.prenom + ' ' + departement.manager.nom}"></strong>
+                                                (<span th:text="${departement.manager.email}"></span>)
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Status Settings -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-cog me-2"></i>Paramètres
+                                    </h6>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="isActif"
+                                               id="isActif" value="true"
+                                               th:checked="${departement.isActif}">
+                                        <label class="form-check-label" for="isActif">
+                                            Département actif
+                                        </label>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            Statut actuel:
+                                            <span th:if="${departement.isActif}" class="text-success">
+                                                <i class="fas fa-check-circle"></i> Actif
+                                            </span>
+                                            <span th:unless="${departement.isActif}" class="text-danger">
+                                                <i class="fas fa-times-circle"></i> Inactif
+                                            </span>
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="alert alert-secondary">
+                                        <small>
+                                            <i class="fas fa-users me-1"></i>
+                                            Nombre d'employés:
+                                            <strong th:text="${departement.employes != null ? departement.employes.size() : 0}"></strong>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between">
+                                        <a th:href="@{/admin/departements}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>Annuler
+                                        </a>
+                                        <div>
+                                            <button type="submit" class="btn btn-warning">
+                                                <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="card mt-4 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Zone Danger
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Activer/Désactiver</h6>
+                                <p class="text-muted small">
+                                    Active ou désactive le département. Si désactivé, il ne sera pas disponible pour l'assignation.
+                                </p>
+                                <form th:if="${departement.isActif}"
+                                      th:action="@{'/admin/departements/' + ${departement.id} + '/desactiver'}"
+                                      method="post"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir désactiver ce département ?')">
+                                    <button type="submit" class="btn btn-outline-warning">
+                                        <i class="fas fa-toggle-off me-2"></i>Désactiver
+                                    </button>
+                                </form>
+                                <form th:unless="${departement.isActif}"
+                                      th:action="@{'/admin/departements/' + ${departement.id} + '/activer'}"
+                                      method="post"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir activer ce département ?')">
+                                    <button type="submit" class="btn btn-outline-success">
+                                        <i class="fas fa-toggle-on me-2"></i>Activer
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6>Supprimer le département</h6>
+                                <p class="text-muted small">
+                                    Cette action est irréversible. Le département ne peut être supprimé que s'il ne contient aucun employé.
+                                </p>
+                                <form th:action="@{'/admin/departements/' + ${departement.id} + '/supprimer'}"
+                                      method="post"
+                                      onsubmit="return confirm('ATTENTION: Êtes-vous ABSOLUMENT sûr de vouloir supprimer ce département ? Cette action est IRREVERSIBLE.')">
+                                    <button type="submit" class="btn btn-outline-danger"
+                                            th:disabled="${departement.employes != null && !departement.employes.isEmpty()}">
+                                        <i class="fas fa-trash me-2"></i>Supprimer
+                                    </button>
+                                </form>
+                                <div th:if="${departement.employes != null && !departement.employes.isEmpty()}"
+                                     class="alert alert-warning mt-2">
+                                    <small>
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        Impossible de supprimer:
+                                        <strong th:text="${departement.employes.size()}"></strong> employé(s) dans ce département.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="layouts/footer :: admin-footer"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="layouts/footer :: scripts"></div>
+</body>
+</html>
