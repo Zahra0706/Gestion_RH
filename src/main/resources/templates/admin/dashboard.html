@@ -1,5 +1,4 @@
-<!--C:\Users\pc\Desktop\gestion-rh\src\main\resources\templates\admin\dashboard.html<!DOCTYPE html>-->
-
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       lang="fr">
@@ -151,13 +150,18 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="employe : ${derniersEmployes}">
+                        <tr th:each="employe : ${derniersEmployesFormatted}">
                             <td th:text="${employe.prenom + ' ' + employe.nom}"></td>
                             <td th:text="${employe.email}"></td>
                             <td>
                                 <span class="badge bg-info" th:text="${employe.poste}"></span>
                             </td>
-                            <td th:text="${#temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></td>
+                            <td th:text="${employe.dateEmbaucheFormatted}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(derniersEmployesFormatted)}">
+                            <td colspan="4" class="text-center text-muted">
+                                Aucun employé trouvé
+                            </td>
                         </tr>
                         </tbody>
                     </table>
@@ -181,7 +185,7 @@
                         <tbody>
                         <tr th:each="dept : ${departementsSansManager}">
                             <td th:text="${dept.nom}"></td>
-                            <td th:text="${dept.employes.size()}"></td>
+                            <td th:text="${dept.employes != null ? dept.employes.size() : 0}"></td>
                             <td>
                                 <a th:href="@{'/admin/departements/' + ${dept.id} + '/modifier'}"
                                    class="btn btn-sm btn-outline-primary">
@@ -206,6 +210,91 @@
 </main>
 
 <!-- Scripts -->
-<!--<div th:replace="layouts/footer :: scripts"></div>-->
+<div th:replace="layouts/footer :: scripts"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Charts
+        function initCharts() {
+            // Distribution par rôle
+            const roleCtx = document.getElementById('roleChart');
+            if (roleCtx) {
+                const roleData = /*[[${statistiquesParRole}]]*/ {};
+                if (roleData && Object.keys(roleData).length > 0) {
+                    new Chart(roleCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(roleData),
+                            datasets: [{
+                                data: Object.values(roleData),
+                                backgroundColor: [
+                                    '#3498db', '#2ecc71', '#e74c3c',
+                                    '#f39c12', '#9b59b6', '#1abc9c'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    roleCtx.parentElement.innerHTML =
+                        '<div class="alert alert-info text-center py-5">' +
+                        '<i class="fas fa-info-circle fa-2x mb-3"></i>' +
+                        '<p>Aucune donnée disponible</p>' +
+                        '</div>';
+                }
+            }
+
+            // Employés par département
+            const deptCtx = document.getElementById('departementChart');
+            if (deptCtx) {
+                const deptData = /*[[${employesParDepartement}]]*/ {};
+                if (deptData && Object.keys(deptData).length > 0) {
+                    new Chart(deptCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(deptData),
+                            datasets: [{
+                                label: 'Nombre d\'employés',
+                                data: Object.values(deptData),
+                                backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    deptCtx.parentElement.innerHTML =
+                        '<div class="alert alert-info text-center py-5">' +
+                        '<i class="fas fa-info-circle fa-2x mb-3"></i>' +
+                        '<p>Aucune donnée disponible</p>' +
+                        '</div>';
+                }
+            }
+        }
+
+        // Initialize when page loads
+        initCharts();
+    });
+    /*]]>*/
+</script>
 </body>
 </html>
