@@ -25,6 +25,8 @@ public interface EmployeRepository extends JpaRepository<Employe, Long> {
     List<Employe> findByIsCompteActifTrue();
 
     List<Employe> findByIsCompteActifFalse();
+
+    List<Employe> findByDepartementIdAndIsCompteActifTrue(Long id);
 }
 
 

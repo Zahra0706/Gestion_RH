@@ -1,7 +1,10 @@
 package com.example.gestion_rh.service.impl;
 
+import com.example.gestion_rh.entity.Annonce;
 import com.example.gestion_rh.entity.Conge;
+import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.entity.Employe;
+import com.example.gestion_rh.repository.EmployeRepository;
 import com.example.gestion_rh.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -13,6 +16,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -133,5 +138,48 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void envoyerNotificationRefusConge(Conge conge, String manager) {
 
+    }
+
+    @Async
+    @Override
+    public void envoyerNotificationAnnonce(Annonce annonce, Employe recipient) {
+        try {
+            Context context = new Context();
+            context.setVariable("annonce", annonce);
+            context.setVariable("recipient", recipient);
+            context.setVariable("applicationUrl", "http://localhost:8085");
+
+            String htmlContent = templateEngine.process("email/annonce-notification", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(recipient.getEmail());
+            helper.setSubject("HR Manager - Nouvelle annonce : " + annonce.getTitre());
+            helper.setText(htmlContent, true);
+            helper.setFrom("zahraechokrii@gmail.com");
+
+            mailSender.send(message);
+            log.info("Notification d'annonce envoyée à {}", recipient.getEmail());
+
+        } catch (MessagingException e) {
+            log.error("Erreur lors de l'envoi de la notification d'annonce à {}",
+                    recipient.getEmail(), e);
+        }
+    }
+
+    @Async
+    @Override
+    public void envoyerNotificationAnnonceImportante(Annonce annonce, List<Employe> recipients) {
+        recipients.forEach(recipient -> envoyerNotificationAnnonce(annonce, recipient));
+    }
+
+    @Async
+    @Override
+    public void envoyerNotificationAnnonceDepartement(Annonce annonce, Departement departement) {
+        // Récupérer les employés du département
+        EmployeRepository employeRepository = null;
+        List<Employe> employes = employeRepository.findByDepartementIdAndIsCompteActifTrue(departement.getId());
+        envoyerNotificationAnnonceImportante(annonce, employes);
     }
 }

@@ -13,7 +13,13 @@ public interface AnnonceRepository extends JpaRepository<Annonce, Long> {
     List<Annonce> findByDepartementId(Long departementId);
     List<Annonce> findByCreateurId(Long createurId);
     List<Annonce> findByType(Annonce.TypeAnnonce type);
+    List<Annonce> findByTypeOrderByDatePublicationDesc(Annonce.TypeAnnonce type);
+    List<Annonce> findAllByOrderByDatePublicationDesc();
+    List<Annonce> findByDepartementIsNullOrderByDatePublicationDesc();
 
     @Query("SELECT a FROM Annonce a WHERE a.departement IS NULL OR a.departement.id = :departementId ORDER BY a.datePublication DESC")
     List<Annonce> findAnnoncesForDepartement(@Param("departementId") Long departementId);
+
+    @Query("SELECT a FROM Annonce a WHERE a.type = 'IMPORTANTE' OR a.type = 'GENERALE' ORDER BY a.datePublication DESC")
+    List<Annonce> findImportantAndGeneralAnnonces();
 }

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{layouts/header :: head}">
+    <title>Mon Profil | Gestion RH</title>
+    <!-- CSS Personnalisé -->
+    <link th:href="@{/css/profil.css}" rel="stylesheet">
+</head>
+<body class="profil-page">
+<!-- Sidebar -->
+<div th:replace="~{layouts/menu :: sidebar}"></div>
+
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="~{layouts/header :: admin-header}"></div>
+
+    <!-- Alerts -->
+    <div class="container-fluid px-4 pt-4">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle me-3 fs-4"></i>
+                <span th:text="${success}"></span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                <span th:text="${error}"></span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="profil-wrapper">
+        <div class="profil-glass animate-fade-in">
+            <!-- Header -->
+            <div class="profil-header">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="avatar-container">
+                            <span th:text="${#strings.substring(user.nom, 0, 1) + #strings.substring(user.prenom, 0, 1)}"></span>
+                        </div>
+                        <div>
+                            <h1 class="h2 mb-2" th:text="${user.prenom + ' ' + user.nom}"></h1>
+                            <p class="mb-1 opacity-75" th:text="${user.email}"></p>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <span class="badge-custom badge-primary">
+                                        <i class="fas fa-user-tag"></i>
+                                        <span th:text="${user.role}"></span>
+                                    </span>
+                                <span th:if="${user.poste}" class="badge-custom badge-success">
+                                        <i class="fas fa-briefcase"></i>
+                                        <span th:text="${user.poste}"></span>
+                                    </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+                        <button class="btn-modern btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+                            <i class="fas fa-edit"></i>
+                            Modifier
+                        </button>
+                        <button class="btn-modern btn-outline" data-bs-toggle="modal" data-bs-target="#passwordModal">
+                            <i class="fas fa-key"></i>
+                            Mot de passe
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card delay-1 animate-fade-in">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-value" th:text="${user.dateEmbauche != null ? #temporals.format(user.dateEmbauche, 'dd MMM yyyy') : 'Non défini'}"></div>
+                    <div class="stat-label">Date d'embauche</div>
+                </div>
+
+                <div class="stat-card delay-2 animate-fade-in">
+                    <div class="stat-icon">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <div class="stat-value" th:text="${user.matricule != null ? user.matricule : 'Non défini'}"></div>
+                    <div class="stat-label">Matricule</div>
+                </div>
+
+                <div class="stat-card delay-1 animate-fade-in">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value" th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy')}"></div>
+                    <div class="stat-label">Date du jour</div>
+                </div>
+
+                <div class="stat-card delay-2 animate-fade-in">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-value" th:text="${user.isCompteActif ? 'Actif' : 'Inactif'}"></div>
+                    <div class="stat-label">Statut</div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="profil-content">
+                <!-- Left Column: Personal Info -->
+                <div class="profil-section delay-1 animate-fade-in">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-user-circle"></i>
+                            Informations personnelles
+                        </h2>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Nom complet</div>
+                            <div class="info-value" th:text="${user.prenom + ' ' + user.nom}"></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value" th:text="${user.email}"></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Téléphone</div>
+                            <div class="info-value" th:text="${user.telephone != null ? user.telephone : 'Non renseigné'}"></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Adresse</div>
+                            <div class="info-value" th:text="${user.adresse != null ? user.adresse : 'Non renseignée'}"></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Date de naissance</div>
+                            <div class="info-value">
+                                    <span th:if="${user.dateNaissance != null}"
+                                          th:text="${#temporals.format(user.dateNaissance, 'dd/MM/yyyy')}"></span>
+                                <span th:if="${user.dateNaissance == null}" class="text-muted">Non renseignée</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Professional Info -->
+                <div class="profil-section delay-2 animate-fade-in">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-briefcase"></i>
+                            Informations professionnelles
+                        </h2>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Poste</div>
+                            <div class="info-value">
+                                <span th:if="${user.poste}" th:text="${user.poste}"></span>
+                                <span th:unless="${user.poste}" class="text-muted">Non défini</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Rôle</div>
+                            <div class="info-value">
+                                    <span class="badge-custom badge-primary">
+                                        <i class="fas fa-user-tag"></i>
+                                        <span th:text="${user.role}"></span>
+                                    </span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Département</div>
+                            <div class="info-value">
+                                    <span th:if="${user.departement != null}" class="badge-custom badge-primary">
+                                        <i class="fas fa-building"></i>
+                                        <span th:text="${user.departement.nom}"></span>
+                                    </span>
+                                <span th:if="${user.departement == null}" class="text-muted">Non assigné</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Manager</div>
+                            <div class="info-value">
+                                    <span th:if="${user.departement != null and user.departement.manager != null}"
+                                          th:text="${user.departement.manager.prenom + ' ' + user.departement.manager.nom}"></span>
+                                <span th:if="${user.departement == null or user.departement.manager == null}"
+                                      class="text-muted">Non assigné</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Première connexion</div>
+                            <div class="info-value">
+                                    <span th:if="${user.premiereConnexion}" class="badge-custom badge-warning">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        À faire
+                                    </span>
+                                <span th:if="${!user.premiereConnexion}" class="badge-custom badge-success">
+                                        <i class="fas fa-check-circle"></i>
+                                        Effectuée
+                                    </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="fas fa-user-edit me-2"></i>
+                    Modifier le profil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/admin/profil/modifier}" method="post">
+                <div class="modal-body">
+                    <!-- CSRF Token SIMPLIFIÉ -->
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Prénom</label>
+                            <input type="text" class="form-control" name="prenom" th:value="${user.prenom}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nom</label>
+                            <input type="text" class="form-control" name="nom" th:value="${user.nom}" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" th:value="${user.email}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Téléphone</label>
+                            <input type="tel" class="form-control" name="telephone" th:value="${user.telephone}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Adresse</label>
+                        <textarea class="form-control" name="adresse" rows="3" th:text="${user.adresse}"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Date de naissance</label>
+                            <input type="date" class="form-control" name="dateNaissance"
+                                   th:value="${user.dateNaissance != null ? #temporals.format(user.dateNaissance, 'yyyy-MM-dd') : ''}"
+                                   max="2006-12-31">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passwordModalLabel">
+                    <i class="fas fa-key me-2"></i>
+                    Changer le mot de passe
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/admin/profil/changer-mot-de-passe}" method="post" id="passwordForm">
+                <div class="modal-body">
+                    <!-- CSRF Token SIMPLIFIÉ -->
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe actuel</label>
+                        <input type="password" class="form-control" name="currentPassword" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nouveau mot de passe</label>
+                        <input type="password" class="form-control" name="newPassword" id="newPassword" required
+                               oninput="updatePasswordStrength(this.value)">
+                        <div class="password-strength mt-2">
+                            <div class="strength-bar" id="passwordStrength"></div>
+                        </div>
+                        <small class="form-text text-muted">
+                            Minimum 8 caractères avec majuscules, minuscules et chiffres
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Confirmer le mot de passe</label>
+                        <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" required
+                               oninput="checkPasswordMatch()">
+                        <div class="invalid-feedback" id="passwordMatchError" style="display: none;">
+                            Les mots de passe ne correspondent pas
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="submitPasswordBtn" disabled>Changer le mot de passe</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    // Password strength checker
+    function updatePasswordStrength(password) {
+        const strengthBar = document.getElementById('passwordStrength');
+        const submitBtn = document.getElementById('submitPasswordBtn');
+
+        let strength = 0;
+
+        // Length
+        if (password.length >= 8) strength += 25;
+        if (password.length >= 12) strength += 15;
+
+        // Complexity
+        if (/[A-Z]/.test(password)) strength += 20;
+        if (/[a-z]/.test(password)) strength += 20;
+        if (/[0-9]/.test(password)) strength += 20;
+
+        // Update bar
+        strengthBar.style.width = Math.min(strength, 100) + '%';
+
+        // Colors
+        if (strength < 40) {
+            strengthBar.style.background = '#ef4444';
+        } else if (strength < 70) {
+            strengthBar.style.background = '#f59e0b';
+        } else {
+            strengthBar.style.background = '#10b981';
+        }
+
+        // Enable/disable submit
+        const isValid = password.length >= 8 &&
+            /[A-Z]/.test(password) &&
+            /[a-z]/.test(password) &&
+            /[0-9]/.test(password);
+
+        submitBtn.disabled = !isValid;
+        checkPasswordMatch();
+    }
+
+    function checkPasswordMatch() {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const errorDiv = document.getElementById('passwordMatchError');
+        const submitBtn = document.getElementById('submitPasswordBtn');
+
+        if (confirmPassword && newPassword !== confirmPassword) {
+            document.getElementById('confirmPassword').classList.add('is-invalid');
+            errorDiv.style.display = 'block';
+            submitBtn.disabled = true;
+        } else {
+            document.getElementById('confirmPassword').classList.remove('is-invalid');
+            errorDiv.style.display = 'none';
+            // Re-enable if password is valid
+            updatePasswordStrength(newPassword);
+        }
+    }
+
+    // Reset password form when modal closes
+    document.getElementById('passwordModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        document.getElementById('passwordStrength').style.width = '0%';
+        document.getElementById('passwordMatchError').style.display = 'none';
+        document.getElementById('submitPasswordBtn').disabled = true;
+    });
+
+    // Set max date for birth date (18 years ago)
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+        const dateInput = document.querySelector('input[name="dateNaissance"]');
+        if (dateInput) {
+            dateInput.max = maxDate.toISOString().split('T')[0];
+        }
+    });
+</script>
+</body>
+</html>

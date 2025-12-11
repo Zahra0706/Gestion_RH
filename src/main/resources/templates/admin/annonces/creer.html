@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="layouts/header :: head">
+    <title>Créer une Annonce - Administration</title>
+    <style>
+        .form-required:after {
+            content: " *";
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="layouts/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="layouts/header :: admin-header" th:with="pageTitle='Créer une Annonce'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="container-fluid mt-3">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>Créer une Annonce
+                </h5>
+                <p class="text-muted mb-0">Publiez une nouvelle annonce pour les employés</p>
+            </div>
+            <div>
+                <a th:href="@{/admin/annonces}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <!-- CORRECTION ICI : Ajout du paramètre departementId -->
+                <form th:action="@{/admin/annonces/creer}" method="post" th:object="${annonce}">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label form-required">Titre</label>
+                                <input type="text"
+                                       class="form-control"
+                                       th:field="*{titre}"
+                                       required
+                                       placeholder="Ex: Réunion d'équipe importante">
+                                <small class="text-muted">Donnez un titre clair et concis</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label form-required">Type</label>
+                                <select class="form-select" th:field="*{type}" required>
+                                    <option value="">Sélectionnez un type</option>
+                                    <option th:each="type : ${typesAnnonce}"
+                                            th:value="${type}"
+                                            th:text="${type}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Département</label>
+                                <!-- CORRECTION : Utiliser un simple select avec name="departementId" -->
+                                <select class="form-select" name="departementId">
+                                    <option value="0">Tous les départements (annonce générale)</option>
+                                    <option th:each="dept : ${departements}"
+                                            th:value="${dept.id}"
+                                            th:text="${dept.nom}">
+                                    </option>
+                                </select>
+                                <small class="text-muted">Sélectionnez un département pour une annonce spécifique</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label form-required">Contenu</label>
+                        <textarea class="form-control"
+                                  th:field="*{contenu}"
+                                  rows="10"
+                                  required
+                                  placeholder="Rédigez le contenu de votre annonce ici..."></textarea>
+                        <small class="text-muted">Ce contenu sera envoyé par email aux destinataires</small>
+                    </div>
+
+                    <!-- Information Box -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Informations sur les types d'annonces</h6>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>IMPORTANTE :</strong> Envoyée à tous les employés, apparaît en rouge</li>
+                            <li><strong>GÉNÉRALE :</strong> Envoyée à tous les employés, annonce standard</li>
+                            <li><strong>DÉPARTEMENT :</strong> Envoyée uniquement aux employés du département sélectionné</li>
+                            <li><strong>INFORMATION :</strong> Envoyée à tous les employés, pour des informations générales</li>
+                        </ul>
+                        <p class="mb-0 mt-2"><strong>Note :</strong> Une notification email sera automatiquement envoyée aux destinataires concernés.</p>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a th:href="@{/admin/annonces}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Publier l'annonce
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="layouts/footer :: admin-footer"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="layouts/footer :: scripts"></div>
+</body>
+</html>
