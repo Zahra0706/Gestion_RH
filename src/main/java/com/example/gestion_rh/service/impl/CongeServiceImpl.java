@@ -173,4 +173,14 @@ public class CongeServiceImpl implements CongeService {
 
         return joursCongesAnnuel - joursPris;
     }
+
+    @Override
+    public int getCongesUtilises(Long id) {
+        return 0;
+    }
+
+    @Override
+    public int getCongesRestants(Long id) {
+        return 0;
+    }
 }

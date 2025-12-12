@@ -14,4 +14,8 @@ public interface CongeService {
     List<Conge> getCongesByStatut(Conge.StatutConge statut);
     Conge annulerConge(Long congeId, Long employeId);
     double calculerJoursCongesRestants(Long employeId, int annee);
+
+    int getCongesUtilises(Long id);
+
+    int getCongesRestants(Long id);
 }
