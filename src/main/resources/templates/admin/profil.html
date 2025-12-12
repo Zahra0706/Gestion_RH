@@ -64,11 +64,11 @@
                         <div class="profile-avatar-large">
                             <span class="avatar-initials"
                                   th:text="${#strings.substring(user.nom, 0, 1) + #strings.substring(user.prenom, 0, 1)}">
-                                AS
+                                UI
                             </span>
                         </div>
                         <div class="profile-info-header">
-                            <h1 th:text="${user.prenom + ' ' + user.nom}">Alexandre Dupont</h1>
+                            <h1 th:text="${user.prenom + ' ' + user.nom}">User </h1>
                             <div class="profile-meta">
                                 <span class="role-badge" th:text="${user.role}">ADMIN</span>
                                 <span class="info-badge success" th:if="${user.isCompteActif}">
@@ -98,22 +98,22 @@
                         <div class="info-grid">
                             <div class="info-item">
                                 <span class="info-label">Matricule</span>
-                                <span class="info-value" th:text="${user.matricule}">EMP001</span>
+                                <span class="info-value" th:text="${user.matricule}">M00000</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Email</span>
-                                <span class="info-value" th:text="${user.email}">alex@example.com</span>
+                                <span class="info-value" th:text="${user.email}">gmail@example.com</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Téléphone</span>
                                 <span class="info-value" th:text="${user.telephone ?: 'Non renseigné'}">
-                                    +33 6 12 34 56 78
+                                    +212 6 00 00 00 00
                                 </span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Adresse</span>
                                 <span class="info-value" th:text="${user.adresse ?: 'Non renseignée'}">
-                                    123 Rue de Paris, 75000 Paris
+                                    Maroc
                                 </span>
                             </div>
                             <div class="info-item">

@@ -36,7 +36,7 @@ public class DataInitializer {
                 departementRepository.findByCode(deptData[0])
                         .ifPresentOrElse(
                                 dept -> {
-                                    // Mettre à jour si nécessaire
+
                                     if (!dept.getNom().equals(deptData[1])) {
                                         dept.setNom(deptData[1]);
                                         dept.setDescription(deptData[2]);
@@ -68,11 +68,11 @@ public class DataInitializer {
         return args -> {
             LocalDate today = LocalDate.now();
 
-            // 1. Super Admin (toujours mettre à jour)
+            // 1. Super Admin
             employeRepository.findByEmail("superadmin@hr.com")
                     .ifPresentOrElse(
                             superAdmin -> {
-                                // Mettre à jour les informations manquantes
+
                                 if (superAdmin.getDateEmbauche() == null) {
                                     superAdmin.setDateEmbauche(today);
                                 }
