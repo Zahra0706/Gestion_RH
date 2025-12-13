@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="~{layouts/header :: head}">
+    <title>Statistiques Détaillées - Administration</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
+    <style>
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 5px solid;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card.employes { border-left-color: #3498db; }
+        .stat-card.conges { border-left-color: #f39c12; }
+        .stat-card.departements { border-left-color: #27ae60; }
+        .stat-card.annonces { border-left-color: #9b59b6; }
+        .stat-card.salaires { border-left-color: #e74c3c; }
+        .stat-card.roles { border-left-color: #1abc9c; }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon.employes { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+        .stat-icon.conges { background: rgba(243, 156, 18, 0.1); color: #f39c12; }
+        .stat-icon.departements { background: rgba(39, 174, 96, 0.1); color: #27ae60; }
+        .stat-icon.annonces { background: rgba(155, 89, 182, 0.1); color: #9b59b6; }
+        .stat-icon.salaires { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+        .stat-icon.roles { background: rgba(26, 188, 156, 0.1); color: #1abc9c; }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            height: 100%;
+        }
+
+        .chart-title {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            height: 100%;
+        }
+
+        .progress-stat {
+            margin-top: 10px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #ecf0f1;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease-in-out;
+        }
+
+        .stats-filter {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .time-period-btn {
+            padding: 6px 12px;
+            border: 1px solid #dee2e6;
+            background: white;
+            color: #495057;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 5px;
+        }
+
+        .time-period-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .time-period-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .export-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn:hover {
+            background: #219653;
+            transform: translateY(-2px);
+        }
+
+        .comparison-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db;
+        }
+
+        .comparison-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .comparison-item:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .comparison-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .comparison-diff {
+            font-size: 0.85rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #ecf0f1;
+        }
+
+        .comparison-diff.positive {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+
+        .comparison-diff.negative {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+
+            .stat-card {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="~{layouts/menu :: sidebar}"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="~{layouts/header :: admin-header}" ></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="container-fluid mt-3">
+        <div class="stats-filter">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h6 class="mb-3">Période d'analyse</h6>
+                    <div class="btn-group" role="group">
+                        <button class="time-period-btn active" onclick="changePeriod('month')">Ce mois</button>
+                        <button class="time-period-btn" onclick="changePeriod('quarter')">Trimestre</button>
+                        <button class="time-period-btn" onclick="changePeriod('year')">Année</button>
+                        <button class="time-period-btn" onclick="changePeriod('all')">Tout</button>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="export-btn" onclick="exportStatistics()">
+                        <i class="fas fa-file-export"></i>
+                        Exporter les statistiques
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Statistics Cards -->
+        <div class="row g-3 mb-4">
+            <!-- Employés -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="stat-card employes h-100">
+                    <div class="stat-icon employes">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number" th:text="${totalEmployes}">0</div>
+                    <div class="stat-text">Total Employés</div>
+                    <div class="d-flex justify-content-between">
+                        <small>
+                            <span class="text-success" th:text="${employesActifs}">0</span> actifs
+                        </small>
+                        <small>
+                            <span class="text-danger" th:text="${employesInactifs}">0</span> inactifs
+                        </small>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-label">
+                            <span>Taux d'activité</span>
+                            <span th:text="${#numbers.formatDecimal(employesActifs/totalEmployes*100, 1, 1)}">0</span>%
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-success"
+                                 th:style="'width: ' + ${employesActifs/totalEmployes*100} + '%'"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Congés -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="stat-card conges h-100">
+                    <div class="stat-icon conges">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-number" th:text="${totalConges}">0</div>
+                    <div class="stat-text">Demandes de Congés</div>
+                    <div class="d-flex justify-content-between">
+                        <small>
+                            <span class="text-warning" th:text="${congesEnAttente}">0</span> en attente
+                        </small>
+                        <small>
+                            <span class="text-success" th:text="${congesValides}">0</span> validés
+                        </small>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-label">
+                            <span>Taux de validation</span>
+                            <span th:text="${totalConges > 0 ? #numbers.formatDecimal(congesValides/totalConges*100, 1, 1) : 0}">0</span>%
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-success"
+                                 th:style="'width: ' + ${totalConges > 0 ? congesValides/totalConges*100 : 0} + '%'"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Départements -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="stat-card departements h-100">
+                    <div class="stat-icon departements">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-number" th:text="${totalDepartements}">0</div>
+                    <div class="stat-text">Départements</div>
+                    <div class="d-flex justify-content-between">
+                        <small>
+                            <span class="text-success" th:text="${departementsAvecManager}">0</span> avec manager
+                        </small>
+                        <small>
+                            <span class="text-warning" th:text="${totalDepartements - departementsAvecManager}">0</span> sans
+                        </small>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-label">
+                            <span>Couverture managers</span>
+                            <span th:text="${#numbers.formatDecimal(departementsAvecManager/totalDepartements*100, 1, 1)}">0</span>%
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-success"
+                                 th:style="'width: ' + ${departementsAvecManager/totalDepartements*100} + '%'"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Annonces -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="stat-card annonces h-100">
+                    <div class="stat-icon annonces">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div class="stat-number" th:text="${totalAnnonces}">0</div>
+                    <div class="stat-text">Annonces Publiques</div>
+                    <div class="d-flex flex-column gap-1 mt-2">
+                        <small>
+                            <i class="fas fa-circle text-info me-1"></i>
+                            <span th:text="${generalesCount}">0</span> Générales
+                        </small>
+                        <small>
+                            <i class="fas fa-circle text-warning me-1"></i>
+                            <span th:text="${importantesCount}">0</span> Importantes
+                        </small>
+                        <small>
+                            <i class="fas fa-circle text-success me-1"></i>
+                            <span th:text="${departementCount}">0</span> Département
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="row g-3 mb-4">
+            <!-- Distribution par rôle -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="chart-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="chart-title mb-0">Distribution par Rôle</h6>
+                        <select class="form-select form-select-sm" style="width: auto;" id="roleChartType">
+                            <option value="doughnut">Anneau</option>
+                            <option value="pie">Circulaire</option>
+                            <option value="bar">Barres</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="roleChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employés par département -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="chart-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="chart-title mb-0">Employés par Département</h6>
+                        <select class="form-select form-select-sm" style="width: auto;" id="deptChartType">
+                            <option value="bar">Barres</option>
+                            <option value="horizontalBar">Barres horizontales</option>
+                            <option value="line">Courbe</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="departementChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="row g-3 mb-4">
+            <!-- Évolution des congés -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="chart-card h-100">
+                    <h6 class="chart-title">Évolution des Demandes de Congés</h6>
+                    <div class="chart-container">
+                        <canvas id="congeEvolutionChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Annonces par type -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="chart-card h-100">
+                    <h6 class="chart-title">Annonces par Type</h6>
+                    <div class="chart-container">
+                        <canvas id="annonceTypeChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Tables -->
+        <div class="row g-3 mb-4">
+            <!-- Départements détaillés -->
+            <div class="col-xl">
+                <div class="table-card p-4">
+                    <h6 class="chart-title">Départements Détail</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Département</th>
+                                <th>Manager</th>
+                                <th>Employés</th>
+                                <th>Statut</th>
+                                <th>Taux d'occupation</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="dept : ${departements}">
+                                <td th:text="${dept.nom}">Nom</td>
+                                <td>
+                                    <span th:if="${dept.manager != null}" th:text="${dept.manager.prenom + ' ' + dept.manager.nom}">Manager</span>
+                                    <span th:unless="${dept.manager != null}" class="text-muted">Non assigné</span>
+                                </td>
+                                <td th:text="${dept.employes != null ? dept.employes.size() : 0}">0</td>
+                                <td>
+                                    <span th:if="${dept.isActif}" class="badge bg-success">Actif</span>
+                                    <span th:unless="${dept.isActif}" class="badge bg-danger">Inactif</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                            <div class="progress-bar bg-info" role="progressbar"
+                                                 th:style="'width: ' + ${(dept.employes != null ? dept.employes.size() : 0) * 10} + '%'"
+                                                 th:attr="aria-valuenow=${(dept.employes != null ? dept.employes.size() : 0) * 10}"
+                                                 aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <small th:text="${(dept.employes != null ? dept.employes.size() : 0) * 10}">0</small>%
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        <!-- Export Section -->
+        <div class="row g-3 mb-4">
+            <div class="col-xl">
+                <div class="chart-card">
+                    <h6 class="chart-title">Export des Données</h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="export-btn w-100 mb-2" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf"></i>
+                                PDF Report
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="export-btn w-100 mb-2" onclick="exportToExcel()"
+                                    style="background: #27ae60;">
+                                <i class="fas fa-file-excel"></i>
+                                Excel Data
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="export-btn w-100 mb-2" onclick="exportToCSV()"
+                                    style="background: #f39c12;">
+                                <i class="fas fa-file-csv"></i>
+                                CSV Export
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="export-btn w-100 mb-2" onclick="printStatistics()"
+                                    style="background: #7f8c8d;">
+                                <i class="fas fa-print"></i>
+                                Imprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- Footer -->
+    <div th:replace="~{layouts/footer :: admin-footer}"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="~{layouts/footer :: scripts}"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Charts
+        function initCharts() {
+            // Distribution par rôle
+            const roleCtx = document.getElementById('roleChart');
+            if (roleCtx) {
+                const roleData = /*[[${statistiquesParRole}]]*/ {};
+                const roleLabels = Object.keys(roleData);
+                const roleValues = Object.values(roleData);
+
+                const roleColors = [
+                    '#3498db', '#2ecc71', '#e74c3c', '#f39c12',
+                    '#9b59b6', '#1abc9c', '#34495e', '#16a085'
+                ];
+
+                let roleChart = new Chart(roleCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: roleLabels,
+                        datasets: [{
+                            data: roleValues,
+                            backgroundColor: roleColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        const total = roleValues.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((context.raw / total) * 100);
+                                        label += context.raw + ' (' + percentage + '%)';
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Change chart type
+                document.getElementById('roleChartType').addEventListener('change', function() {
+                    roleChart.destroy();
+                    roleChart = new Chart(roleCtx, {
+                        type: this.value,
+                        data: {
+                            labels: roleLabels,
+                            datasets: [{
+                                data: roleValues,
+                                backgroundColor: roleColors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Employés par département
+            const deptCtx = document.getElementById('departementChart');
+            if (deptCtx) {
+                const deptData = /*[[${employesParDepartement}]]*/ {};
+                const deptLabels = Object.keys(deptData);
+                const deptValues = Object.values(deptData);
+
+                let deptChart = new Chart(deptCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: deptLabels,
+                        datasets: [{
+                            label: 'Nombre d\'employés',
+                            data: deptValues,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                },
+                                grid: {
+                                    display: true
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+
+                // Change chart type
+                document.getElementById('deptChartType').addEventListener('change', function() {
+                    deptChart.destroy();
+                    deptChart = new Chart(deptCtx, {
+                        type: this.value === 'horizontalBar' ? 'bar' : this.value,
+                        data: {
+                            labels: deptLabels,
+                            datasets: [{
+                                label: 'Nombre d\'employés',
+                                data: deptValues,
+                                backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: this.value === 'horizontalBar' ? 'y' : 'x',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Évolution des congés (exemple de données)
+            const congeCtx = document.getElementById('congeEvolutionChart');
+            if (congeCtx) {
+                const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+                const congeData = months.map(() => Math.floor(Math.random() * 10) + 5);
+
+                new Chart(congeCtx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Demandes de congés',
+                            data: congeData,
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            borderColor: 'rgba(243, 156, 18, 1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 2
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Annonces par type
+            const annonceCtx = document.getElementById('annonceTypeChart');
+            if (annonceCtx) {
+                const annonceTypes = ['Générale', 'Importante', 'Département', 'Information'];
+                const annonceCounts = [
+                    /*[[${generalesCount}]]*/ 0,
+                    /*[[${importantesCount}]]*/ 0,
+                    /*[[${departementCount}]]*/ 0,
+                    /*[[${informationCount}]]*/ 0
+                ];
+
+                new Chart(annonceCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: annonceTypes,
+                        datasets: [{
+                            data: annonceCounts,
+                            backgroundColor: [
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(243, 156, 18, 0.7)',
+                                'rgba(46, 204, 113, 0.7)',
+                                'rgba(155, 89, 182, 0.7)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                ticks: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize when page loads
+        initCharts();
+    });
+
+    function changePeriod(period) {
+        // Mettre à jour les boutons actifs
+        document.querySelectorAll('.time-period-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // Ici vous pourriez faire une requête AJAX pour mettre à jour les données
+        // Pour l'instant, on simule juste le changement
+        console.log('Changement de période:', period);
+
+        // Exemple: Afficher un message de chargement
+        showToast('Filtre appliqué', 'Période: ' + period, 'info');
+    }
+
+    function exportStatistics() {
+        showToast('Export', 'Export des statistiques en cours...', 'info');
+        // Ici vous pourriez générer un PDF ou CSV
+        setTimeout(() => {
+            showToast('Export réussi', 'Les statistiques ont été exportées', 'success');
+        }, 1500);
+    }
+
+    function exportToPDF() {
+        // Logique pour générer PDF
+        showToast('PDF', 'Génération du rapport PDF...', 'info');
+    }
+
+    function exportToExcel() {
+        // Logique pour générer Excel
+        showToast('Excel', 'Export Excel en cours...', 'info');
+    }
+
+    function exportToCSV() {
+        // Logique pour générer CSV
+        showToast('CSV', 'Export CSV en cours...', 'info');
+    }
+
+    function printStatistics() {
+        window.print();
+    }
+
+    function showToast(title, message, type = 'info') {
+        // Créer un toast simple
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        `;
+
+        toast.innerHTML = `
+            <strong>${title}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div>${message}</div>
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+    /*]]>*/
+</script>
+</body>
+</html>

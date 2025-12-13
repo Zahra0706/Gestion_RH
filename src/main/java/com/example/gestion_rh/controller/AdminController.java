@@ -1,12 +1,15 @@
 package com.example.gestion_rh.controller;
 
+import com.example.gestion_rh.entity.Annonce;
 import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.entity.Employe;
+import com.example.gestion_rh.service.AnnonceService;
 import com.example.gestion_rh.service.DepartementService;
 import com.example.gestion_rh.service.EmployeService;
 import com.example.gestion_rh.service.StatistiqueService;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +31,7 @@ public class AdminController {
     private final EmployeService employeService;
     private final DepartementService departementService;
     private final StatistiqueService statistiqueService;
+    private final AnnonceService annonceService;
 
     // GESTION DES DÉPARTEMENTS
 
@@ -100,6 +104,7 @@ public class AdminController {
             return "redirect:/admin/departements/" + id + "/modifier";
         }
     }
+
     @PostMapping("/departements/{id}/supprimer")
     public String supprimerDepartement(@PathVariable Long id,
                                        RedirectAttributes redirectAttributes) {
@@ -384,5 +389,51 @@ public class AdminController {
         model.addAttribute("departements", departementService.getAllDepartements());
         model.addAttribute("roles", Employe.Role.values());
         return "admin/employes/liste";
+    }
+
+    @GetMapping("/statistiques")
+    public String statistiques(Model model) {
+        // Récupérer toutes les statistiques
+        Map<String, Object> stats = statistiqueService.getStatistiquesGenerales();
+        model.addAllAttributes(stats);
+
+        // Ajouter les statistiques par rôle
+        model.addAttribute("statistiquesParRole", statistiqueService.getStatistiquesParRole());
+
+        // Récupérer les départements pour le tableau détaillé
+        List<Departement> departements = departementService.getAllDepartements();
+        model.addAttribute("departements", departements);
+
+        // Calculer les statistiques d'annonces (vous devez injecter AnnonceService)
+        List<Annonce> annonces = annonceService.getAllAnnonces();
+        long totalAnnonces = annonces.size();
+        long importantesCount = annonces.stream()
+                .filter(a -> a.getType() == Annonce.TypeAnnonce.IMPORTANTE)
+                .count();
+        long departementCount = annonces.stream()
+                .filter(a -> a.getType() == Annonce.TypeAnnonce.DEPARTEMENT)
+                .count();
+        long generalesCount = annonces.stream()
+                .filter(a -> a.getType() == Annonce.TypeAnnonce.GENERALE)
+                .count();
+        long informationCount = annonces.stream()
+                .filter(a -> a.getType() == Annonce.TypeAnnonce.INFORMATION)
+                .count();
+
+        model.addAttribute("totalAnnonces", totalAnnonces);
+        model.addAttribute("importantesCount", importantesCount);
+        model.addAttribute("departementCount", departementCount);
+        model.addAttribute("generalesCount", generalesCount);
+        model.addAttribute("informationCount", informationCount);
+
+        // Ajouter l'utilisateur connecté
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            Employe user = employeService.getEmployeByEmail(email).orElse(null);
+            model.addAttribute("user", user);
+        }
+
+        return "admin/statistiques";
     }
 }
