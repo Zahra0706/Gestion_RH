@@ -252,16 +252,16 @@
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <h6 class="mb-3">Période d'analyse</h6>
-                    <div class="btn-group" role="group">
-                        <button class="time-period-btn active" onclick="changePeriod('month')">Ce mois</button>
-                        <button class="time-period-btn" onclick="changePeriod('quarter')">Trimestre</button>
-                        <button class="time-period-btn" onclick="changePeriod('year')">Année</button>
-                        <button class="time-period-btn" onclick="changePeriod('all')">Tout</button>
+                    <div class="btn-group mb-4" role="group">
+                        <button class="btn btn-outline-primary active" onclick="changePeriod('month')">Ce mois</button>
+                        <button class="btn btn-outline-primary" onclick="changePeriod('quarter')">Trimestre</button>
+                        <button class="btn btn-outline-primary" onclick="changePeriod('year')">Année</button>
+                        <button class="btn btn-outline-primary" onclick="changePeriod('all')">Tout</button>
                     </div>
                 </div>
                 <div class="col-md-6 text-end">
-                    <button class="export-btn" onclick="exportStatistics()">
-                        <i class="fas fa-file-export"></i>
+                    <button class="btn btn-success" onclick="exportStatistics()">
+                        <i class="fas fa-file-export me-1"></i>
                         Exporter les statistiques
                     </button>
                 </div>
@@ -497,29 +497,26 @@
                     <h6 class="chart-title">Export des Données</h6>
                     <div class="row">
                         <div class="col-md-3">
-                            <button class="export-btn w-100 mb-2" onclick="exportToPDF()">
-                                <i class="fas fa-file-pdf"></i>
+                            <button class="btn btn-danger w-100 mb-2" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf me-1"></i>
                                 PDF Report
                             </button>
                         </div>
                         <div class="col-md-3">
-                            <button class="export-btn w-100 mb-2" onclick="exportToExcel()"
-                                    style="background: #27ae60;">
-                                <i class="fas fa-file-excel"></i>
+                            <button class="btn btn-success w-100 mb-2" onclick="exportToExcel()">
+                                <i class="fas fa-file-excel me-1"></i>
                                 Excel Data
                             </button>
                         </div>
                         <div class="col-md-3">
-                            <button class="export-btn w-100 mb-2" onclick="exportToCSV()"
-                                    style="background: #f39c12;">
-                                <i class="fas fa-file-csv"></i>
+                            <button class="btn btn-warning w-100 mb-2" onclick="exportToCSV()">
+                                <i class="fas fa-file-csv me-1"></i>
                                 CSV Export
                             </button>
                         </div>
                         <div class="col-md-3">
-                            <button class="export-btn w-100 mb-2" onclick="printStatistics()"
-                                    style="background: #7f8c8d;">
-                                <i class="fas fa-print"></i>
+                            <button class="btn btn-secondary w-100 mb-2" onclick="printStatistics()">
+                                <i class="fas fa-print me-1"></i>
                                 Imprimer
                             </button>
                         </div>
