@@ -15,93 +15,105 @@
     <div th:replace="layouts/header :: admin-header"></div>
 
     <!-- Statistics Cards -->
-    <div class="stats-grid">
+    <div class="row g-3 mb-4">
         <!-- Employés Card -->
-        <div class="stat-card employes">
-            <div class="stat-icon employes">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-number" th:text="${totalEmployes}">0</div>
-            <div class="stat-text">Employés au total</div>
-            <div class="d-flex justify-content-between mt-3">
-                <small>
-                    <span class="text-success" th:text="${employesActifs}">0</span> actifs
-                </small>
-                <small>
-                    <span class="text-danger" th:text="${employesInactifs}">0</span> inactifs
-                </small>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card employes h-100">
+                <div class="stat-icon employes">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number" th:text="${totalEmployes}">0</div>
+                <div class="stat-text">Employés au total</div>
+                <div class="d-flex justify-content-between mt-3">
+                    <small>
+                        <span class="text-success" th:text="${employesActifs}">0</span> actifs
+                    </small>
+                    <small>
+                        <span class="text-danger" th:text="${employesInactifs}">0</span> inactifs
+                    </small>
+                </div>
             </div>
         </div>
 
         <!-- Congés Card -->
-        <div class="stat-card conges">
-            <div class="stat-icon conges">
-                <i class="fas fa-calendar-alt"></i>
-            </div>
-            <div class="stat-number" th:text="${totalConges}">0</div>
-            <div class="stat-text">Demandes de congés</div>
-            <div class="d-flex justify-content-between mt-3">
-                <small>
-                    <span class="text-warning" th:text="${congesEnAttente}">0</span> en attente
-                </small>
-                <small>
-                    <span class="text-success" th:text="${congesValides}">0</span> validés
-                </small>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card conges h-100">
+                <div class="stat-icon conges">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-number" th:text="${totalConges}">0</div>
+                <div class="stat-text">Demandes de congés</div>
+                <div class="d-flex justify-content-between mt-3">
+                    <small>
+                        <span class="text-warning" th:text="${congesEnAttente}">0</span> en attente
+                    </small>
+                    <small>
+                        <span class="text-success" th:text="${congesValides}">0</span> validés
+                    </small>
+                </div>
             </div>
         </div>
 
         <!-- Départements Card -->
-        <div class="stat-card departements">
-            <div class="stat-icon departements">
-                <i class="fas fa-building"></i>
-            </div>
-            <div class="stat-number" th:text="${totalDepartements}">0</div>
-            <div class="stat-text">Départements</div>
-            <div class="d-flex justify-content-between mt-3">
-                <small>
-                    <span class="text-success" th:text="${departementsAvecManager}">0</span> avec manager
-                </small>
-                <small>
-                    <span class="text-warning" th:text="${totalDepartements - departementsAvecManager}">0</span> sans manager
-                </small>
-            </div>
-            <div class="stat-trend trend-up" th:if="${tauxOccupation > 80}">
-                <i class="fas fa-arrow-up"></i>
-                <span th:text="${#numbers.formatDecimal(tauxOccupation, 1, 1)}">0</span>% occupation
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card departements h-100">
+                <div class="stat-icon departements">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-number" th:text="${totalDepartements}">0</div>
+                <div class="stat-text">Départements</div>
+                <div class="d-flex justify-content-between mt-3">
+                    <small>
+                        <span class="text-success" th:text="${departementsAvecManager}">0</span> avec manager
+                    </small>
+                    <small>
+                        <span class="text-warning" th:text="${totalDepartements - departementsAvecManager}">0</span> sans manager
+                    </small>
+                </div>
+                <div class="stat-trend trend-up" th:if="${tauxOccupation > 80}">
+                    <i class="fas fa-arrow-up"></i>
+                    <span th:text="${#numbers.formatDecimal(tauxOccupation, 1, 1)}">0</span>% occupation
+                </div>
             </div>
         </div>
 
         <!-- Rôles Card -->
-        <div class="stat-card roles">
-            <div class="stat-icon roles">
-                <i class="fas fa-user-tag"></i>
-            </div>
-            <div class="stat-number" th:text="${#maps.size(statistiquesParRole)}">0</div>
-            <div class="stat-text">Rôles différents</div>
-            <div class="mt-3">
-                <small th:each="entry : ${statistiquesParRole}" class="d-block">
-                    <span th:text="${entry.key}">ROLE</span>:
-                    <span th:text="${entry.value}" class="fw-bold">0</span>
-                </small>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card roles h-100">
+                <div class="stat-icon roles">
+                    <i class="fas fa-user-tag"></i>
+                </div>
+                <div class="stat-number" th:text="${#maps.size(statistiquesParRole)}">0</div>
+                <div class="stat-text">Rôles différents</div>
+                <div class="mt-3">
+                    <small th:each="entry : ${statistiquesParRole}" class="d-block">
+                        <span th:text="${entry.key}">ROLE</span>:
+                        <span th:text="${entry.value}" class="fw-bold">0</span>
+                    </small>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Charts Section -->
-    <div class="charts-section">
+    <div class="row g-3 mb-4">
         <!-- Distribution par rôle -->
-        <div class="chart-card">
-            <h6 class="chart-title">Distribution par Rôle</h6>
-            <div class="chart-container">
-                <canvas id="roleChart" height="250"></canvas>
+        <div class="col-xl-6 col-lg-6">
+            <div class="chart-card h-100">
+                <h6 class="chart-title">Distribution par Rôle</h6>
+                <div class="chart-container">
+                    <canvas id="roleChart" height="250"></canvas>
+                </div>
             </div>
         </div>
 
         <!-- Employés par département -->
-        <div class="chart-card">
-            <h6 class="chart-title">Employés par Département</h6>
-            <div class="chart-container">
-                <canvas id="departementChart" height="250"></canvas>
+        <div class="col-xl-6 col-lg-6">
+            <div class="chart-card h-100">
+                <h6 class="chart-title">Employés par Département</h6>
+                <div class="chart-container">
+                    <canvas id="departementChart" height="250"></canvas>
+                </div>
             </div>
         </div>
     </div>
