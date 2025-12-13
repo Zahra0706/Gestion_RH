@@ -4,6 +4,30 @@
       lang="fr">
 <head th:replace="layouts/header :: head">
     <title>Liste des Employés - Administration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --light-blue: #ecf0f1;
+            --accent-blue: #2980b9;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        .table-hover tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+    </style>
 </head>
 <body>
 <!-- Sidebar Menu -->
@@ -90,6 +114,18 @@
 
         <!-- Employees Table -->
         <div class="card">
+            <div class="card-header bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Liste des Employés
+                        <small class="text-muted ms-2" id="filterStatus">
+                            (<span id="visibleCount" th:text="${#lists.size(employes)}">0</span> sur
+                            <span id="totalCount" th:text="${#lists.size(employes)}">0</span>)
+                        </small>
+                    </h6>
+                    <div class="text-muted" id="activeFilterInfo"></div>
+                </div>
+            </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover" id="employeesTable">
@@ -97,8 +133,7 @@
                         <tr>
                             <th>Matricule</th>
                             <th>Nom & Prénom</th>
-                            <th>Email</th>
-                            <th>Téléphone</th>
+                            <th>Contact</th>
                             <th>Département</th>
                             <th>Poste</th>
                             <th>Rôle</th>
@@ -116,8 +151,10 @@
                                 <br>
                                 <small class="text-muted" th:text="${'Embauche: ' + #temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></small>
                             </td>
-                            <td th:text="${employe.email}"></td>
-                            <td th:text="${employe.telephone}"></td>
+                            <td>
+                                <span th:text="${employe.email}"></span><br>
+                                <span th:text="${employe.telephone}"></span>
+                            </td>
                             <td th:attr="data-dept-id=${employe.departement != null ? employe.departement.id : ''}">
                                 <span th:if="${employe.departement != null}"
                                       class="badge bg-info"
@@ -295,8 +332,8 @@
                 }
 
                 // Department filter - CORRECTION ICI
-                if (deptValue && cells[4]) {
-                    const deptCell = cells[4];
+                if (deptValue && cells[3]) {
+                    const deptCell = cells[3];
                     const deptId = deptCell.getAttribute('data-dept-id');
                     // Compare l'ID numérique, pas le texte
                     if (deptId !== deptValue) {
@@ -305,8 +342,8 @@
                 }
 
                 // Role filter
-                if (roleValue && cells[6]) {
-                    const roleCell = cells[6].querySelector('.badge');
+                if (roleValue && cells[5]) {
+                    const roleCell = cells[5].querySelector('.badge');
                     if (roleCell && roleCell.textContent.trim() !== roleValue) {
                         showRow = false;
                     }

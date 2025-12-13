@@ -124,6 +124,18 @@
 
         <!-- Annonces Table -->
         <div class="card">
+            <div class="card-header bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Liste des Annonces
+                        <small class="text-muted ms-2" id="filterStatus">
+                            (<span id="visibleCount" th:text="${#lists.size(annonces)}">0</span> sur
+                            <span id="totalCount" th:text="${#lists.size(annonces)}">0</span>)
+                        </small>
+                    </h6>
+                    <div class="text-muted" id="activeFilterInfo"></div>
+                </div>
+            </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover" id="annoncesTable">
