@@ -39,6 +39,7 @@
             <a th:href="@{/admin/annonces}" class="menu-item">
                 <i class="fas fa-bullhorn"></i>
                 <span class="menu-text">Annonces</span>
+                <span th:if="${totalAnnonces != null}" class="menu-badge" th:text="${totalAnnonces}">0</span>
             </a>
 
             <!-- Statistiques -->
