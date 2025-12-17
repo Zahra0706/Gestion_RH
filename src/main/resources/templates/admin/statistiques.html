@@ -547,6 +547,20 @@
     // Variables globales
     let roleChart, deptChart, congeChart, annonceChart;
     const currentYear = /*[[${T(java.time.LocalDate).now().year}]]*/ 2025;
+    // Ajouter ces variables manquantes
+    const currentPeriod = 'current';
+    const currentFilters = {};
+
+    // Fonction utilitaire pour getPeriodLabel (qui manque)
+    function getPeriodLabel(period) {
+        const periodLabels = {
+            'current': 'En cours',
+            'month': 'Ce mois',
+            'year': 'Cette année',
+            'quarter': 'Ce trimestre'
+        };
+        return periodLabels[period] || period;
+    }
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -984,165 +998,236 @@
     function exportToPDF() {
         showLoading();
 
-        // Vérifier si jsPDF est disponible
-        if (typeof window.jspdf === 'undefined') {
-            showToast('Erreur', 'Bibliothèque PDF non disponible', 'danger');
-            hideLoading();
-            return;
-        }
+        try {
+            // Vérifier si jsPDF est disponible
+            if (typeof window.jspdf === 'undefined') {
+                throw new Error('Bibliothèque PDF non disponible');
+            }
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
 
-        // Titre
-        doc.setFontSize(20);
-        doc.text('Rapport de Statistiques - HR Manager', 105, 20, { align: 'center' });
+            // Titre
+            doc.setFontSize(20);
+            doc.text('Rapport de Statistiques - HR Manager', 105, 20, { align: 'center' });
 
-        // Période et date
-        doc.setFontSize(12);
-        doc.text(`Période: ${getPeriodLabel(currentPeriod)}`, 20, 35);
-        doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 42);
+            // Date
+            doc.setFontSize(12);
+            doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 35);
+            doc.text(`Année: ${currentYear}`, 20, 42);
 
-        // Statistiques principales
-        doc.setFontSize(14);
-        doc.text('Statistiques Principales', 20, 55);
+            // Statistiques principales
+            doc.setFontSize(14);
+            doc.text('Statistiques Principales', 20, 55);
 
-        doc.setFontSize(10);
-        let y = 65;
-        const stats = collectAllStatistics().statistics;
+            doc.setFontSize(10);
+            let y = 65;
 
-        Object.entries(stats).forEach(([key, value]) => {
-            doc.text(`${key}: ${value}`, 20, y);
-            y += 7;
-        });
+            // Collecter les statistiques directement
+            const stats = {
+                'Total Employés': document.getElementById('totalEmployes').textContent,
+                'Employés Actifs': document.getElementById('employesActifs').textContent,
+                'Employés Inactifs': document.getElementById('employesInactifs').textContent,
+                'Total Congés': document.getElementById('totalConges').textContent,
+                'Congés en attente': document.getElementById('congesEnAttente').textContent,
+                'Congés validés': document.getElementById('congesValides').textContent,
+                'Total Départements': document.getElementById('totalDepartements').textContent,
+                'Départements avec manager': document.getElementById('departementsAvecManager').textContent,
+                'Départements sans manager': document.getElementById('departementsSansManager').textContent,
+                'Total Annonces': document.getElementById('totalAnnonces').textContent
+            };
 
-        // Table des départements
-        y += 10;
-        doc.setFontSize(14);
-        doc.text('Départements', 20, y);
-
-        y += 10;
-        const departments = collectAllStatistics().departments;
-        if (departments.length > 0) {
-            doc.setFontSize(8);
-            departments.forEach((dept, index) => {
-                if (y > 270) { // Nouvelle page si nécessaire
-                    doc.addPage();
-                    y = 20;
-                }
-                doc.text(`${index + 1}. ${dept.name} - ${dept.manager} - ${dept.employees} employés - ${dept.status}`, 20, y);
-                y += 6;
+            Object.entries(stats).forEach(([key, value]) => {
+                doc.text(`${key}: ${value}`, 20, y);
+                y += 7;
             });
+
+            // Table des départements
+            y += 10;
+            doc.setFontSize(14);
+            doc.text('Départements', 20, y);
+
+            y += 10;
+            const table = document.getElementById('departementTable');
+            const rows = Array.from(table.tBodies[0].rows);
+
+            if (rows.length > 0) {
+                doc.setFontSize(8);
+                rows.forEach((row, index) => {
+                    if (row.style.display !== 'none') {
+                        if (y > 270) { // Nouvelle page si nécessaire
+                            doc.addPage();
+                            y = 20;
+                        }
+
+                        const cells = Array.from(row.cells);
+                        const deptInfo = `${index + 1}. ${cells[0].textContent} - ${cells[1].textContent} - ${cells[2].textContent} employés`;
+                        doc.text(deptInfo, 20, y);
+                        y += 6;
+                    }
+                });
+            }
+
+            // Pied de page
+            doc.setFontSize(8);
+            doc.text('Généré par HR Manager - Système de Gestion des Ressources Humaines', 105, 290, { align: 'center' });
+
+            // Sauvegarder le PDF
+            doc.save(`statistiques_${currentYear}_${new Date().getTime()}.pdf`);
+
+            hideLoading();
+            showToast('PDF généré', 'Le rapport PDF a été téléchargé', 'success');
+
+        } catch (error) {
+            hideLoading();
+            showToast('Erreur', 'Impossible de générer le PDF: ' + error.message, 'danger');
+            console.error('Erreur PDF:', error);
         }
-
-        // Pied de page
-        doc.setFontSize(8);
-        doc.text('Généré par HR Manager - Système de Gestion des Ressources Humaines', 105, 290, { align: 'center' });
-
-        // Sauvegarder le PDF
-        doc.save(`statistiques_${currentPeriod}_${new Date().getTime()}.pdf`);
-
-        hideLoading();
-        showToast('PDF généré', 'Le rapport PDF a été téléchargé', 'success');
     }
 
     function exportToExcel() {
         showLoading();
 
-        // Vérifier si XLSX est disponible
-        if (typeof XLSX === 'undefined') {
-            showToast('Erreur', 'Bibliothèque Excel non disponible', 'danger');
+        try {
+            // Vérifier si XLSX est disponible
+            if (typeof XLSX === 'undefined') {
+                throw new Error('Bibliothèque Excel non disponible');
+            }
+
+            // Créer un nouveau classeur
+            const wb = XLSX.utils.book_new();
+
+            // Feuille 1 : Statistiques principales
+            const statsData = [
+                ['Rapport de Statistiques - HR Manager'],
+                [''],
+                ['Date de génération', new Date().toLocaleDateString('fr-FR')],
+                ['Année', currentYear],
+                [''],
+                ['Statistiques Principales'],
+                [''],
+                ['Indicateur', 'Valeur']
+            ];
+
+            // Ajouter les statistiques
+            statsData.push(['Total Employés', document.getElementById('totalEmployes').textContent]);
+            statsData.push(['Employés Actifs', document.getElementById('employesActifs').textContent]);
+            statsData.push(['Employés Inactifs', document.getElementById('employesInactifs').textContent]);
+            statsData.push(['Total Congés', document.getElementById('totalConges').textContent]);
+            statsData.push(['Congés en attente', document.getElementById('congesEnAttente').textContent]);
+            statsData.push(['Congés validés', document.getElementById('congesValides').textContent]);
+            statsData.push(['Total Départements', document.getElementById('totalDepartements').textContent]);
+            statsData.push(['Départements avec manager', document.getElementById('departementsAvecManager').textContent]);
+            statsData.push(['Départements sans manager', document.getElementById('departementsSansManager').textContent]);
+            statsData.push(['Total Annonces', document.getElementById('totalAnnonces').textContent]);
+
+            const ws1 = XLSX.utils.aoa_to_sheet(statsData);
+            XLSX.utils.book_append_sheet(wb, ws1, 'Statistiques');
+
+            // Feuille 2 : Départements
+            const deptData = [
+                ['Départements Détail'],
+                [''],
+                ['Nom', 'Manager', 'Nombre d\'employés', 'Statut', 'Taux d\'occupation']
+            ];
+
+            const table = document.getElementById('departementTable');
+            const rows = Array.from(table.tBodies[0].rows);
+
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const cells = Array.from(row.cells);
+                    deptData.push([
+                        cells[0].textContent,
+                        cells[1].textContent,
+                        cells[2].textContent,
+                        cells[3].textContent,
+                        cells[4].textContent
+                    ]);
+                }
+            });
+
+            const ws2 = XLSX.utils.aoa_to_sheet(deptData);
+            XLSX.utils.book_append_sheet(wb, ws2, 'Départements');
+
+            // Sauvegarder le fichier Excel
+            XLSX.writeFile(wb, `statistiques_${currentYear}_${new Date().getTime()}.xlsx`);
+
             hideLoading();
-            return;
+            showToast('Excel généré', 'Le fichier Excel a été téléchargé', 'success');
+
+        } catch (error) {
+            hideLoading();
+            showToast('Erreur', 'Impossible de générer Excel: ' + error.message, 'danger');
+            console.error('Erreur Excel:', error);
         }
-
-        const data = collectAllStatistics();
-
-        // Créer un nouveau classeur
-        const wb = XLSX.utils.book_new();
-
-        // Feuille 1 : Statistiques principales
-        const statsData = [
-            ['Rapport de Statistiques - HR Manager'],
-            [''],
-            ['Période', getPeriodLabel(data.period)],
-            ['Date de génération', new Date().toLocaleDateString('fr-FR')],
-            [''],
-            ['Statistiques Principales'],
-            [''],
-            ['Indicateur', 'Valeur']
-        ];
-
-        Object.entries(data.statistics).forEach(([key, value]) => {
-            statsData.push([key, value]);
-        });
-
-        const ws1 = XLSX.utils.aoa_to_sheet(statsData);
-        XLSX.utils.book_append_sheet(wb, ws1, 'Statistiques');
-
-        // Feuille 2 : Départements
-        const deptData = [
-            ['Départements Détail'],
-            [''],
-            ['Nom', 'Manager', 'Nombre d\'employés', 'Statut', 'Taux d\'occupation']
-        ];
-
-        data.departments.forEach(dept => {
-            deptData.push([dept.name, dept.manager, dept.employees, dept.status, dept.occupation]);
-        });
-
-        const ws2 = XLSX.utils.aoa_to_sheet(deptData);
-        XLSX.utils.book_append_sheet(wb, ws2, 'Départements');
-
-        // Sauvegarder le fichier Excel
-        XLSX.writeFile(wb, `statistiques_${currentPeriod}_${new Date().getTime()}.xlsx`);
-
-        hideLoading();
-        showToast('Excel généré', 'Le fichier Excel a été téléchargé', 'success');
     }
 
     function exportToCSV() {
         showLoading();
 
-        const data = collectAllStatistics();
+        try {
+            // Créer le contenu CSV
+            let csvContent = "data:text/csv;charset=utf-8,";
 
-        // Créer le contenu CSV
-        let csvContent = "data:text/csv;charset=utf-8,";
+            // En-tête
+            csvContent += "Rapport de Statistiques - HR Manager\n\n";
+            csvContent += `Date de génération,${new Date().toLocaleDateString('fr-FR')}\n`;
+            csvContent += `Année,${currentYear}\n\n`;
 
-        // En-tête
-        csvContent += "Rapport de Statistiques - HR Manager\n\n";
-        csvContent += `Période,${getPeriodLabel(data.period)}\n`;
-        csvContent += `Date de génération,${new Date().toLocaleDateString('fr-FR')}\n\n`;
+            // Statistiques
+            csvContent += "Statistiques Principales\n";
+            csvContent += "Indicateur,Valeur\n";
 
-        // Statistiques
-        csvContent += "Statistiques Principales\n";
-        csvContent += "Indicateur,Valeur\n";
+            csvContent += `Total Employés,${document.getElementById('totalEmployes').textContent}\n`;
+            csvContent += `Employés Actifs,${document.getElementById('employesActifs').textContent}\n`;
+            csvContent += `Employés Inactifs,${document.getElementById('employesInactifs').textContent}\n`;
+            csvContent += `Total Congés,${document.getElementById('totalConges').textContent}\n`;
+            csvContent += `Congés en attente,${document.getElementById('congesEnAttente').textContent}\n`;
+            csvContent += `Congés validés,${document.getElementById('congesValides').textContent}\n`;
+            csvContent += `Total Départements,${document.getElementById('totalDepartements').textContent}\n`;
+            csvContent += `Départements avec manager,${document.getElementById('departementsAvecManager').textContent}\n`;
+            csvContent += `Départements sans manager,${document.getElementById('departementsSansManager').textContent}\n`;
+            csvContent += `Total Annonces,${document.getElementById('totalAnnonces').textContent}\n`;
 
-        Object.entries(data.statistics).forEach(([key, value]) => {
-            csvContent += `${key},${value}\n`;
-        });
+            csvContent += "\n\n";
 
-        csvContent += "\n\n";
+            // Départements
+            csvContent += "Départements Détail\n";
+            csvContent += "Nom,Manager,Nombre d'employés,Statut,Taux d'occupation\n";
 
-        // Départements
-        csvContent += "Départements Détail\n";
-        csvContent += "Nom,Manager,Nombre d'employés,Statut,Taux d'occupation\n";
+            const table = document.getElementById('departementTable');
+            const rows = Array.from(table.tBodies[0].rows);
 
-        data.departments.forEach(dept => {
-            csvContent += `${dept.name},${dept.manager},${dept.employees},${dept.status},${dept.occupation}\n`;
-        });
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const cells = Array.from(row.cells);
+                    const rowData = cells.map(cell => {
+                        // Échapper les virgules dans le texte
+                        const text = cell.textContent.trim();
+                        return text.includes(',') ? `"${text}"` : text;
+                    }).join(',');
+                    csvContent += rowData + "\n";
+                }
+            });
 
-        // Créer le lien de téléchargement
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `statistiques_${currentPeriod}_${new Date().getTime()}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            // Créer le lien de téléchargement
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `statistiques_${currentYear}_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
 
-        hideLoading();
-        showToast('CSV généré', 'Le fichier CSV a été téléchargé', 'success');
+            hideLoading();
+            showToast('CSV généré', 'Le fichier CSV a été téléchargé', 'success');
+
+        } catch (error) {
+            hideLoading();
+            showToast('Erreur', 'Impossible de générer CSV: ' + error.message, 'danger');
+            console.error('Erreur CSV:', error);
+        }
     }
 
     function exportDepartementTable() {
@@ -1172,42 +1257,66 @@
     }
 
     function printStatistics() {
-        // Créer une fenêtre d'impression personnalisée
-        const printContent = document.querySelector('.main-content').innerHTML;
+        // Sauvegarder le contenu original
         const originalContent = document.body.innerHTML;
 
+        // Créer le contenu d'impression
+        const printContent = document.querySelector('.main-content').cloneNode(true);
+
+        // Nettoyer le contenu pour l'impression
+        const buttons = printContent.querySelectorAll('button, .no-print, .stats-filter');
+        buttons.forEach(button => button.style.display = 'none');
+
+        // Créer une nouvelle page pour l'impression
         document.body.innerHTML = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Statistiques - Impression</title>
-                <style>
-                    body { font-family: Arial, sans-serif; }
-                    .print-header { text-align: center; margin-bottom: 30px; }
-                    .print-header h1 { color: #2c3e50; }
-                    .print-footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-                    @media print {
-                        .no-print { display: none; }
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Statistiques - Impression</title>
+            <style>
+                @media print {
+                    body { font-family: Arial, sans-serif; font-size: 12px; }
+                    .print-header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #ccc; }
+                    .print-header h1 { color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
+                    .print-header p { color: #666; font-size: 14px; }
+                    .print-footer { text-align: center; margin-top: 30px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+                    .no-print, button, .dropdown { display: none !important; }
+                    .chart-card, .stat-card, .table-card {
+                        border: 1px solid #ddd !important;
+                        box-shadow: none !important;
+                        page-break-inside: avoid;
                     }
-                </style>
-            </head>
-            <body>
-                <div class="print-header">
-                    <h1>Rapport de Statistiques - HR Manager</h1>
-                    <p>Date: ${new Date().toLocaleDateString('fr-FR')} | Période: ${getPeriodLabel(currentPeriod)}</p>
-                </div>
-                ${printContent}
-                <div class="print-footer">
-                    <p>Généré par HR Manager - Page {page} sur {totalPages}</p>
-                </div>
-            </body>
-            </html>
+                    .table-responsive { overflow: visible !important; }
+                    canvas { max-width: 100% !important; height: auto !important; }
+                }
+                @page {
+                    margin: 20mm;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-header">
+                <h1>Rapport de Statistiques - HR Manager</h1>
+                <p>Date: ${new Date().toLocaleDateString('fr-FR')} | Année: ${currentYear}</p>
+            </div>
+            ${printContent.outerHTML}
+            <div class="print-footer">
+                <p>Généré par HR Manager - Page <span class="page-number"></span></p>
+            </div>
+
+        </body>
+        </html>
         `;
 
+        // Imprimer
         window.print();
+
+        // Restaurer le contenu original
         document.body.innerHTML = originalContent;
-        location.reload(); // Recharger pour restaurer les fonctionnalités JavaScript
-    }
+
+        // Rafraîchir la page pour restaurer les fonctionnalités JavaScript
+        window.location.reload();
+        }
 
     // Utilitaires
     function showLoading() {
