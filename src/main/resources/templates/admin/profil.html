@@ -32,12 +32,12 @@
 </head>
 <body>
 <!-- Sidebar Menu -->
-<div th:replace="layouts/menu :: sidebar"></div>
+<div th:replace="admin/menu :: sidebar"></div>
 
 <!-- Main Content -->
 <main class="main-content">
     <!-- Header -->
-    <div th:replace="layouts/header :: admin-header" th:with="pageTitle='Mon Profil'"></div>
+    <div th:replace="admin/header :: admin-header" th:with="pageTitle='Mon Profil'"></div>
 
     <!-- Alert Messages -->
     <div class="container-fluid mt-3">
@@ -248,7 +248,7 @@
 </main>
 
 <!-- Scripts -->
-<div th:replace="layouts/footer :: scripts"></div>
+<div th:replace="admin/footer :: scripts"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
