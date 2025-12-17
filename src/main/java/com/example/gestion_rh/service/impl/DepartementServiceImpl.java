@@ -37,6 +37,58 @@ public class DepartementServiceImpl implements DepartementService {
     public List<Departement> getAllDepartements() {
         return departementRepository.findAll();
     }
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Departement> getDepartementWithDetails(Long id) {
+        try {
+            System.out.println("Chargement des détails pour le département ID: " + id);
+
+            // Utilisez d'abord la méthode simple avec manager
+            Optional<Departement> departementOpt = departementRepository.findByIdWithManager(id);
+
+            if (departementOpt.isEmpty()) {
+                System.out.println("Méthode findByIdWithManager n'a pas trouvé le département");
+                departementOpt = departementRepository.findById(id);
+            }
+
+            // Forcez le chargement des relations si nécessaire
+            departementOpt.ifPresent(departement -> {
+                // Pour déboguer
+                System.out.println("Département trouvé: " + departement.getNom());
+                System.out.println("Manager: " + (departement.getManager() != null ? departement.getManager().getNom() : "null"));
+
+                // Charger les employés
+                try {
+                    if (departement.getEmployes() != null) {
+                        int size = departement.getEmployes().size();
+                        System.out.println("Nombre d'employés chargés: " + size);
+                    } else {
+                        System.out.println("Liste d'employés est null");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Erreur lors du chargement des employés: " + e.getMessage());
+                }
+
+                // Charger les annonces
+                try {
+                    if (departement.getAnnonces() != null) {
+                        int size = departement.getAnnonces().size();
+                        System.out.println("Nombre d'annonces chargés: " + size);
+                    } else {
+                        System.out.println("Liste d'annonces est null");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Erreur lors du chargement des annonces: " + e.getMessage());
+                }
+            });
+
+            return departementOpt;
+        } catch (Exception e) {
+            System.err.println("Erreur grave lors du chargement des détails du département: " + e.getMessage());
+            e.printStackTrace();
+            return departementRepository.findById(id);
+        }
+    }
 
     @Override
     public Departement updateDepartement(Long id, Departement departement) {

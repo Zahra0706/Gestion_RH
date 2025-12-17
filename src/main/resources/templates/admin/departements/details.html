@@ -1,168 +1,362 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="admin/header :: head">
+    <title>Détails du Département - Administration</title>
+</head>
 <body>
-<div th:fragment="department-details">
-    <div th:if="${departement != null}">
-        <!-- Department Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                         style="width: 60px; height: 60px; font-size: 24px;">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h4 class="mb-0" th:text="${departement.nom}"></h4>
-                        <p class="text-muted mb-0">
-                            Code: <span class="badge bg-secondary" th:text="${departement.code}"></span>
-                            <span class="ms-2" th:if="${departement.isActif}" class="badge bg-success">
-                                <i class="fas fa-check-circle"></i> Actif
-                            </span>
-                            <span class="ms-2" th:unless="${departement.isActif}" class="badge bg-danger">
-                                <i class="fas fa-times-circle"></i> Inactif
-                            </span>
-                        </p>
-                    </div>
-                </div>
-            </div>
+<!-- Sidebar Menu -->
+<div th:replace="admin/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="admin/header :: admin-header" th:with="pageTitle='Détails du Département'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
-        <!-- Department Information -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h6 class="border-bottom pb-2 mb-3">
-                    <i class="fas fa-info-circle me-2"></i>Informations
-                </h6>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
 
-                <div class="mb-3">
-                    <label class="form-label text-muted small">Description:</label>
-                    <div class="border rounded p-3 bg-light">
-                        <p th:if="${departement.description != null && !departement.description.isEmpty()}"
-                           th:text="${departement.description}"></p>
-                        <p th:unless="${departement.description != null && !departement.description.isEmpty()}"
-                           class="text-muted fst-italic">Aucune description disponible</p>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Manager:</label>
-                            <div th:if="${departement.manager != null}" class="border rounded p-3 bg-light">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center"
-                                         style="width: 40px; height: 40px; font-size: 16px;">
-                                        <span th:text="${#strings.substring(departement.manager.prenom, 0, 1) + #strings.substring(departement.manager.nom, 0, 1)}"></span>
-                                    </div>
-                                    <div class="ms-3">
-                                        <h6 class="mb-0" th:text="${departement.manager.prenom + ' ' + departement.manager.nom}"></h6>
-                                        <small class="text-muted" th:text="${departement.manager.email}"></small>
-                                        <br>
-                                        <small class="text-muted" th:text="${departement.manager.poste}"></small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div th:unless="${departement.manager != null}" class="border rounded p-3 bg-light">
-                                <span class="text-warning">
-                                    <i class="fas fa-user-slash me-2"></i>Aucun manager assigné
+    <!-- Department Details -->
+    <div class="container-fluid mt-3">
+        <div th:if="${departement != null}">
+            <!-- Header Section -->
+            <div class="card mb-4">
+                <div class="card-body bg-primary text-white rounded">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1" th:text="${departement.nom}"></h2>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-light text-dark fs-6 me-3" th:text="${departement.code}"></span>
+                                <span th:if="${departement.isActif}" class="badge bg-success fs-6">
+                                    <i class="fas fa-check-circle me-1"></i>Actif
+                                </span>
+                                <span th:unless="${departement.isActif}" class="badge bg-danger fs-6">
+                                    <i class="fas fa-times-circle me-1"></i>Inactif
                                 </span>
                             </div>
                         </div>
+                        <div class="col-md-4 text-end">
+                            <a th:href="@{/admin/departements}" class="btn btn-light me-2">
+                                <i class="fas fa-arrow-left me-2"></i>Retour
+                            </a>
+                            <a th:href="@{'/admin/departements/' + ${departement.id} + '/modifier'}"
+                               class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i>Modifier
+                            </a>
+                        </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Statistiques:</label>
-                            <div class="border rounded p-3 bg-light">
-                                <div class="row text-center">
-                                    <div class="col-6">
-                                        <h3 class="mb-0 text-primary"
-                                            th:text="${departement.employes != null ? departement.employes.size() : 0}">
-                                        </h3>
-                                        <small class="text-muted">Employés</small>
+            <!-- Information Cards -->
+            <div class="row">
+                <!-- Basic Information -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Informations Générales
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tbody>
+                                <tr>
+                                    <th width="40%"><i class="fas fa-hashtag me-2"></i>Code :</th>
+                                    <td><strong th:text="${departement.code}"></strong></td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-building me-2"></i>Nom :</th>
+                                    <td th:text="${departement.nom}"></td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-file-alt me-2"></i>Description :</th>
+                                    <td>
+                                        <div th:if="${departement.description != null && !departement.description.isEmpty()}">
+                                            <span th:text="${departement.description}"></span>
+                                        </div>
+                                        <div th:unless="${departement.description != null && !departement.description.isEmpty()}">
+                                            <span class="text-muted fst-italic">Aucune description</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-calendar-alt me-2"></i>Création :</th>
+                                    <td>
+                                        <span th:if="${departement != null and departement.dateCreation != null}"
+                                              th:text="${#temporals.format(departement.dateCreation, 'dd/MM/yyyy HH:mm')}"></span>
+                                        <span th:unless="${departement != null and departement.dateCreation != null}" class="text-muted">Non spécifiée</span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manager Information -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-tie me-2"></i>Manager du Département
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${departement != null and departement.manager != null}">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="avatar-circle bg-primary text-white me-3">
+                                        <span th:text="${(departement.manager.prenom != null ? departement.manager.prenom.substring(0, 1) : '') +
+                                                       (departement.manager.nom != null ? departement.manager.nom.substring(0, 1) : '')}">
+                                        </span>
                                     </div>
-                                    <div class="col-6">
-                                        <h3 class="mb-0 text-success"
-                                            th:text="${departement.annonces != null ? departement.annonces.size() : 0}">
-                                        </h3>
-                                        <small class="text-muted">Annonces</small>
+                                    <div>
+                                        <h6 class="mb-0"
+                                            th:text="${departement.manager.prenom} + ' ' + ${departement.manager.nom}"></h6>
+                                        <small class="text-muted" th:text="${departement.manager.email}"></small>
                                     </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Matricule :</small>
+                                        <div th:text="${departement.manager.matricule}" class="fw-semibold"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Poste :</small>
+                                        <div th:text="${departement.manager.poste}" class="fw-semibold"></div>
+                                    </div>
+                                    <div class="col-md-12 mt-2">
+                                        <small class="text-muted">Téléphone :</small>
+                                        <div th:text="${departement.manager.telephone ?: 'Non spécifié'}" class="fw-semibold"></div>
+                                    </div>
+                                    <div class="col-md-12 mt-2">
+                                        <a th:href="@{'/admin/employes/' + ${departement.manager.id}}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-external-link-alt me-1"></i>Voir le profil
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:unless="${departement != null and departement.manager != null}">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-user-slash fa-3x text-warning mb-3"></i>
+                                    <h5 class="text-muted">Aucun manager assigné</h5>
+                                    <p class="text-muted">Assignez un manager pour ce département</p>
+                                    <a th:href="@{'/admin/departements/' + ${departement.id} + '/modifier'}"
+                                       class="btn btn-warning">
+                                        <i class="fas fa-user-plus me-2"></i>Assigner un manager
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Employees List -->
-        <div class="row" th:if="${departement.employes != null && !departement.employes.isEmpty()}">
-            <div class="col-12">
-                <h6 class="border-bottom pb-2 mb-3">
-                    <i class="fas fa-users me-2"></i>Employés du Département
-                    <span class="badge bg-primary ms-2" th:text="${departement.employes.size()}"></span>
-                </h6>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h6 class="mb-0">Total Employés</h6>
+                            <h2 class="mb-0" th:text="${totalEmployes != null ? totalEmployes : 0}"></h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h6 class="mb-0">Employés Actifs</h6>
+                            <h2 class="mb-0" th:text="${employesActifs != null ? employesActifs : 0}"></h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body text-center">
+                            <h6 class="mb-0">Employés Inactifs</h6>
+                            <h2 class="mb-0" th:text="${employesInactifs != null ? employesInactifs : 0}"></h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-secondary text-white">
+                        <div class="card-body text-center">
+                            <h6 class="mb-0">Annonces</h6>
+                            <h2 class="mb-0" th:text="${totalAnnonces != null ? totalAnnonces : 0}"></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Employees List -->
+            <div th:if="${departement.employes != null && !departement.employes.isEmpty()}">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users me-2"></i>Liste des Employés
+                                <span class="badge bg-info ms-2" th:text="${departement.employes.size()}"></span>
+                            </h5>
+                            <a th:href="@{/admin/employes/creer}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus-circle me-2"></i>Ajouter un employé
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>Matricule</th>
+                                    <th>Nom & Prénom</th>
+                                    <th>Email</th>
+                                    <th>Poste</th>
+                                    <th>Statut Compte</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="employe : ${departement.employes}">
+                                    <td>
+                                        <span class="badge bg-secondary" th:text="${employe.matricule}"></span>
+                                    </td>
+                                    <td th:text="${employe.prenom + ' ' + employe.nom}"></td>
+                                    <td>
+                                        <small th:text="${employe.email}"></small>
+                                    </td>
+                                    <td th:text="${employe.poste}"></td>
+                                    <td>
+                                        <!-- Utilisez isCompteActif au lieu de isActif -->
+                                        <span th:if="${employe.isCompteActif}" class="badge bg-success">Actif</span>
+                                        <span th:unless="${employe.isCompteActif}" class="badge bg-secondary">Inactif</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{'/admin/employes/' + ${employe.id}}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Voir détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                    <table class="table table-sm">
-                        <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Email</th>
-                            <th>Poste</th>
-                            <th>Statut</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="employe : ${departement.employes}">
-                            <td th:text="${employe.prenom + ' ' + employe.nom}"></td>
-                            <td th:text="${employe.email}"></td>
-                            <td>
-                                <span class="badge bg-info" th:text="${employe.poste}"></span>
-                            </td>
-                            <td>
-                                <span th:if="${employe.isCompteActif}" class="badge bg-success">Actif</span>
-                                <span th:unless="${employe.isCompteActif}" class="badge bg-danger">Inactif</span>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+            <div th:unless="${departement.employes != null && !departement.employes.isEmpty()}">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucun employé dans ce département</h5>
+                        <p class="text-muted mb-4">Ajoutez des employés à ce département</p>
+                        <a th:href="@{/admin/employes/creer}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Ajouter un employé
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a th:href="@{'/admin/departements/' + ${departement.id} + '/modifier'}"
+                               class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-edit me-2"></i>Modifier
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <form th:if="${departement.isActif}"
+                                  th:action="@{'/admin/departements/' + ${departement.id} + '/desactiver'}"
+                                  method="post"
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir désactiver ce département ?')">
+                                <button type="submit" class="btn btn-outline-warning w-100 mb-2">
+                                    <i class="fas fa-toggle-off me-2"></i>Désactiver
+                                </button>
+                            </form>
+                            <form th:unless="${departement.isActif}"
+                                  th:action="@{'/admin/departements/' + ${departement.id} + '/activer'}"
+                                  method="post"
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir activer ce département ?')">
+                                <button type="submit" class="btn btn-outline-success w-100 mb-2">
+                                    <i class="fas fa-toggle-on me-2"></i>Activer
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <form th:action="@{'/admin/departements/' + ${departement.id} + '/supprimer'}"
+                                  method="post"
+                                  onsubmit="return confirm('ATTENTION: Êtes-vous ABSOLUMENT sûr de vouloir supprimer ce département ? Cette action est IRREVERSIBLE.')">
+                                <button type="submit"
+                                        class="btn btn-outline-danger w-100 mb-2"
+                                        th:disabled="${departement.employes != null && !departement.employes.isEmpty()}">
+                                    <i class="fas fa-trash me-2"></i>Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- No Employees Message -->
-        <div class="row" th:unless="${departement.employes != null && !departement.employes.isEmpty()}">
-            <div class="col-12">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Aucun employé n'est actuellement assigné à ce département.
-                </div>
-            </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-end gap-2">
-                    <a th:href="@{'/admin/departements/' + ${departement.id} + '/modifier'}"
-                       class="btn btn-primary">
-                        <i class="fas fa-edit me-2"></i>Modifier
-                    </a>
-                    <a th:href="@{'/admin/employes?departement=' + ${departement.id}}"
-                       class="btn btn-outline-secondary">
-                        <i class="fas fa-users me-2"></i>Voir les employés
+        <!-- Message if department not found -->
+        <div th:unless="${departement != null}">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <h3 class="text-danger">Département non trouvé</h3>
+                    <p class="text-muted">Le département que vous recherchez n'existe pas ou a été supprimé.</p>
+                    <a th:href="@{/admin/departements}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour à la liste
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Error Message -->
-    <div th:unless="${departement != null}" class="alert alert-danger">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        Département non trouvé.
-    </div>
-</div>
+    <!-- Footer -->
+    <div th:replace="admin/footer :: admin-footer"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="admin/footer :: scripts"></div>
+
+<style>
+    .avatar-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.5rem;
+        background-color: #0d6efd;
+        color: white;
+    }
+    h5{
+        color: white;
+    }
+</style>
 </body>
 </html>

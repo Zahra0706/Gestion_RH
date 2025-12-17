@@ -14,6 +14,7 @@ public interface DepartementService {
     List<Departement> getDepartementsInactifs();
     void activerDepartement(Long id);
     void desactiverDepartement(Long id);
+    Optional<Departement> getDepartementWithDetails(Long id);
 
     List<Departement> getDepartementsSansManager();
 }

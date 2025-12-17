@@ -39,4 +39,22 @@ public interface DepartementRepository extends JpaRepository<Departement, Long> 
     // Rechercher les départements par nom (avec LIKE)
     @Query("SELECT d FROM Departement d WHERE LOWER(d.nom) LIKE LOWER(CONCAT('%', :nom, '%'))")
     List<Departement> searchByNom(@Param("nom") String nom);
+
+    @Query("SELECT d FROM Departement d " +
+            "LEFT JOIN FETCH d.manager " +
+            "LEFT JOIN FETCH d.employes e " +
+            "LEFT JOIN FETCH d.annonces a " +
+            "WHERE d.id = :id")
+    Optional<Departement> findByIdWithDetails(@Param("id") Long id);
+
+    @Query("SELECT d FROM Departement d LEFT JOIN FETCH d.manager WHERE d.id = :id")
+    Optional<Departement> findByIdWithManager(@Param("id") Long id);
+
+    // Version simplifiée sans les annonces
+    @Query("SELECT d FROM Departement d " +
+            "LEFT JOIN FETCH d.manager " +
+            "LEFT JOIN FETCH d.employes " +
+            "WHERE d.id = :id")
+    Optional<Departement> findByIdWithManagerAndEmployes(@Param("id") Long id);
 }
+

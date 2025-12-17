@@ -2,6 +2,8 @@ package com.example.gestion_rh.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -36,4 +38,8 @@ public class Departement {
     @Column(name = "is_actif", nullable = false)
     @Builder.Default
     private Boolean isActif = true;
+
+    @Column(name = "date_creation")
+    @Builder.Default
+    private LocalDateTime dateCreation = LocalDateTime.now();
 }

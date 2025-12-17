@@ -146,10 +146,82 @@ public class AdminController {
 
     @GetMapping("/departements/{id}/details")
     public String getDepartmentDetails(@PathVariable Long id, Model model) {
-        Departement departement = departementService.getDepartementById(id)
-                .orElse(null);
-        model.addAttribute("departement", departement);
-        return "admin/departements/details :: department-details";
+        System.out.println("=== DEBUT CHARGEMENT DETAILS DEPARTEMENT ID: " + id + " ===");
+
+        try {
+            // Utilisez la nouvelle méthode du service
+            Departement departement = departementService.getDepartementWithDetails(id)
+                    .orElse(null);
+
+            if (departement == null) {
+                model.addAttribute("error", "Département non trouvé");
+                System.out.println("Département non trouvé pour ID: " + id);
+            } else {
+                System.out.println("=== INFORMATIONS DU DEPARTEMENT ===");
+                System.out.println("Nom: " + departement.getNom());
+                System.out.println("Code: " + departement.getCode());
+                System.out.println("Actif: " + departement.getIsActif());
+                System.out.println("Date création: " + departement.getDateCreation());
+
+                // Vérifier le manager
+                if (departement.getManager() != null) {
+                    System.out.println("Manager: " + departement.getManager().getNom() + " " + departement.getManager().getPrenom());
+                    System.out.println("Email manager: " + departement.getManager().getEmail());
+                } else {
+                    System.out.println("Manager: null");
+                }
+
+                // Calculer les statistiques
+                int totalEmployes = 0;
+                int employesActifs = 0;
+                int employesInactifs = 0;
+                int totalAnnonces = 0;
+
+                if (departement.getEmployes() != null) {
+                    totalEmployes = departement.getEmployes().size();
+                    System.out.println("Nombre d'employés: " + totalEmployes);
+
+                    // Compter les employés actifs et inactifs
+                    for (Employe employe : departement.getEmployes()) {
+                        if (employe.getIsCompteActif() != null && employe.getIsCompteActif() ) {
+                            employesActifs++;
+                        } else {
+                            employesInactifs++;
+                        }
+                    }
+                    System.out.println("Employés actifs: " + employesActifs);
+                    System.out.println("Employés inactifs: " + employesInactifs);
+                } else {
+                    System.out.println("Liste d'employés: null");
+                }
+
+                // Vérifier les annonces
+                if (departement.getAnnonces() != null) {
+                    totalAnnonces = departement.getAnnonces().size();
+                    System.out.println("Nombre d'annonces: " + totalAnnonces);
+                } else {
+                    System.out.println("Liste d'annonces: null");
+                }
+
+                // Ajouter les statistiques au modèle
+                model.addAttribute("totalEmployes", totalEmployes);
+                model.addAttribute("employesActifs", employesActifs);
+                model.addAttribute("employesInactifs", employesInactifs);
+                model.addAttribute("totalAnnonces", totalAnnonces);
+
+                System.out.println("=== FIN INFORMATIONS ===");
+            }
+
+            model.addAttribute("departement", departement);
+
+        } catch (Exception e) {
+            System.err.println("ERREUR dans getDepartmentDetails: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("error", "Erreur lors du chargement des détails: " + e.getMessage());
+        }
+
+        System.out.println("=== FIN CHARGEMENT DETAILS ===");
+        return "admin/departements/details";
     }
 
     @GetMapping("/departements/actifs")
