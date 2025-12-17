@@ -476,7 +476,7 @@ public class AdminController {
         List<Departement> departements = departementService.getAllDepartements();
         model.addAttribute("departements", departements);
 
-        // Calculer les statistiques d'annonces (vous devez injecter AnnonceService)
+        // Calculer les statistiques d'annonces
         List<Annonce> annonces = annonceService.getAllAnnonces();
         long totalAnnonces = annonces.size();
         long importantesCount = annonces.stream()
@@ -498,6 +498,11 @@ public class AdminController {
         model.addAttribute("generalesCount", generalesCount);
         model.addAttribute("informationCount", informationCount);
 
+        // NOUVEAU : Données d'évolution des congés par mois
+        Map<String, Object> congesEvolution = statistiqueService.getEvolutionCongesParMois(2024); // Année en cours
+        model.addAttribute("congesEvolutionLabels", congesEvolution.get("labels"));
+        model.addAttribute("congesEvolutionData", congesEvolution.get("data"));
+
         // Ajouter l'utilisateur connecté
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated()) {
@@ -507,5 +512,10 @@ public class AdminController {
         }
 
         return "admin/statistiques";
+    }
+    @GetMapping("/statistiques/conges/evolution")
+    @ResponseBody
+    public Map<String, Object> getEvolutionCongesData(@RequestParam(defaultValue = "2024") int annee) {
+        return statistiqueService.getEvolutionCongesParMois(annee);
     }
 }

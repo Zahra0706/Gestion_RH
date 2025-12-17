@@ -546,6 +546,8 @@
     /*<![CDATA[*/
     // Variables globales
     let roleChart, deptChart, congeChart, annonceChart;
+    const currentYear = /*[[${T(java.time.LocalDate).now().year}]]*/ 2025;
+
 
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize Charts
@@ -718,39 +720,103 @@
         }
 
         // Évolution des congés
+        // Évolution des congés - AVEC DONNÉES RÉELLES
         const congeCtx = document.getElementById('congeEvolutionChart');
         if (congeCtx) {
-            // Récupérer les données réelles ou générer des données simulées
-            const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-            const congeData = months.map(() => Math.floor(Math.random() * 10) + 5);
+            // Récupérer les données réelles depuis l'API
+            fetch(`/admin/statistiques/conges/evolution?annee=${currentYear}`)
+                .then(response => response.json())
+                .then(data => {
+                    const months = data.labels;
+                    const congeData = data.data;
 
-            congeChart = new Chart(congeCtx, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'Demandes de congés',
-                        data: congeData,
-                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
-                        borderColor: 'rgba(243, 156, 18, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 2
+                    congeChart = new Chart(congeCtx, {
+                        type: 'line',
+                        data: {
+                            labels: months,
+                            datasets: [{
+                                label: 'Demandes de congés',
+                                data: congeData,
+                                backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                                borderColor: 'rgba(243, 156, 18, 1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1,
+                                        callback: function(value) {
+                                            if (Number.isInteger(value)) {
+                                                return value;
+                                            }
+                                        }
+                                    },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `Demandes: ${context.raw}`;
+                                        }
+                                    }
+                                },
+                                legend: {
+                                    display: false
+                                }
                             }
                         }
-                    }
-                }
-            });
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur lors du chargement des données de congés:', error);
+
+                    // Fallback : afficher un message d'erreur dans le graphique
+                    congeChart = new Chart(congeCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                            datasets: [{
+                                label: 'Données non disponibles',
+                                data: Array(12).fill(0),
+                                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                borderColor: 'rgba(231, 76, 60, 0.5)',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true
+                                }
+                            }
+                        }
+                    });
+                });
         }
 
         // Annonces par type

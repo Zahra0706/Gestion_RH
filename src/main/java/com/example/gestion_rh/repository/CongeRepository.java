@@ -21,4 +21,6 @@ public interface CongeRepository extends JpaRepository<Conge, Long> {
 
     @Query("SELECT COUNT(c) FROM Conge c WHERE c.employe.id = :employeId AND YEAR(c.dateDebut) = :annee")
     long countCongeByEmployeAndAnnee(@Param("employeId") Long employeId, @Param("annee") int annee);
+
+    long count();
 }
