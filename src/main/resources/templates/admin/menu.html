@@ -50,10 +50,11 @@
 
             <!-- Déconnexion -->
             <div class="menu-group mt-5">
-                <form th:action="@{/logout}" method="post" class="menu-item logout-form">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="menu-text">Déconnexion</span>
-                    <button type="submit" class="btn btn-link p-0 m-0 border-0"></button>
+                <form th:action="@{/auth/logout}" method="post" class="menu-item logout-form">
+                    <button type="submit" class="btn p-0 m-0 border-0 text-white">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="menu-text">Déconnexion</span>
+                    </button>
                 </form>
             </div>
         </nav>

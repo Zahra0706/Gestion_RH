@@ -209,9 +209,11 @@
                                 <i class="fas fa-users me-2"></i>Liste des Employés
                                 <span class="badge bg-info ms-2" th:text="${departement.employes.size()}"></span>
                             </h5>
-                            <a th:href="@{/admin/employes/creer}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-plus-circle me-2"></i>Ajouter un employé
-                            </a>
+                            <div sec:authorize="hasRole('SUPER_ADMIN')">
+                                <a th:href="@{/admin/employes/creer}" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle me-2"></i>Ajouter un employé
+                                </a>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -263,9 +265,12 @@
                         <i class="fas fa-users fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">Aucun employé dans ce département</h5>
                         <p class="text-muted mb-4">Ajoutez des employés à ce département</p>
-                        <a th:href="@{/admin/employes/creer}" class="btn btn-primary">
-                            <i class="fas fa-plus-circle me-2"></i>Ajouter un employé
-                        </a>
+                        <div sec:authorize="hasRole('SUPER_ADMIN')">
+                            <a th:href="@{/admin/employes/creer}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-2"></i>Ajouter un employé
+                            </a>
+                        </div>
+
                     </div>
                 </div>
             </div>
