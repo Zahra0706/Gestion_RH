@@ -144,9 +144,11 @@
                         <tr th:each="employe : ${employes}">
                             <td>
                                 <span class="badge bg-secondary" th:text="${employe.matricule}"></span>
-                            </td>
-                            <td>
-                                <strong th:text="${employe.prenom + ' ' + employe.nom}"></strong>
+                                <a th:href="@{'/admin/employes/' + ${employe.id} + '/details'}"
+                                   class="text-decoration-none">
+                                    <strong th:text="${employe.prenom + ' ' + employe.nom}"></strong>
+                                </a>
+
                                 <br>
                                 <small class="text-muted" th:text="${'Embauche: ' + #temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></small>
                             </td>
@@ -361,5 +363,10 @@
     });
     /*]]>*/
 </script>
+<style>
+    h5{
+        color: white !important;
+    }
+</style>
 </body>
 </html>

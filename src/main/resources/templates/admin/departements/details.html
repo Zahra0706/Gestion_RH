@@ -143,7 +143,7 @@
                                         <div th:text="${departement.manager.telephone ?: 'Non spécifié'}" class="fw-semibold"></div>
                                     </div>
                                     <div class="col-md-12 mt-2">
-                                        <a th:href="@{'/admin/employes/' + ${departement.manager.id}}"
+                                        <a th:href="@{'/admin/employes/' + ${departement.manager.id}+'/details'}"
                                            class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-external-link-alt me-1"></i>Voir le profil
                                         </a>

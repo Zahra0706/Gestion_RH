@@ -2,45 +2,17 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       lang="fr">
-<head th:replace="admin/header :: head">
+<head th:replace="~{admin/header :: head}">
     <title>Détails de l'Employé - Administration</title>
-    <link th:href="@{/css/employees.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Styles spécifiques pour la page de détails */
-        .employee-detail-container {
-            background: linear-gradient(135deg, #f6f9fc 0%, #f1f5f9 100%);
-            min-height: calc(100vh - 80px);
-            padding: 2rem;
-        }
-
-        .detail-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem;
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .detail-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
-        }
-
-        .employee-profile {
-            position: relative;
-            z-index: 2;
-        }
-
+        /* Style minimal pour la page de détails */
         .profile-avatar-large {
             width: 100px;
             height: 100px;
-            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            background: linear-gradient(135deg, #1abc9c, #3498db);
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -50,142 +22,64 @@
             color: white;
             margin-bottom: 1rem;
             border: 4px solid rgba(255,255,255,0.3);
-            box-shadow: var(--shadow-lg);
         }
 
         .detail-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 2rem;
-            padding: 2rem;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 768px) {
             .detail-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        .detail-section {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-        }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid var(--primary-light);
-        }
-
-        .section-title i {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-light);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-color);
-            font-size: 1.25rem;
-        }
-
-        .section-title h3 {
-            margin: 0;
-            color: var(--dark-color);
-            font-weight: 600;
-        }
-
-        .info-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
         .info-item-detailed {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            padding: 1rem;
-            background: var(--light-color);
-            border-radius: var(--radius-md);
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .info-item-detailed .label {
-            font-size: 0.75rem;
-            color: var(--text-light);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
-        }
-
-        .info-item-detailed .value {
-            font-size: 1rem;
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .quick-actions-detailed {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
+            border-left: 4px solid #3498db;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
         }
 
         .action-card {
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
             padding: 1.5rem;
             text-align: center;
-            transition: var(--transition);
-            cursor: pointer;
+            transition: all 0.3s ease;
             text-decoration: none !important;
-            color: var(--text-primary);
+            display: block;
+            color: #495057;
         }
 
         .action-card:hover {
-            border-color: var(--primary-color);
+            border-color: #3498db;
             transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-            color: var(--primary-color);
-        }
-
-        .action-card i {
-            font-size: 1.5rem;
-            margin-bottom: 0.75rem;
-            color: var(--primary-color);
-        }
-
-        .action-card span {
-            display: block;
-            font-weight: 500;
-            font-size: 0.875rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            color: #3498db;
         }
 
         .contract-info {
             background: linear-gradient(135deg, #fef3c7, #ffedd5);
             border: 1px solid #fbbf24;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             padding: 1rem;
-            margin-top: 1rem;
+        }
+
+        .card-header.bg-light h5 {
+            color: white !important;
         }
     </style>
 </head>
 <body>
 <!-- Sidebar Menu -->
-<div th:replace="admin/menu :: sidebar"></div>
+<div th:replace="~{admin/menu :: sidebar}"></div>
 
 <!-- Main Content -->
 <main class="main-content">
     <!-- Header -->
-    <div th:replace="admin/header :: admin-header" th:with="pageTitle='Détails de l\'Employé'"></div>
+    <div th:replace="~{admin/header :: admin-header}" th:with="pageTitle='Détails de l\'Employé'"></div>
 
     <!-- Alert Messages -->
     <div class="container-fluid mt-3">
@@ -203,199 +97,219 @@
     </div>
 
     <!-- Employee Detail Container -->
-    <div class="employee-detail-container">
-        <div class="modern-card">
+    <div class="container-fluid mt-3">
+        <div class="card shadow-lg">
             <!-- Detail Header -->
-            <div class="detail-header">
-                <div class="employee-profile text-center text-md-start">
-                    <div class="d-flex flex-column flex-md-row align-items-center gap-4">
+            <div class="card-header bg-primary text-white py-4">
+                <div class="row align-items-center">
+                    <div class="col-auto">
                         <div class="profile-avatar-large"
                              th:text="${#strings.substring(employe.nom, 0, 1) + #strings.substring(employe.prenom, 0, 1)}">
                         </div>
-                        <div class="flex-grow-1">
-                            <h1 th:text="${employe.prenom + ' ' + employe.nom}"></h1>
-                            <div class="d-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-start">
-                                <span class="badge-modern bg-white text-dark" th:text="${employe.matricule}"></span>
-                                <span th:switch="${employe.role.name()}" class="badge-modern">
-                                    <span th:case="'SUPER_ADMIN'" class="badge-role-super-admin">SUPER_ADMIN</span>
-                                    <span th:case="'ADMIN'" class="badge-role-admin">ADMIN</span>
-                                    <span th:case="'RH'" class="badge-role-rh">RH</span>
-                                    <span th:case="'MANAGER'" class="badge-role-manager">MANAGER</span>
-                                    <span th:case="'EMPLOYE'" class="badge-role-employe">EMPLOYE</span>
-                                </span>
-                                <span th:if="${employe.isCompteActif}" class="employee-status status-active">
-                                    <i class="fas fa-check-circle me-1"></i>Compte Actif
-                                </span>
-                                <span th:unless="${employe.isCompteActif}" class="employee-status status-inactive">
-                                    <i class="fas fa-times-circle me-1"></i>Compte Inactif
-                                </span>
-                            </div>
+                    </div>
+                    <div class="col">
+                        <h1 class="h2 mb-2" th:text="${employe.prenom + ' ' + employe.nom}"></h1>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="badge bg-light text-dark" th:text="${employe.matricule}"></span>
+                            <span th:switch="${employe.role.name()}">
+                                <span th:case="'SUPER_ADMIN'" class="badge bg-danger">SUPER_ADMIN</span>
+                                <span th:case="'ADMIN'" class="badge bg-warning text-dark">ADMIN</span>
+                                <span th:case="'RH'" class="badge bg-success">RH</span>
+                                <span th:case="'MANAGER'" class="badge" style="background-color: #6f42c1; color: white">MANAGER</span>
+                                <span th:case="'EMPLOYE'" class="badge bg-secondary">EMPLOYE</span>
+                            </span>
+                            <span th:if="${employe.isCompteActif}" class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Actif
+                            </span>
+                            <span th:unless="${employe.isCompteActif}" class="badge bg-danger">
+                                <i class="fas fa-times-circle me-1"></i>Inactif
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Detail Grid -->
-            <div class="detail-grid">
-                <!-- Left Column - Informations -->
-                <div class="left-column">
-                    <!-- Informations Personnelles -->
-                    <div class="detail-section">
-                        <div class="section-title">
-                            <i class="fas fa-id-card"></i>
-                            <h3>Informations Personnelles</h3>
+            <div class="card-body p-4">
+                <div class="detail-grid">
+                    <!-- Left Column - Informations -->
+                    <div>
+                        <!-- Informations Personnelles -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>Informations Personnelles</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                    <tr>
+                                        <th width="40%"><i class="fas fa-envelope me-2"></i>Email :</th>
+                                        <td><strong th:text="${employe.email}"></strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-phone me-2"></i>Téléphone :</th>
+                                        <td th:text="${employe.telephone ?: 'Non renseigné'}"></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-map-marker-alt me-2"></i>Adresse :</th>
+                                        <td th:text="${employe.adresse}"></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-birthday-cake me-2"></i>Date de Naissance :</th>
+                                        <td>
+                                            <span th:if="${employe.dateNaissance}"
+                                                  th:text="${#temporals.format(employe.dateNaissance, 'dd/MM/yyyy')}">
+                                            </span>
+                                            <span th:unless="${employe.dateNaissance}" class="text-muted fst-italic">Non renseignée</span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="info-list">
-                            <div class="info-item-detailed">
-                                <span class="label">Email</span>
-                                <span class="value" th:text="${employe.email}"></span>
-                            </div>
-                            <div class="info-item-detailed">
-                                <span class="label">Téléphone</span>
-                                <span class="value" th:text="${employe.telephone ?: 'Non renseigné'}"></span>
-                            </div>
-                            <div class="info-item-detailed">
-                                <span class="label">Adresse</span>
-                                <span class="value" th:text="${employe.adresse}"></span>
-                            </div>
-                            <div class="info-item-detailed">
-                                <span class="label">Date de Naissance</span>
-                                <span class="value">
-                                    <span th:if="${employe.dateNaissance}"
-                                          th:text="${#temporals.format(employe.dateNaissance, 'dd MMMM yyyy')}">
-                                    </span>
-                                    <span th:unless="${employe.dateNaissance}">Non renseignée</span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Informations Professionnelles -->
-                    <div class="detail-section mt-4">
-                        <div class="section-title">
-                            <i class="fas fa-briefcase"></i>
-                            <h3>Informations Professionnelles</h3>
-                        </div>
-                        <div class="info-list">
-                            <div class="info-item-detailed">
-                                <span class="label">Poste</span>
-                                <span class="value" th:text="${employe.poste}"></span>
+                        <!-- Informations Professionnelles -->
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Informations Professionnelles</h5>
                             </div>
-                            <div class="info-item-detailed">
-                                <span class="label">Département</span>
-                                <span class="value">
-                                    <span th:if="${employe.departement}"
-                                          th:text="${employe.departement.nom}">
-                                    </span>
-                                    <span th:unless="${employe.departement}">Non assigné</span>
-                                </span>
-                            </div>
-                            <div class="info-item-detailed">
-                                <span class="label">Date d'Embauche</span>
-                                <span class="value">
-                                    <span th:text="${#temporals.format(employe.dateEmbauche, 'dd MMMM yyyy')}"></span>
-                                    <span class="badge-modern bg-light text-dark ms-2">
-                                        <span th:text="${#temporals.year(#temporals.createNow()) - #temporals.year(employe.dateEmbauche)}"></span> ans d'ancienneté
-                                    </span>
-                                </span>
-                            </div>
-                            <div th:if="${employe.contrat != null}" class="contract-info">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="fas fa-file-contract text-warning"></i>
-                                    <strong>Contrat: </strong>
-                                    <span th:text="${employe.contrat.type}"></span>
-                                    <span class="ms-2">| Durée: </span>
-                                    <span th:text="${employe.contrat.duree + ' mois'}"></span>
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                    <tr>
+                                        <th width="40%"><i class="fas fa-user-tie me-2"></i>Poste :</th>
+                                        <td><strong th:text="${employe.poste}"></strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-building me-2"></i>Département :</th>
+                                        <td>
+                                            <span th:if="${employe.departement}">
+                                                <span th:text="${employe.departement.nom}"></span>
+                                                <span class="badge bg-secondary ms-2" th:text="${employe.departement.code}"></span>
+                                            </span>
+                                            <span th:unless="${employe.departement}" class="text-muted fst-italic">Non assigné</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-calendar-plus me-2"></i>Date d'Embauche :</th>
+                                        <td>
+                                            <span th:text="${#temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></span>
+                                            <span class="badge bg-info ms-2">
+                                                <span th:text="${#temporals.year(#temporals.createNow()) - #temporals.year(employe.dateEmbauche)}"></span> ans
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <div th:if="${employe.contrat != null}" class="contract-info mt-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-contract text-warning me-2"></i>
+                                        <div>
+                                            <strong>Contrat: </strong>
+                                            <span th:text="${employe.contrat.type}"></span>
+                                            <span class="ms-2">| Durée: </span>
+                                            <span th:text="${employe.contrat.duree + ' mois'}"></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Right Column - Actions & Statut -->
-                <div class="right-column">
-                    <!-- Actions Rapides -->
-                    <div class="detail-section">
-                        <div class="section-title">
-                            <i class="fas fa-bolt"></i>
-                            <h3>Actions</h3>
+                    <!-- Right Column - Actions & Statut -->
+                    <div>
+                        <!-- Actions Rapides -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <a th:href="@{'/admin/employes/' + ${employe.id} + '/modifier'}"
+                                           class="action-card">
+                                            <i class="fas fa-edit fa-2x mb-2"></i>
+                                            <div>Modifier</div>
+                                        </a>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <th:block th:if="${employe.isCompteActif}">
+                                            <form th:action="@{'/admin/employes/' + ${employe.id} + '/desactiver'}"
+                                                  method="post"
+                                                  class="d-inline h-100"
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir désactiver ce compte ?')">
+                                                <button type="submit" class="action-card w-100 h-100 border-0 bg-transparent">
+                                                    <i class="fas fa-user-slash fa-2x mb-2"></i>
+                                                    <div>Désactiver</div>
+                                                </button>
+                                            </form>
+                                        </th:block>
+                                        <th:block th:unless="${employe.isCompteActif}">
+                                            <form th:action="@{'/admin/employes/' + ${employe.id} + '/activer'}"
+                                                  method="post"
+                                                  class="d-inline h-100"
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir activer ce compte ?')">
+                                                <button type="submit" class="action-card w-100 h-100 border-0 bg-transparent">
+                                                    <i class="fas fa-user-check fa-2x mb-2"></i>
+                                                    <div>Activer</div>
+                                                </button>
+                                            </form>
+                                        </th:block>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <form th:action="@{'/admin/employes/' + ${employe.id} + '/reinitialiser-mot-de-passe'}"
+                                              method="post"
+                                              class="d-inline h-100"
+                                              th:attr="onsubmit='return confirm(\'Êtes-vous sûr de vouloir réinitialiser le mot de passe ? Un email sera envoyé à l\'employé.\')'">
+                                            <button type="submit" class="action-card w-100 h-100 border-0 bg-transparent">
+                                                <i class="fas fa-key fa-2x mb-2"></i>
+                                                <div>Réinitialiser MDP</div>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="quick-actions-detailed">
-                            <a th:href="@{'/admin/employes/' + ${employe.id} + '/modifier'}" class="action-card">
-                                <i class="fas fa-edit"></i>
-                                <span>Modifier</span>
+
+                        <!-- Statut du Compte -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-user-shield me-2"></i>Statut du Compte</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                    <tr>
+                                        <th width="50%"><i class="fas fa-sign-in-alt me-2"></i>Dernière connexion :</th>
+                                        <td><span class="text-muted fst-italic">Non disponible</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-exclamation-circle me-2"></i>Première connexion :</th>
+                                        <td>
+                                            <span th:if="${employe.premiereConnexion}" class="badge bg-warning text-dark">
+                                                <i class="fas fa-exclamation-circle me-1"></i>En attente
+                                            </span>
+                                            <span th:unless="${employe.premiereConnexion}" class="badge bg-success text-white">
+                                                <i class="fas fa-check-circle me-1"></i>Effectuée
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-calendar-check me-2"></i>Compte créé le :</th>
+                                        <td><strong th:text="${#temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></strong></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Retour à la liste -->
+                        <div class="d-grid">
+                            <a th:href="@{/admin/employes}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
                             </a>
-
-                            <th:block th:if="${employe.isCompteActif}">
-                                <form th:action="@{'/admin/employes/' + ${employe.id} + '/desactiver'}"
-                                      method="post"
-                                      class="d-inline action-card"
-                                      onsubmit="return confirm('Êtes-vous sûr de vouloir désactiver ce compte ?')">
-                                    <button type="submit" class="btn btn-link p-0 m-0 border-0 bg-transparent w-100">
-                                        <i class="fas fa-user-slash"></i>
-                                        <span>Désactiver</span>
-                                    </button>
-                                </form>
-                            </th:block>
-
-                            <th:block th:unless="${employe.isCompteActif}">
-                                <form th:action="@{'/admin/employes/' + ${employe.id} + '/activer'}"
-                                      method="post"
-                                      class="d-inline action-card"
-                                      onsubmit="return confirm('Êtes-vous sûr de vouloir activer ce compte ?')">
-                                    <button type="submit" class="btn btn-link p-0 m-0 border-0 bg-transparent w-100">
-                                        <i class="fas fa-user-check"></i>
-                                        <span>Activer</span>
-                                    </button>
-                                </form>
-                            </th:block>
-
-                            <form th:action="@{'/admin/employes/' + ${employe.id} + '/reinitialiser-mot-de-passe'}"
-                                  method="post"
-                                  class="d-inline action-card"
-                                  th:attr="onsubmit='return confirm(\'Êtes-vous sûr de vouloir réinitialiser le mot de passe ? Un email sera envoyé à l\'employé.\')'">
-                                <button type="submit" class="btn btn-link p-0 m-0 border-0 bg-transparent w-100">
-                                    <i class="fas fa-key"></i>
-                                    <span>Réinitialiser MDP</span>
-                                </button>
-                            </form>
                         </div>
-                    </div>
-
-                    <!-- Statut du Compte -->
-                    <div class="detail-section mt-4">
-                        <div class="section-title">
-                            <i class="fas fa-user-shield"></i>
-                            <h3>Statut du Compte</h3>
-                        </div>
-                        <div class="info-list">
-                            <div class="info-item-detailed">
-                                <span class="label">Dernière connexion</span>
-                                <span class="value text-muted">Non disponible</span>
-                            </div>
-                            <div class="info-item-detailed">
-                                <span class="label">Première connexion</span>
-                                <span class="value">
-                                    <span th:if="${employe.premiereConnexion}" class="badge-modern bg-warning text-dark">
-                                        <i class="fas fa-exclamation-circle me-1"></i>En attente
-                                    </span>
-                                    <span th:unless="${employe.premiereConnexion}" class="badge-modern bg-success text-white">
-                                        <i class="fas fa-check-circle me-1"></i>Effectuée
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="info-item-detailed">
-                                <span class="label">Compte créé le</span>
-                                <span class="value" th:text="${#temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Retour à la liste -->
-                    <div class="mt-4 text-center">
-                        <a th:href="@{/admin/employes}" class="btn btn-outline-primary w-100 py-3">
-                            <i class="fas fa-arrow-left me-2"></i>Retour à la liste
-                        </a>
                     </div>
                 </div>
             </div>
@@ -403,35 +317,23 @@
     </div>
 
     <!-- Footer -->
-    <div th:replace="admin/footer :: admin-footer"></div>
+    <div th:replace="~{admin/footer :: admin-footer}"></div>
 </main>
 
 <!-- Scripts -->
-<div th:replace="admin/footer :: scripts"></div>
+<div th:replace="~{admin/footer :: scripts}"></div>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Page détails employé chargée');
 
-        // Animation des sections
-        const sections = document.querySelectorAll('.detail-section');
-        sections.forEach((section, index) => {
-            section.style.opacity = '0';
-            section.style.transform = 'translateY(20px)';
-            section.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-
-            setTimeout(() => {
-                section.style.opacity = '1';
-                section.style.transform = 'translateY(0)';
-            }, index * 100);
-        });
-
         // Confirmation pour les actions sensibles
         const actionForms = document.querySelectorAll('form[onsubmit]');
         actionForms.forEach(form => {
             form.addEventListener('submit', function(e) {
-                const action = this.querySelector('span').textContent;
+                const button = this.querySelector('button');
+                const action = button.querySelector('div').textContent;
                 if (!confirm(`Êtes-vous sûr de vouloir ${action.toLowerCase()} ce compte ?`)) {
                     e.preventDefault();
                 }

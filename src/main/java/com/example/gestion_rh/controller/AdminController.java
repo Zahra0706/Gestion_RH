@@ -463,6 +463,37 @@ public class AdminController {
         return "admin/employes/liste";
     }
 
+    @GetMapping("/employes/{id}/details")
+    public String showEmployeDetails(@PathVariable Long id, Model model, Authentication authentication) {
+        try {
+            // Récupérer l'employé
+            Employe employe = employeService.getEmployeById(id)
+                    .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
+
+            // Ajouter l'employé au modèle
+            model.addAttribute("employe", employe);
+
+            // Vérifier si l'utilisateur connecté est SUPER_ADMIN pour afficher les actions
+            boolean isSuperAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(grantedAuthority ->
+                            grantedAuthority.getAuthority().equals("ROLE_SUPER_ADMIN"));
+
+            model.addAttribute("isSuperAdmin", isSuperAdmin);
+
+            // Ajouter l'utilisateur connecté
+            if (authentication != null && authentication.isAuthenticated()) {
+                String email = authentication.getName();
+                Employe user = employeService.getEmployeByEmail(email).orElse(null);
+                model.addAttribute("user", user);
+            }
+
+            return "admin/employes/details";
+
+        } catch (Exception e) {
+            return "redirect:/admin/employes?error=Employé non trouvé";
+        }
+    }
+
     @GetMapping("/statistiques")
     public String statistiques(Model model) {
         // Récupérer toutes les statistiques
