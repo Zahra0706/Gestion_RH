@@ -5,6 +5,7 @@ import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.service.EmployeService;
 import com.example.gestion_rh.service.DepartementService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -73,8 +75,13 @@ public class AdminProfilController {
     }
 
     @PostMapping("/profil/modifier")
-    public String updateProfil(@ModelAttribute Employe employe,
+    public String updateProfil(@RequestParam String nom,
+                               @RequestParam String prenom,
+                               @RequestParam(required = false) String telephone,
+                               @RequestParam String adresse,
+                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateNaissance,
                                @RequestParam(required = false) Long departementId,
+                               @RequestParam Employe.Poste poste,
                                RedirectAttributes redirectAttributes) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -83,12 +90,12 @@ public class AdminProfilController {
                     .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
             // Mettre à jour seulement les champs modifiables
-            currentUser.setNom(employe.getNom());
-            currentUser.setPrenom(employe.getPrenom());
-            currentUser.setTelephone(employe.getTelephone());
-            currentUser.setAdresse(employe.getAdresse());
-            currentUser.setDateNaissance(employe.getDateNaissance());
-            currentUser.setPoste(employe.getPoste());
+            currentUser.setNom(nom);
+            currentUser.setPrenom(prenom);
+            currentUser.setTelephone(telephone);
+            currentUser.setAdresse(adresse);
+            currentUser.setDateNaissance(dateNaissance);
+            currentUser.setPoste(poste);
 
             // Mettre à jour le département si spécifié
             if (departementId != null) {
@@ -97,7 +104,8 @@ public class AdminProfilController {
                 currentUser.setDepartement(departement);
             }
 
-            employeService.saveEmploye(currentUser);
+            // Utiliser updateEmploye au lieu de saveEmploye
+            employeService.updateEmploye(currentUser.getId(), currentUser);
             redirectAttributes.addFlashAttribute("success", "Profil mis à jour avec succès");
 
         } catch (Exception e) {
@@ -105,7 +113,7 @@ public class AdminProfilController {
                     "Erreur lors de la mise à jour du profil: " + e.getMessage());
         }
 
-        return "redirect:/admin/profil/profil";
+        return "redirect:/admin/profil";
     }
 
     @GetMapping("/profil/changer-mot-de-passe")

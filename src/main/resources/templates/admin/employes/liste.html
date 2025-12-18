@@ -142,7 +142,7 @@
                         <tbody>
                         <tr th:each="employe : ${employes}">
                             <td>
-                                <span class="badge bg-secondary" th:text="${employe.matricule}"></span>
+                                <span class="badge bg-secondary" th:text="${employe.matricule}"></span><br>
                                 <a th:href="@{'/admin/employes/' + ${employe.id} + '/details'}"
                                    class="text-decoration-none">
                                     <strong th:text="${employe.prenom + ' ' + employe.nom}"></strong>
@@ -331,9 +331,9 @@
                     if (!found) showRow = false;
                 }
 
-                // Department filter - CORRECTION ICI
-                if (deptValue && cells[3]) {
-                    const deptCell = cells[3];
+                // Department filter -
+                if (deptValue && cells[2]) {
+                    const deptCell = cells[2];
                     const deptId = deptCell.getAttribute('data-dept-id');
                     // Compare l'ID numérique, pas le texte
                     if (deptId !== deptValue) {
@@ -342,8 +342,8 @@
                 }
 
                 // Role filter
-                if (roleValue && cells[5]) {
-                    const roleCell = cells[5].querySelector('.badge');
+                if (roleValue && cells[4]) {
+                    const roleCell = cells[4].querySelector('.badge');
                     if (roleCell && roleCell.textContent.trim() !== roleValue) {
                         showRow = false;
                     }

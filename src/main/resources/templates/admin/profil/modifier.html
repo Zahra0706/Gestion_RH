@@ -192,21 +192,17 @@
                                       th:text="${#strings.substring(user.nom, 0, 1) + #strings.substring(user.prenom, 0, 1)}">
                                     UI
                                 </span>
-                                <div class="avatar-overlay">
-                                    <i class="fas fa-camera"></i>
-                                </div>
                             </div>
-                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
                             <h3 th:text="${user.prenom + ' ' + user.nom}"></h3>
                             <p class="mb-0 opacity-75">
                                 <span class="badge bg-light text-dark me-2" th:text="${user.matricule}"></span>
-                                <!-- CORRECTION - Ligne 204 -->
-                                <span class="badge"
-                                      th:classappend="${user.role == 'SUPER_ADMIN'} ? 'bg-danger' :
-                                          ${user.role == 'ADMIN'} ? 'bg-warning text-dark' :
-                                          ${user.role == 'RH'} ? 'bg-success' :
-                                          ${user.role == 'MANAGER'} ? 'bg-purple' : 'bg-secondary'"
-                                      th:text="${user.role}">
+
+                                <span class="badge" th:switch="${user.role}">
+                                    <span th:case="'SUPER_ADMIN'" class="bg-danger" th:text="${user.role}"></span>
+                                    <span th:case="'ADMIN'" class="bg-warning text-dark" th:text="${user.role}"></span>
+                                    <span th:case="'RH'" class="bg-success" th:text="${user.role}"></span>
+                                    <span th:case="'MANAGER'" class="bg-purple" th:text="${user.role}"></span>
+                                    <span th:case="*" class="bg-secondary" th:text="${user.role}"></span>
                                 </span>
                             </p>
                         </div>

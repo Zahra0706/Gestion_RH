@@ -1,5 +1,6 @@
 package com.example.gestion_rh.service.impl;
 
+import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.entity.Employe;
 import com.example.gestion_rh.repository.EmployeRepository;
 import com.example.gestion_rh.repository.DepartementRepository;
@@ -217,6 +218,28 @@ public class EmployeServiceImpl implements EmployeService {
         employe.setPremiereConnexion(false);
 
         return employeRepository.save(employe);
+    }
+    @Override
+    public Employe updateProfil(Long id, String nom, String prenom, String telephone,
+                                String adresse, LocalDate dateNaissance, Employe.Poste poste,
+                                Departement departement) {
+        Employe existingEmploye = employeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
+
+        // Mettre à jour seulement les champs autorisés
+        existingEmploye.setNom(nom);
+        existingEmploye.setPrenom(prenom);
+        existingEmploye.setTelephone(telephone);
+        existingEmploye.setAdresse(adresse);
+        existingEmploye.setDateNaissance(dateNaissance);
+        existingEmploye.setPoste(poste);
+
+        // Mettre à jour le département si spécifié
+        if (departement != null) {
+            existingEmploye.setDepartement(departement);
+        }
+
+        return employeRepository.save(existingEmploye);
     }
 
 }

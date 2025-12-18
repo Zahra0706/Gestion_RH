@@ -86,8 +86,8 @@ function initTableFiltering() {
             }
 
             // Department filter
-            if (deptValue && cells[3]) {
-                const deptCell = cells[3];
+            if (deptValue && cells[2]) {
+                const deptCell = cells[2];
                 const deptId = deptCell.getAttribute('data-dept-id');
                 if (deptId && deptId !== deptValue) {
                     showRow = false;
@@ -95,8 +95,8 @@ function initTableFiltering() {
             }
 
             // Role filter
-            if (roleValue && cells[5]) {
-                const roleCell = cells[5].querySelector('.badge');
+            if (roleValue && cells[4]) {
+                const roleCell = cells[4].querySelector('.badge');
                 // Comparez avec la valeur du badge (le texte)
                 if (roleCell && roleCell.textContent.trim() !== roleValue) {
                     showRow = false;
@@ -104,8 +104,8 @@ function initTableFiltering() {
             }
 
             // Status filter
-            if (statusValue && cells[7]) {
-                const statusCell = cells[7].querySelector('.badge');
+            if (statusValue && cells[6]) {
+                const statusCell = cells[6].querySelector('.badge');
                 if (statusCell) {
                     if (statusValue === 'active' && !statusCell.textContent.includes('Actif')) {
                         showRow = false;

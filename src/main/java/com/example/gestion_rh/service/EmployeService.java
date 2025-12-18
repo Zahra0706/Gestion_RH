@@ -1,6 +1,9 @@
 package com.example.gestion_rh.service;
 
+import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.entity.Employe;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,4 +29,7 @@ public interface EmployeService {
     long countEmployesByDepartement(Long departementId);
     List<Employe> getEmployesActifs();
     List<Employe> getEmployesInactifs();
+    Employe updateProfil(Long id, String nom, String prenom, String telephone,
+                         String adresse, LocalDate dateNaissance, Employe.Poste poste,
+                         Departement departement);
 }
