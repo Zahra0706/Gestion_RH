@@ -5,54 +5,517 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Connexion - HR Manager</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --gradient-start: #3498db;
+            --gradient-end: #2980b9;
+            --light-bg: #f8fafc;
+            --shadow-color: rgba(52, 152, 219, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px var(--shadow-color);
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            padding: 40px 30px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .card-header h3 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .card-header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .form-label i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            padding: 15px 45px 15px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.15);
+            background-color: white;
+            outline: none;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px;
+            margin-bottom: 25px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #fee, #fff5f5);
+            border-left: 4px solid #e74c3c;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+            border-left: 4px solid #27ae60;
+            color: #155724;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: white;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+            background: linear-gradient(135deg, #2980b9, #1c5a7a);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            color: #6c757d;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e3f2fd;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .test-accounts {
+            background: linear-gradient(135deg, #f8fafc, #f0f7ff);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .test-accounts h6 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-accounts h6 i {
+            color: var(--primary-color);
+        }
+
+        .account-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .account-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 3px solid;
+            transition: transform 0.3s ease;
+        }
+
+        .account-item:hover {
+            transform: translateX(5px);
+        }
+
+        .account-item:nth-child(1) { border-color: #e74c3c; }
+        .account-item:nth-child(2) { border-color: #f39c12; }
+        .account-item:nth-child(3) { border-color: #27ae60; }
+        .account-item:nth-child(4) { border-color: #3498db; }
+        .account-item:nth-child(5) { border-color: #9b59b6; }
+
+        .account-role {
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .account-details {
+            font-size: 0.85rem;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .account-details strong {
+            color: var(--primary-color);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Placeholder styling */
+        ::placeholder {
+            color: #a0aec0;
+            opacity: 1;
+        }
+
+        :-ms-input-placeholder {
+            color: #a0aec0;
+        }
+
+        ::-ms-input-placeholder {
+            color: #a0aec0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-container {
+                max-width: 100%;
+            }
+
+            .card-body {
+                padding: 30px 20px;
+            }
+
+            .card-header {
+                padding: 30px 20px 25px;
+            }
+
+            .logo {
+                width: 70px;
+                height: 70px;
+            }
+
+            .logo i {
+                font-size: 2rem;
+            }
+
+            .test-accounts {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .account-details {
+                font-size: 0.8rem;
+            }
+
+            .btn-login {
+                padding: 12px;
+            }
+
+            .form-control {
+                padding: 12px 40px 12px 12px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="text-center">Connexion</h3>
+<body>
+<div class="login-container">
+    <div class="login-card">
+        <!-- Header avec logo -->
+        <div class="card-header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-users"></i>
                 </div>
-                <div class="card-body">
-                    <div th:if="${param.error}" class="alert alert-danger">
-                        Email ou mot de passe incorrect.
-                    </div>
-                    <div th:if="${param.logout}" class="alert alert-success">
-                        Vous avez été déconnecté avec succès.
-                    </div>
+            </div>
+            <h3>Bienvenue sur HR Manager</h3>
+            <p>Connectez-vous à votre espace personnel</p>
+        </div>
 
-                    <!-- Formulaire Spring Security -->
-                    <form th:action="@{/auth/login}" method="post">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Email</label>
-                            <!-- IMPORTANT: Le nom doit être 'username' pour Spring Security -->
-                            <input type="email" class="form-control" id="username" name="username" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Mot de passe</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Se connecter</button>
-                        </div>
-                    </form>
+        <!-- Corps du formulaire -->
+        <div class="card-body">
+            <!-- Messages d'alerte -->
+            <div th:if="${param.error}" class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Email ou mot de passe incorrect.
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                Vous avez été déconnecté avec succès.
+            </div>
 
-                    <hr>
-                    <div class="text-center">
-                        <p>Comptes de test:</p>
-                        <ul class="list-unstyled">
-                            <li><strong>Super Admin</strong>: superadmin@hr.com / superadmin123</li>
-                            <li><strong>Admin</strong>: admin@hr.com / admin123</li>
-                            <li><strong>RH</strong>: rh@test.com / rh123456</li>
-                            <li><strong>Manager</strong>: manager@test.com / manager123</li>
-                            <li><strong>Employé</strong>: employe@test.com / employe123</li>
-                        </ul>
+            <!-- Formulaire de connexion -->
+            <form th:action="@{/auth/login}" method="post" id="loginForm">
+                <!-- Champ Email -->
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-envelope"></i>Adresse email
+                    </label>
+                    <div class="input-group">
+                        <input type="email" class="form-control" id="username" name="username"
+                               placeholder="votre@email.com" required>
                     </div>
                 </div>
+
+                <!-- Champ Mot de passe avec icône show/hide -->
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i>Mot de passe
+                    </label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="Votre mot de passe" required>
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bouton de connexion -->
+                <button type="submit" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="divider">
+                <span>Comptes de test</span>
+            </div>
+
+            <!-- Liste des comptes de test -->
+            <div class="test-accounts">
+                <h6><i class="fas fa-vial"></i> Utilisez ces identifiants pour tester</h6>
+                <ul class="account-list">
+                    <li class="account-item">
+                        <div class="account-role">Super Administrateur</div>
+                        <div class="account-details">
+                            <strong>Email:</strong> superadmin@hr.com<br>
+                            <strong>Mot de passe:</strong> superadmin123
+                        </div>
+                    </li>
+                    <li class="account-item">
+                        <div class="account-role">Administrateur</div>
+                        <div class="account-details">
+                            <strong>Email:</strong> admin@hr.com<br>
+                            <strong>Mot de passe:</strong> admin123
+                        </div>
+                    </li>
+                    <li class="account-item">
+                        <div class="account-role">RH (Ressources Humaines)</div>
+                        <div class="account-details">
+                            <strong>Email:</strong> rh@test.com<br>
+                            <strong>Mot de passe:</strong> rh123456
+                        </div>
+                    </li>
+                    <li class="account-item">
+                        <div class="account-role">Manager</div>
+                        <div class="account-details">
+                            <strong>Email:</strong> manager@test.com<br>
+                            <strong>Mot de passe:</strong> manager123
+                        </div>
+                    </li>
+                    <li class="account-item">
+                        <div class="account-role">Employé</div>
+                        <div class="account-details">
+                            <strong>Email:</strong> employe@test.com<br>
+                            <strong>Mot de passe:</strong> employe123
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer-text">
+                <i class="fas fa-shield-alt me-1"></i>
+                Votre sécurité est notre priorité
             </div>
         </div>
     </div>
 </div>
+
+<!-- Script pour afficher/masquer le mot de passe -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        // Fonction pour basculer la visibilité du mot de passe
+        function togglePasswordVisibility() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Changer l'icône
+            if (type === 'password') {
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            }
+        }
+
+        // Événement sur le bouton
+        togglePassword.addEventListener('click', togglePasswordVisibility);
+
+        // Empêcher le bouton de voler le focus
+        togglePassword.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+
+        // Empêcher le formulaire de se soumettre avec la touche Entrée sur le bouton
+        togglePassword.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                togglePasswordVisibility();
+            }
+        });
+
+        // Focus sur le premier champ
+        const emailInput = document.getElementById('username');
+        if (!emailInput.value) {
+            emailInput.focus();
+        }
+    });
+</script>
 </body>
 </html>
