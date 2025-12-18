@@ -9,19 +9,32 @@
 
     <style>
         /* Style minimal pour la page de détails */
-        .profile-avatar-large {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #1abc9c, #3498db);
-            border-radius: 20px;
+        .avatar-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            font-weight: 600;
+            font-weight: bold;
+            font-size: 1.5rem;
+            background-color: #0d6efd;
             color: white;
-            margin-bottom: 1rem;
-            border: 4px solid rgba(255,255,255,0.3);
+        }
+
+        /* Style spécifique pour l'avatar large dans l'en-tête */
+        .avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.3);
         }
 
         .detail-grid {
@@ -67,7 +80,12 @@
             padding: 1rem;
         }
 
-        .card-header.bg-light h5 {
+        /* Pour les h5 dans les en-têtes bg-light */
+        .card-header.bg-light h5.text-white {
+            color: white !important;
+        }
+
+        .card-header.bg-light h5.text-white i {
             color: white !important;
         }
     </style>
@@ -100,11 +118,11 @@
     <div class="container-fluid mt-3">
         <div class="card shadow-lg">
             <!-- Detail Header -->
-            <div class="card-header bg-primary text-white py-4">
+            <div class="card-header text-white py-4">
                 <div class="row align-items-center">
                     <div class="col-auto">
-                        <div class="profile-avatar-large"
-                             th:text="${#strings.substring(employe.nom, 0, 1) + #strings.substring(employe.prenom, 0, 1)}">
+                        <div class="avatar-large d-flex align-items-center justify-content-center">
+                            <span th:text="${#strings.substring(employe.nom, 0, 1) + #strings.substring(employe.prenom, 0, 1)}"></span>
                         </div>
                     </div>
                     <div class="col">
@@ -136,7 +154,7 @@
                         <!-- Informations Personnelles -->
                         <div class="card mb-4">
                             <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>Informations Personnelles</h5>
+                                <h5 class="mb-0 text-white"><i class="fas fa-id-card me-2"></i>Informations Personnelles</h5>
                             </div>
                             <div class="card-body">
                                 <table class="table table-borderless">
@@ -170,7 +188,7 @@
                         <!-- Informations Professionnelles -->
                         <div class="card">
                             <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Informations Professionnelles</h5>
+                                <h5 class="mb-0 text-white"><i class="fas fa-briefcase me-2"></i>Informations Professionnelles</h5>
                             </div>
                             <div class="card-body">
                                 <table class="table table-borderless">
@@ -220,19 +238,19 @@
                         <!-- Actions Rapides -->
                         <div class="card mb-4">
                             <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Actions</h5>
+                                <h5 class="mb-0 text-white"><i class="fas fa-bolt me-2"></i>Actions</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row g-2">
-                                    <div class="col-6">
+                                    <div class="col-4">
                                         <a th:href="@{'/admin/employes/' + ${employe.id} + '/modifier'}"
-                                           class="action-card">
+                                           class="action-card text-black text-decoration-none">
                                             <i class="fas fa-edit fa-2x mb-2"></i>
                                             <div>Modifier</div>
                                         </a>
                                     </div>
 
-                                    <div class="col-6">
+                                    <div class="col-4">
                                         <th:block th:if="${employe.isCompteActif}">
                                             <form th:action="@{'/admin/employes/' + ${employe.id} + '/desactiver'}"
                                                   method="post"
@@ -257,7 +275,7 @@
                                         </th:block>
                                     </div>
 
-                                    <div class="col-6">
+                                    <div class="col-4">
                                         <form th:action="@{'/admin/employes/' + ${employe.id} + '/reinitialiser-mot-de-passe'}"
                                               method="post"
                                               class="d-inline h-100"
@@ -275,7 +293,7 @@
                         <!-- Statut du Compte -->
                         <div class="card mb-4">
                             <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="fas fa-user-shield me-2"></i>Statut du Compte</h5>
+                                <h5 class="mb-0 text-white"><i class="fas fa-user-shield me-2"></i>Statut du Compte</h5>
                             </div>
                             <div class="card-body">
                                 <table class="table table-borderless">
@@ -287,12 +305,12 @@
                                     <tr>
                                         <th><i class="fas fa-exclamation-circle me-2"></i>Première connexion :</th>
                                         <td>
-                                            <span th:if="${employe.premiereConnexion}" class="badge bg-warning text-dark">
-                                                <i class="fas fa-exclamation-circle me-1"></i>En attente
-                                            </span>
+                        <span th:if="${employe.premiereConnexion}" class="badge bg-warning text-dark">
+                            <i class="fas fa-exclamation-circle me-1"></i>En attente
+                        </span>
                                             <span th:unless="${employe.premiereConnexion}" class="badge bg-success text-white">
-                                                <i class="fas fa-check-circle me-1"></i>Effectuée
-                                            </span>
+                            <i class="fas fa-check-circle me-1"></i>Effectuée
+                        </span>
                                         </td>
                                     </tr>
                                     <tr>
