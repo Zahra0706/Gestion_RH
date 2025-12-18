@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head th:replace="admin/header :: head">
+    <title>Changer le mot de passe - Mon Profil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .password-form-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .password-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .password-card .card-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 25px 30px;
+        }
+
+        .password-card .card-body {
+            padding: 30px;
+        }
+
+        .password-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .password-icon i {
+            font-size: 2rem;
+            color: white;
+        }
+
+        .password-input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group-with-icon {
+            position: relative;
+        }
+
+        .input-group-with-icon .form-control {
+            padding-right: 50px;
+        }
+
+        /* FORCER l'override des styles Bootstrap */
+        button.password-toggle {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+            position: absolute !important;
+            right: 12px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            color: #6c757d !important;
+            padding: 8px !important;
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            z-index: 5 !important;
+        }
+
+        button.password-toggle:hover {
+            color: #3498db !important;
+        }
+
+        button.password-toggle:focus {
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        /* S'assurer que l'icône est bien centrée */
+        .password-toggle i {
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-control {
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.15);
+            background-color: white;
+            outline: none;
+        }
+
+        .btn-submit-password {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: white;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-submit-password:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+            background: linear-gradient(135deg, #2980b9, #1c5a7a);
+        }
+
+        .password-strength-meter {
+            margin-top: 10px;
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .strength-weak {
+            background: #e74c3c;
+            width: 25%;
+        }
+
+        .strength-fair {
+            background: #f39c12;
+            width: 50%;
+        }
+
+        .strength-good {
+            background: #3498db;
+            width: 75%;
+        }
+
+        .strength-strong {
+            background: #27ae60;
+            width: 100%;
+        }
+
+        .password-requirements {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .password-requirements ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .password-requirements li {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .password-requirements li i {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        .requirement-valid {
+            color: #27ae60;
+        }
+
+        .requirement-invalid {
+            color: #e74c3c;
+        }
+
+        @media (max-width: 576px) {
+            .password-form-container {
+                padding: 10px;
+            }
+
+            .password-card .card-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="admin/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="admin/header :: admin-header" th:with="pageTitle='Changer le mot de passe'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Password Change Form -->
+    <div class="container-fluid mt-3">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="password-form-container">
+                    <div class="password-card card shadow-lg">
+                        <div class="card-header text-center">
+                            <div class="password-icon mx-auto">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <h3 class="mb-2">Changer votre mot de passe</h3>
+                            <p class="mb-0 opacity-75">Mettez à jour votre mot de passe pour plus de sécurité</p>
+                        </div>
+
+                        <div class="card-body">
+                            <form th:action="@{/admin/profil/changer-mot-de-passe}" method="post" id="passwordForm">
+                                <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : '_csrf'}"
+                                       th:value="${_csrf != null ? _csrf.token : ''}" />
+
+                                <!-- Remplacer toutes les instances de password-toggle-btn par password-toggle -->
+
+                                <!-- Mot de passe actuel -->
+                                <div class="input-group-with-icon mb-3">
+                                    <input type="password"
+                                           class="form-control"
+                                           id="currentPassword"
+                                           name="currentPassword"
+                                           required
+                                           placeholder="Entrez votre mot de passe actuel">
+                                    <button type="button" class="password-toggle" id="toggleCurrentPassword" tabindex="-1"
+                                            style="background: transparent; border: none; box-shadow: none; outline: none; position: absolute; right: 22px; top: 32%; transform: translateY(-50%); color: #6c757d; padding: 8px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5;">
+                                    <i class="fas fa-eye" id="toggleCurrentIcon"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Nouveau mot de passe -->
+                                <div class="input-group-with-icon mb-3">
+                                    <input type="password"
+                                           class="form-control"
+                                           id="newPassword"
+                                           name="newPassword"
+                                           required
+                                           placeholder="Créez un nouveau mot de passe"
+                                           minlength="8">
+                                    <button type="button" class="password-toggle" id="toggleNewPassword" tabindex="-1"
+                                            style="background: transparent; border: none; box-shadow: none; outline: none; position: absolute; right: 22px; top: 42%; transform: translateY(-50%); color: #6c757d; padding: 8px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5;">
+                                        <i class="fas fa-eye" id="toggleNewIcon"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Confirmation du nouveau mot de passe -->
+                                <div class="input-group-with-icon mb-3">
+                                    <input type="password"
+                                           class="form-control"
+                                           id="confirmPassword"
+                                           name="confirmPassword"
+                                           required
+                                           placeholder="Retapez votre nouveau mot de passe"
+                                           minlength="8">
+                                    <button type="button"
+                                            id="toggleConfirmPassword"
+                                            tabindex="-1"
+                                            style="background: transparent; border: none; box-shadow: none; outline: none; position: absolute; right: 22px; top: 53%; transform: translateY(-50%); color: #6c757d; padding: 8px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5;">
+                                        <i class="fas fa-eye" id="toggleConfirmIcon"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Exigences du mot de passe -->
+                                <div class="password-requirements">
+                                    <h6 class="mb-3 fw-semibold">
+                                        <i class="fas fa-clipboard-check me-2"></i>Exigences de sécurité
+                                    </h6>
+                                    <ul>
+                                        <li id="req-length">
+                                            <i class="fas fa-circle requirement-invalid"></i>
+                                            Au moins 8 caractères
+                                        </li>
+                                        <li id="req-uppercase">
+                                            <i class="fas fa-circle requirement-invalid"></i>
+                                            Au moins une majuscule
+                                        </li>
+                                        <li id="req-lowercase">
+                                            <i class="fas fa-circle requirement-invalid"></i>
+                                            Au moins une minuscule
+                                        </li>
+                                        <li id="req-number">
+                                            <i class="fas fa-circle requirement-invalid"></i>
+                                            Au moins un chiffre
+                                        </li>
+                                        <li id="req-special">
+                                            <i class="fas fa-circle requirement-invalid"></i>
+                                            Au moins un caractère spécial (@$!%*?&)
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Boutons d'action -->
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a th:href="@{/admin/profil}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Retour au profil
+                                    </a>
+                                    <button type="submit" class="btn btn-submit-password" id="submitBtn">
+                                        <i class="fas fa-save me-2"></i>Changer le mot de passe
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Informations de sécurité -->
+                    <div class="card mt-3 border-info">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-shield-alt fa-2x text-info me-3"></i>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Conseils de sécurité</h6>
+                                    <small class="text-muted">
+                                        • Utilisez un mot de passe unique que vous n'utilisez nulle part ailleurs<br>
+                                        • Évitez les informations personnelles comme votre date de naissance<br>
+                                        • Changez régulièrement votre mot de passe<br>
+                                        • Activez l'authentification à deux facteurs si disponible
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="admin/footer :: admin-footer"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="admin/footer :: scripts"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fonction pour basculer la visibilité du mot de passe
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // CORRECTION : Empêcher le bouton de voler le focus et mieux gérer le clic
+        function setupPasswordToggle(buttonId, inputId, iconId) {
+            const button = document.getElementById(buttonId);
+            const input = document.getElementById(inputId);
+
+            button.addEventListener('mousedown', function(e) {
+                e.preventDefault(); // Empêche le focus
+                e.stopPropagation();
+            });
+
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                togglePasswordVisibility(inputId, iconId);
+                // Garder le focus sur l'input après le toggle
+                input.focus();
+            });
+
+            // Permettre d'utiliser la touche Entrée sur le bouton
+            button.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    togglePasswordVisibility(inputId, iconId);
+                    input.focus();
+                }
+            });
+        }
+
+        // Configurer les boutons d'œil
+        setupPasswordToggle('toggleCurrentPassword', 'currentPassword', 'toggleCurrentIcon');
+        setupPasswordToggle('toggleNewPassword', 'newPassword', 'toggleNewIcon');
+        setupPasswordToggle('toggleConfirmPassword', 'confirmPassword', 'toggleConfirmIcon');
+
+        // Vérification de la force du mot de passe
+        const newPasswordInput = document.getElementById('newPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const passwordStrengthBar = document.getElementById('passwordStrength');
+        const passwordMatchError = document.getElementById('passwordMatchError');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Fonction pour vérifier les exigences
+        function checkPasswordRequirements(password) {
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[@$!%*?&]/.test(password)
+            };
+
+            return requirements;
+        }
+
+        // Fonction pour mettre à jour la force
+        function updatePasswordStrength(password) {
+            const requirements = checkPasswordRequirements(password);
+            let strength = 0;
+            let strengthClass = 'strength-weak';
+
+            // Calculer la force basée sur les exigences
+            Object.values(requirements).forEach(req => {
+                if (req) strength++;
+            });
+
+            // Mettre à jour la barre de force
+            if (strength >= 4) {
+                strengthClass = 'strength-strong';
+            } else if (strength === 3) {
+                strengthClass = 'strength-good';
+            } else if (strength === 2) {
+                strengthClass = 'strength-fair';
+            } else {
+                strengthClass = 'strength-weak';
+            }
+
+            passwordStrengthBar.className = 'strength-bar ' + strengthClass;
+
+            // Mettre à jour les icônes des exigences
+            document.getElementById('req-length').querySelector('i').className =
+                'fas ' + (requirements.length ? 'fa-check-circle requirement-valid' : 'fa-circle requirement-invalid');
+            document.getElementById('req-uppercase').querySelector('i').className =
+                'fas ' + (requirements.uppercase ? 'fa-check-circle requirement-valid' : 'fa-circle requirement-invalid');
+            document.getElementById('req-lowercase').querySelector('i').className =
+                'fas ' + (requirements.lowercase ? 'fa-check-circle requirement-valid' : 'fa-circle requirement-invalid');
+            document.getElementById('req-number').querySelector('i').className =
+                'fas ' + (requirements.number ? 'fa-check-circle requirement-valid' : 'fa-circle requirement-invalid');
+            document.getElementById('req-special').querySelector('i').className =
+                'fas ' + (requirements.special ? 'fa-check-circle requirement-valid' : 'fa-circle requirement-invalid');
+
+            return strength;
+        }
+
+        // Fonction pour vérifier la correspondance des mots de passe
+        function checkPasswordMatch() {
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (confirmPassword && newPassword !== confirmPassword) {
+                passwordMatchError.classList.remove('d-none');
+                confirmPasswordInput.classList.add('is-invalid');
+                confirmPasswordInput.classList.remove('is-valid');
+                return false;
+            } else if (confirmPassword && newPassword === confirmPassword) {
+                passwordMatchError.classList.add('d-none');
+                confirmPasswordInput.classList.remove('is-invalid');
+                confirmPasswordInput.classList.add('is-valid');
+                return true;
+            } else {
+                passwordMatchError.classList.add('d-none');
+                confirmPasswordInput.classList.remove('is-invalid', 'is-valid');
+                return null;
+            }
+        }
+
+        // Écouteurs d'événements
+        newPasswordInput.addEventListener('input', function() {
+            updatePasswordStrength(this.value);
+            checkPasswordMatch();
+            validateForm();
+        });
+
+        confirmPasswordInput.addEventListener('input', function() {
+            checkPasswordMatch();
+            validateForm();
+        });
+
+        // Valider le formulaire
+        function validateForm() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Vérifier les exigences
+            const requirements = checkPasswordRequirements(newPassword);
+            const allRequirementsMet = Object.values(requirements).every(req => req);
+            const passwordsMatch = newPassword === confirmPassword;
+
+            // Activer/désactiver le bouton
+            if (currentPassword && newPassword && confirmPassword && allRequirementsMet && passwordsMatch) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-secondary');
+                submitBtn.classList.add('btn-submit-password');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('btn-submit-password');
+                submitBtn.classList.add('btn-secondary');
+            }
+        }
+
+        // Valider lors de la saisie du mot de passe actuel
+        document.getElementById('currentPassword').addEventListener('input', validateForm);
+
+        // Validation initiale
+        validateForm();
+
+        // Empêcher la soumission si les mots de passe ne correspondent pas
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (newPassword !== confirmPassword) {
+                e.preventDefault();
+                passwordMatchError.classList.remove('d-none');
+                confirmPasswordInput.focus();
+                return false;
+            }
+
+            const requirements = checkPasswordRequirements(newPassword);
+            const allRequirementsMet = Object.values(requirements).every(req => req);
+
+            if (!allRequirementsMet) {
+                e.preventDefault();
+                alert('Veuillez respecter toutes les exigences de sécurité pour le mot de passe.');
+                return false;
+            }
+
+            return true;
+        });
+    });
+</script>
+</body>
+</html>

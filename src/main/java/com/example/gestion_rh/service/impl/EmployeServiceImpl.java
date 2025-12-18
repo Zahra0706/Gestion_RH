@@ -117,16 +117,6 @@ public class EmployeServiceImpl implements EmployeService {
         emailService.envoyerNotificationCompteActive(employe);
     }
 
-    @Override
-    public Employe changerMotDePasse(Long id, String nouveauMotDePasse) {
-        Employe employe = employeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
-
-        employe.setPassword(passwordEncoder.encode(nouveauMotDePasse));
-        employe.setPremiereConnexion(false);
-
-        return employeRepository.save(employe);
-    }
 
     @Override
     public void reinitialiserMotDePasse(Long id) {
@@ -216,6 +206,17 @@ public class EmployeServiceImpl implements EmployeService {
         emailService.envoyerIdentifiantsEmploye(savedEmploye, password);
 
         return savedEmploye;
+    }
+
+    @Override
+    public Employe changerMotDePasse(Long id, String nouveauMotDePasse) {
+        Employe employe = employeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
+
+        employe.setPassword(passwordEncoder.encode(nouveauMotDePasse));
+        employe.setPremiereConnexion(false);
+
+        return employeRepository.save(employe);
     }
 
 }
