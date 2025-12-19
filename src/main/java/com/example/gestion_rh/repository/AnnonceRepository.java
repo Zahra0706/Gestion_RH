@@ -9,12 +9,18 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface AnnonceRepository extends JpaRepository<Annonce, Long> {
+public interface AnnonceRepository extends JpaRepository<Annonce, Long>,
+        org.springframework.data.jpa.repository.JpaSpecificationExecutor<Annonce> {
     List<Annonce> findByDepartementId(Long departementId);
+
     List<Annonce> findByCreateurId(Long createurId);
+
     List<Annonce> findByType(Annonce.TypeAnnonce type);
+
     List<Annonce> findByTypeOrderByDatePublicationDesc(Annonce.TypeAnnonce type);
+
     List<Annonce> findAllByOrderByDatePublicationDesc();
+
     List<Annonce> findByDepartementIsNullOrderByDatePublicationDesc();
 
     @Query("SELECT a FROM Annonce a WHERE a.departement IS NULL OR a.departement.id = :departementId ORDER BY a.datePublication DESC")

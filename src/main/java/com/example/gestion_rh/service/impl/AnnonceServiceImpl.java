@@ -12,6 +12,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.gestion_rh.repository.spec.AnnonceSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -148,7 +152,8 @@ public class AnnonceServiceImpl implements AnnonceService {
             Employe employe = employeRepository.findById(employeId)
                     .orElseThrow(() -> new RuntimeException("Employé non trouvé avec l'ID: " + employeId));
 
-            // Si l'employé a un département, on récupère les annonces de son département + générales
+            // Si l'employé a un département, on récupère les annonces de son département +
+            // générales
             if (employe.getDepartement() != null) {
                 return annonceRepository.findAnnoncesForDepartement(employe.getDepartement().getId());
             } else {
@@ -169,6 +174,12 @@ public class AnnonceServiceImpl implements AnnonceService {
             log.error("Erreur lors de la récupération des annonces importantes", e);
             return new ArrayList<>();
         }
+    }
+
+    @Override
+    public Page<Annonce> getAnnonces(String keyword, Annonce.TypeAnnonce type, Long departementId, Pageable pageable) {
+        Specification<Annonce> spec = AnnonceSpecification.getSpec(keyword, type, departementId);
+        return annonceRepository.findAll(spec, pageable);
     }
 
     @Override
@@ -232,17 +243,21 @@ public class AnnonceServiceImpl implements AnnonceService {
             String message = "<html><body style='font-family: Arial, sans-serif; line-height: 1.6;'>" +
                     "<h2>Bonjour " + recipient.getPrenom() + " " + recipient.getNom() + ",</h2>" +
                     "<p>Une nouvelle annonce a été publiée sur la plateforme HR Manager.</p>" +
-                    "<div style='background-color: #f8f9fa; padding: 20px; border-left: 4px solid #007bff; margin: 20px 0; border-radius: 0 5px 5px 0;'>" +
+                    "<div style='background-color: #f8f9fa; padding: 20px; border-left: 4px solid #007bff; margin: 20px 0; border-radius: 0 5px 5px 0;'>"
+                    +
                     "<h3 style='color: #007bff; margin-top: 0;'>" + annonce.getTitre() + "</h3>" +
                     "<p><strong>Type :</strong> " + annonce.getType() + "</p>" +
                     "<p><strong>Date :</strong> " + annonce.getDatePublication() + "</p>" +
-                    "<p><strong>Publié par :</strong> " + annonce.getCreateur().getPrenom() + " " + annonce.getCreateur().getNom() + "</p>" +
+                    "<p><strong>Publié par :</strong> " + annonce.getCreateur().getPrenom() + " "
+                    + annonce.getCreateur().getNom() + "</p>" +
                     "<div style='margin-top: 15px; padding: 10px; background: white; border-radius: 5px;'>" +
                     "<strong>Contenu :</strong>" +
                     "<p>" + annonce.getContenu() + "</p>" +
                     "</div></div>" +
                     "<p>Vous pouvez consulter cette annonce sur la plateforme HR Manager.</p>" +
-                    "<a href='http://localhost:8085/annonces/" + annonce.getId() + "' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Voir l'annonce complète</a>" +
+                    "<a href='http://localhost:8085/annonces/" + annonce.getId()
+                    + "' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Voir l'annonce complète</a>"
+                    +
                     "<br><br>" +
                     "<p>Cordialement,<br><strong>L'équipe HR Manager</strong></p>" +
                     "</body></html>";

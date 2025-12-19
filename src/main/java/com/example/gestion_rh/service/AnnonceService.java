@@ -25,5 +25,9 @@ public interface AnnonceService {
 
     public abstract List<Annonce> getImportantAnnonces();
 
+    // Méthode pour la pagination
+    public abstract org.springframework.data.domain.Page<Annonce> getAnnonces(String keyword, Annonce.TypeAnnonce type,
+            Long departementId, org.springframework.data.domain.Pageable pageable);
+
     public abstract void notifyUsersAboutAnnonce(Annonce annonce);
 }
