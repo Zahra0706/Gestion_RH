@@ -197,6 +197,11 @@ public class AnnonceServiceImpl implements AnnonceService {
 
             // Envoyer les notifications (dans un vrai projet, utiliser un système de queue)
             for (Employe recipient : recipients) {
+                // Ne pas notifier le créateur de l'annonce
+                if (annonce.getCreateur() != null && recipient.getId().equals(annonce.getCreateur().getId())) {
+                    continue;
+                }
+
                 try {
                     sendEmailNotification(annonce, recipient);
                 } catch (Exception e) {
@@ -212,20 +217,27 @@ public class AnnonceServiceImpl implements AnnonceService {
 
     private List<Employe> getRecipientsForAnnonce(Annonce annonce) {
         try {
+            // Règle 1 & 2 : Si un département est spécifié, on envoie uniquement aux
+            // employés de ce département
+            // (Quelle que soit le type de l'annonce)
+            if (annonce.getDepartement() != null) {
+                return employeRepository.findByDepartementIdAndIsCompteActifTrue(
+                        annonce.getDepartement().getId());
+            }
+
+            // Si aucun département n'est spécifié :
             switch (annonce.getType()) {
+                case DEPARTEMENT:
+                    // Règle 1: Type DÉPARTEMENT sans département spécifié -> Personne
+                    log.warn(
+                            "Annonce de type DÉPARTEMENT créée sans département spécifié. Aucune notification envoyée.");
+                    return new ArrayList<>();
+
                 case GENERALE:
                 case IMPORTANTE:
                 case INFORMATION:
-                    // Tous les employés actifs
+                    // Règle 2: Autres types sans département -> Tous les employés actifs
                     return employeRepository.findByIsCompteActifTrue();
-
-                case DEPARTEMENT:
-                    // Employés du département spécifique
-                    if (annonce.getDepartement() != null) {
-                        return employeRepository.findByDepartementIdAndIsCompteActifTrue(
-                                annonce.getDepartement().getId());
-                    }
-                    return new ArrayList<>();
 
                 default:
                     return new ArrayList<>();
