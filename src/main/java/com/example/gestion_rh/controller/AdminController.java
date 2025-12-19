@@ -15,6 +15,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.Authentication;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -59,7 +63,7 @@ public class AdminController {
 
     @PostMapping("/departements/creer")
     public String creerDepartement(@ModelAttribute Departement departement,
-                                   RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
             departementService.saveDepartement(departement);
             redirectAttributes.addFlashAttribute("success", "Département créé avec succès");
@@ -82,9 +86,9 @@ public class AdminController {
 
     @PostMapping("/departements/{id}/modifier")
     public String modifierDepartement(@PathVariable Long id,
-                                      @ModelAttribute Departement departement,
-                                      @RequestParam(required = false) Long managerId,
-                                      RedirectAttributes redirectAttributes) {
+            @ModelAttribute Departement departement,
+            @RequestParam(required = false) Long managerId,
+            RedirectAttributes redirectAttributes) {
         try {
             // Si un manager est spécifié, le récupérer
             if (managerId != null) {
@@ -107,7 +111,7 @@ public class AdminController {
 
     @PostMapping("/departements/{id}/supprimer")
     public String supprimerDepartement(@PathVariable Long id,
-                                       RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
             departementService.deleteDepartement(id);
             redirectAttributes.addFlashAttribute("success", "Département supprimé avec succès");
@@ -120,7 +124,7 @@ public class AdminController {
 
     @PostMapping("/departements/{id}/activer")
     public String activerDepartement(@PathVariable Long id,
-                                     RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
             departementService.activerDepartement(id);
             redirectAttributes.addFlashAttribute("success", "Département activé avec succès");
@@ -133,7 +137,7 @@ public class AdminController {
 
     @PostMapping("/departements/{id}/desactiver")
     public String desactiverDepartement(@PathVariable Long id,
-                                        RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
             departementService.desactiverDepartement(id);
             redirectAttributes.addFlashAttribute("success", "Département désactivé avec succès");
@@ -165,7 +169,8 @@ public class AdminController {
 
                 // Vérifier le manager
                 if (departement.getManager() != null) {
-                    System.out.println("Manager: " + departement.getManager().getNom() + " " + departement.getManager().getPrenom());
+                    System.out.println("Manager: " + departement.getManager().getNom() + " "
+                            + departement.getManager().getPrenom());
                     System.out.println("Email manager: " + departement.getManager().getEmail());
                 } else {
                     System.out.println("Manager: null");
@@ -183,7 +188,7 @@ public class AdminController {
 
                     // Compter les employés actifs et inactifs
                     for (Employe employe : departement.getEmployes()) {
-                        if (employe.getIsCompteActif() != null && employe.getIsCompteActif() ) {
+                        if (employe.getIsCompteActif() != null && employe.getIsCompteActif()) {
                             employesActifs++;
                         } else {
                             employesInactifs++;
@@ -273,8 +278,8 @@ public class AdminController {
 
     @PostMapping("/employes/creer")
     public String creerEmploye(@ModelAttribute Employe employe,
-                               @RequestParam(required = false) String password,
-                               RedirectAttributes redirectAttributes) {
+            @RequestParam(required = false) String password,
+            RedirectAttributes redirectAttributes) {
         try {
             // Générer un matricule automatique
             if (employe.getMatricule() == null || employe.getMatricule().isEmpty()) {
@@ -318,8 +323,8 @@ public class AdminController {
 
     @PostMapping("/employes/{id}/modifier")
     public String modifierEmploye(@PathVariable Long id,
-                                  @ModelAttribute Employe employe,
-                                  RedirectAttributes redirectAttributes) {
+            @ModelAttribute Employe employe,
+            RedirectAttributes redirectAttributes) {
         try {
             employeService.updateEmploye(id, employe);
             redirectAttributes.addFlashAttribute("success", "Employé modifié avec succès");
@@ -333,7 +338,7 @@ public class AdminController {
 
     @PostMapping("/employes/{id}/desactiver")
     public String desactiverCompte(@PathVariable Long id,
-                                   RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
             employeService.desactiverCompte(id);
             redirectAttributes.addFlashAttribute("success", "Compte désactivé avec succès");
@@ -346,7 +351,7 @@ public class AdminController {
 
     @PostMapping("/employes/{id}/activer")
     public String activerCompte(@PathVariable Long id,
-                                RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
             employeService.activerCompte(id);
             redirectAttributes.addFlashAttribute("success", "Compte activé avec succès");
@@ -359,7 +364,7 @@ public class AdminController {
 
     @PostMapping("/employes/{id}/reinitialiser-mot-de-passe")
     public String reinitialiserMotDePasse(@PathVariable Long id,
-                                          RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
             employeService.reinitialiserMotDePasse(id);
             redirectAttributes.addFlashAttribute("success",
@@ -371,10 +376,9 @@ public class AdminController {
         return "redirect:/admin/employes";
     }
 
-
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpServletRequest request,
-                            Authentication authentication) {
+            Authentication authentication) {
         // Récupérer les statistiques
         model.addAllAttributes(statistiqueService.getStatistiquesGenerales());
         model.addAttribute("statistiquesParRole", statistiqueService.getStatistiquesParRole());
@@ -399,8 +403,7 @@ public class AdminController {
                     String dateFormatted = "";
                     if (employe.getDateEmbauche() != null) {
                         dateFormatted = employe.getDateEmbauche().format(
-                                DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                        );
+                                DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                     }
                     empMap.put("dateEmbaucheFormatted", dateFormatted);
 
@@ -429,10 +432,39 @@ public class AdminController {
     }
 
     @GetMapping("/employes")
-    public String listeEmployes(Model model) {
-        model.addAttribute("employes", employeService.getAllEmployes());
+    public String listeEmployes(Model model,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long departementId,
+            @RequestParam(required = false) Employe.Role role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "nom") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDir,
+            HttpServletRequest request) {
+
+        Pageable pageable = PageRequest.of(page, size,
+                sortDir.equals("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending());
+
+        Page<Employe> employesPage = employeService.getEmployes(keyword, departementId, role, null, pageable);
+
+        model.addAttribute("employesPage", employesPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employesPage.getTotalPages());
+        model.addAttribute("totalItems", employesPage.getTotalElements());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        // Paramètres de filtrage pour le formulaire
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("departementId", departementId);
+        model.addAttribute("role", role);
+
+        model.addAttribute("titre", "Tous les employés");
         model.addAttribute("departements", departementService.getAllDepartements());
         model.addAttribute("roles", Employe.Role.values());
+        model.addAttribute("requestURI", request.getRequestURI());
+
         return "admin/employes/liste";
     }
 
@@ -446,20 +478,74 @@ public class AdminController {
     }
 
     @GetMapping("/employes/actifs")
-    public String listeEmployesActifs(Model model) {
-        model.addAttribute("employes", employeService.getEmployesActifs());
+    public String listeEmployesActifs(Model model,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long departementId,
+            @RequestParam(required = false) Employe.Role role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "nom") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDir,
+            HttpServletRequest request) {
+
+        Pageable pageable = PageRequest.of(page, size,
+                sortDir.equals("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending());
+
+        Page<Employe> employesPage = employeService.getEmployes(keyword, departementId, role, true, pageable);
+
+        model.addAttribute("employesPage", employesPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employesPage.getTotalPages());
+        model.addAttribute("totalItems", employesPage.getTotalElements());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        // Paramètres de filtrage
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("departementId", departementId);
+        model.addAttribute("role", role);
+
         model.addAttribute("titre", "Employés Actifs");
         model.addAttribute("departements", departementService.getAllDepartements());
         model.addAttribute("roles", Employe.Role.values());
+        model.addAttribute("requestURI", request.getRequestURI());
         return "admin/employes/liste";
     }
 
     @GetMapping("/employes/inactifs")
-    public String listeEmployesInactifs(Model model) {
-        model.addAttribute("employes", employeService.getEmployesInactifs());
+    public String listeEmployesInactifs(Model model,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long departementId,
+            @RequestParam(required = false) Employe.Role role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "nom") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDir,
+            HttpServletRequest request) {
+
+        Pageable pageable = PageRequest.of(page, size,
+                sortDir.equals("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending());
+
+        Page<Employe> employesPage = employeService.getEmployes(keyword, departementId, role, false, pageable);
+
+        model.addAttribute("employesPage", employesPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employesPage.getTotalPages());
+        model.addAttribute("totalItems", employesPage.getTotalElements());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        // Paramètres de filtrage
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("departementId", departementId);
+        model.addAttribute("role", role);
+
         model.addAttribute("titre", "Employés Inactifs");
         model.addAttribute("departements", departementService.getAllDepartements());
         model.addAttribute("roles", Employe.Role.values());
+        model.addAttribute("requestURI", request.getRequestURI());
         return "admin/employes/liste";
     }
 
@@ -475,8 +561,7 @@ public class AdminController {
 
             // Vérifier si l'utilisateur connecté est SUPER_ADMIN pour afficher les actions
             boolean isSuperAdmin = authentication.getAuthorities().stream()
-                    .anyMatch(grantedAuthority ->
-                            grantedAuthority.getAuthority().equals("ROLE_SUPER_ADMIN"));
+                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
             model.addAttribute("isSuperAdmin", isSuperAdmin);
 
@@ -544,6 +629,7 @@ public class AdminController {
 
         return "admin/statistiques";
     }
+
     @GetMapping("/statistiques/conges/evolution")
     @ResponseBody
     public Map<String, Object> getEvolutionCongesData(@RequestParam(defaultValue = "2024") int annee) {

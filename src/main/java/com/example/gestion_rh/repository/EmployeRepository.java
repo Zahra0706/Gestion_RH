@@ -9,11 +9,16 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 @Repository
-public interface EmployeRepository extends JpaRepository<Employe, Long> {
+public interface EmployeRepository extends JpaRepository<Employe, Long>, JpaSpecificationExecutor<Employe> {
     Optional<Employe> findByEmail(String email);
+
     Optional<Employe> findByMatricule(String matricule);
+
     List<Employe> findByDepartementId(Long departementId);
+
     List<Employe> findByRole(Employe.Role role);
 
     @Query("SELECT COUNT(e) FROM Employe e WHERE e.departement.id = :departementId")
@@ -28,5 +33,3 @@ public interface EmployeRepository extends JpaRepository<Employe, Long> {
 
     List<Employe> findByDepartementIdAndIsCompteActifTrue(Long id);
 }
-
-

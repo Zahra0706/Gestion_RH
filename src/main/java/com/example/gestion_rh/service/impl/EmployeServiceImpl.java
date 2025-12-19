@@ -8,6 +8,10 @@ import com.example.gestion_rh.service.EmployeService;
 import com.example.gestion_rh.service.EmailService;
 import com.example.gestion_rh.service.PasswordGeneratorService;
 import lombok.RequiredArgsConstructor;
+import com.example.gestion_rh.repository.spec.EmployeSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +29,6 @@ public class EmployeServiceImpl implements EmployeService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordGeneratorService passwordGeneratorService;
     private final EmailService emailService;
-
 
     @Override
     public Optional<Employe> getEmployeById(Long id) {
@@ -50,6 +53,13 @@ public class EmployeServiceImpl implements EmployeService {
     @Override
     public List<Employe> getEmployesByRole(Employe.Role role) {
         return employeRepository.findByRole(role);
+    }
+
+    @Override
+    public Page<Employe> getEmployes(String keyword, Long departementId, Employe.Role role, Boolean isActif,
+            Pageable pageable) {
+        Specification<Employe> spec = EmployeSpecification.getSpec(keyword, departementId, role, isActif);
+        return employeRepository.findAll(spec, pageable);
     }
 
     @Override
@@ -118,7 +128,6 @@ public class EmployeServiceImpl implements EmployeService {
         emailService.envoyerNotificationCompteActive(employe);
     }
 
-
     @Override
     public void reinitialiserMotDePasse(Long id) {
         Employe employe = employeRepository.findById(id)
@@ -148,6 +157,7 @@ public class EmployeServiceImpl implements EmployeService {
     public List<Employe> getEmployesInactifs() {
         return employeRepository.findByIsCompteActifFalse();
     }
+
     @Override
     public Employe saveEmploye(Employe employe) {
         // Vérifications basiques
@@ -219,10 +229,11 @@ public class EmployeServiceImpl implements EmployeService {
 
         return employeRepository.save(employe);
     }
+
     @Override
     public Employe updateProfil(Long id, String nom, String prenom, String telephone,
-                                String adresse, LocalDate dateNaissance, Employe.Poste poste,
-                                Departement departement) {
+            String adresse, LocalDate dateNaissance, Employe.Poste poste,
+            Departement departement) {
         Employe existingEmploye = employeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
 
