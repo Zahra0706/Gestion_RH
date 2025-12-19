@@ -36,4 +36,9 @@ public class Departement {
     @Column(name = "is_actif", nullable = false)
     @Builder.Default
     private Boolean isActif = true;
+
+    @Override
+    public String toString() {
+        return "Departement{id=" + id + ", manager=" + manager + "}";
+    }
 }

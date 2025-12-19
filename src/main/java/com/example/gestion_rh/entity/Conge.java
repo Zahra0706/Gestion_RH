@@ -2,7 +2,10 @@ package com.example.gestion_rh.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "conges")
@@ -11,6 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class Conge {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,8 +26,8 @@ public class Conge {
     private LocalDate dateFin;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TypeConge typeConge;
+    @Column(name = "type_conge", nullable = false)
+    private TypeConge type;  // ✅ MODIFIÉ : typeConge → type
 
     private String motif;
 
@@ -34,8 +38,21 @@ public class Conge {
     @Column(length = 500)
     private String commentaireManager;
 
-    @Column(length = 500)
+    @Column(name = "commentairerh", length = 500)
     private String commentaireRH;
+
+
+    @Column(name = "date_demande")
+    private LocalDateTime dateDemande;
+
+    @Column(name = "date_validation_manager")
+    private LocalDateTime dateValidationManager;
+
+    @Column(name = "date_refus")
+    private LocalDateTime dateRefus;
+
+    @Column(name = "motif_refus", length = 500)
+    private String motifRefus;
 
     @ManyToOne
     @JoinColumn(name = "employe_id", nullable = false)
@@ -50,11 +67,24 @@ public class Conge {
     private Employe rhValidateur;
 
     public enum TypeConge {
-        PAYE, MALADIE, MATERNITE, PATERNITE, SANS_SOLDE
+        CONGE_PAYE,      // ✅ AJOUTÉ en premier
+        PAYE,            // ✅ Gardé pour compatibilité avec données existantes
+        CONGE_MALADIE,
+        CONGE_SANS_SOLDE,
+        CONGE_MATERNITE,
+        CONGE_PATERNITE
     }
 
     public enum StatutConge {
-        EN_ATTENTE_MANAGER, VALIDE_MANAGER, REFUSE_MANAGER,
-        EN_ATTENTE_RH, VALIDE_RH, REFUSE_RH, ANNULE
+        EN_ATTENTE_MANAGER,
+        VALIDE_MANAGER,
+        REFUSE_MANAGER,
+        VALIDE_RH,
+        REFUSE_RH,
+        ANNULE
+    }
+
+    public long getNombreJours() {
+        return ChronoUnit.DAYS.between(dateDebut, dateFin) + 1;
     }
 }

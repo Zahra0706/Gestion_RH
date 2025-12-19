@@ -1,14 +1,16 @@
 package com.example.gestion_rh.service;
 
+import com.example.gestion_rh.entity.Conge;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Map;
+
 import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class StatistiqueService {
 
     private final EmployeService employeService;
@@ -16,9 +18,12 @@ public class StatistiqueService {
     private final CongeService congeService;
 
     public Map<String, Object> getStatistiquesGenerales() {
+
         Map<String, Object> stats = new HashMap<>();
 
-        // Total employés
+        // =====================
+        // EMPLOYÉS
+        // =====================
         long totalEmployes = employeService.getAllEmployes().size();
         long employesActifs = employeService.getEmployesActifs().size();
         long employesInactifs = employeService.getEmployesInactifs().size();
@@ -30,41 +35,63 @@ public class StatistiqueService {
             employesParDepartement.put(dept.getNom(), count);
         });
 
-        // Congés
-        long totalConges = congeService.getCongesByStatut(null).size();
-        long congesEnAttente = congeService.getCongesByStatut(
-                com.example.gestion_rh.entity.Conge.StatutConge.EN_ATTENTE_MANAGER).size() +
-                congeService.getCongesByStatut(
-                        com.example.gestion_rh.entity.Conge.StatutConge.EN_ATTENTE_RH).size();
-        long congesValides = congeService.getCongesByStatut(
-                com.example.gestion_rh.entity.Conge.StatutConge.VALIDE_RH).size();
+        // =====================
+        // CONGÉS (STATUTS VALIDES)
+        // =====================
+        long congesEnAttenteManager = congeService.getCongesByStatut(Conge.StatutConge.EN_ATTENTE_MANAGER).size();
+        long congesValidesManager   = congeService.getCongesByStatut(Conge.StatutConge.VALIDE_MANAGER).size();
+        long congesRefusesManager   = congeService.getCongesByStatut(Conge.StatutConge.REFUSE_MANAGER).size();
 
-        // Départements
+        long congesValidesRH        = congeService.getCongesByStatut(Conge.StatutConge.VALIDE_RH).size();
+        long congesRefusesRH        = congeService.getCongesByStatut(Conge.StatutConge.REFUSE_RH).size();
+
+        long congesAnnules          = congeService.getCongesByStatut(Conge.StatutConge.ANNULE).size();
+
+        long totalConges = congesEnAttenteManager + congesValidesManager + congesRefusesManager
+                + congesValidesRH + congesRefusesRH + congesAnnules;
+
+        // =====================
+        // DÉPARTEMENTS
+        // =====================
         long totalDepartements = departementService.getAllDepartements().size();
         long departementsAvecManager = departementService.getAllDepartements().stream()
                 .filter(d -> d.getManager() != null)
                 .count();
 
+        double tauxOccupation = totalDepartements == 0 ? 0.0 :
+                (departementsAvecManager * 100.0 / totalDepartements);
+
+        // =====================
+        // PUT VALUES
+        // =====================
         stats.put("totalEmployes", totalEmployes);
         stats.put("employesActifs", employesActifs);
         stats.put("employesInactifs", employesInactifs);
         stats.put("employesParDepartement", employesParDepartement);
+
         stats.put("totalConges", totalConges);
-        stats.put("congesEnAttente", congesEnAttente);
-        stats.put("congesValides", congesValides);
+        stats.put("congesEnAttente", congesEnAttenteManager);
+        stats.put("congesValides", congesValidesRH); // tu peux choisir VALIDE_MANAGER si tu veux
+        stats.put("congesRefuses", congesRefusesManager + congesRefusesRH);
+        stats.put("congesAnnules", congesAnnules);
+
         stats.put("totalDepartements", totalDepartements);
         stats.put("departementsAvecManager", departementsAvecManager);
-        stats.put("tauxOccupation", departementsAvecManager * 100.0 / totalDepartements);
+        stats.put("tauxOccupation", tauxOccupation);
 
         return stats;
     }
 
     public Map<String, Object> getStatistiquesParRole() {
+
         Map<String, Object> stats = new HashMap<>();
 
         employeService.getAllEmployes().forEach(employe -> {
-            String role = employe.getRole().name();
-            stats.put(role, (Long) stats.getOrDefault(role, 0L) + 1);
+            if (employe.getRole() != null) {
+                String role = employe.getRole().name();
+                long current = (long) stats.getOrDefault(role, 0L);
+                stats.put(role, current + 1);
+            }
         });
 
         return stats;

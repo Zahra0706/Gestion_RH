@@ -217,5 +217,9 @@ public class EmployeServiceImpl implements EmployeService {
 
         return savedEmploye;
     }
+    @Override
+    public Optional<Employe> findByEmail(String email) {
+        return employeRepository.findByEmail(email);
+    }
 
 }

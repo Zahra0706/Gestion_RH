@@ -4,7 +4,6 @@ import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.entity.Employe;
 import com.example.gestion_rh.repository.DepartementRepository;
 import com.example.gestion_rh.repository.EmployeRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +19,7 @@ public class DataInitializer {
     public CommandLineRunner initDepartments(DepartementRepository departementRepository) {
         return args -> {
             if (departementRepository.count() == 0) {
-                // Créer des départements par défaut
+
                 Departement it = Departement.builder()
                         .code("IT")
                         .nom("Technologie de l'Information")
@@ -66,6 +65,7 @@ public class DataInitializer {
                                        PasswordEncoder passwordEncoder,
                                        DepartementRepository departementRepository) {
         return args -> {
+
             // Super Admin
             if (employeRepository.findByEmail("superadmin@hr.com").isEmpty()) {
                 Employe superAdmin = Employe.builder()

@@ -14,6 +14,7 @@ public interface EmployeService {
     // Méthodes existantes
     Optional<Employe> getEmployeById(Long id);
     Optional<Employe> getEmployeByEmail(String email);
+    Optional<Employe> findByEmail(String email);
     List<Employe> getAllEmployes();
     List<Employe> getEmployesByDepartement(Long departementId);
     List<Employe> getEmployesByRole(Employe.Role role);

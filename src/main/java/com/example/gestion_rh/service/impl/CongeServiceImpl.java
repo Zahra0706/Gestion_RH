@@ -1,6 +1,5 @@
 package com.example.gestion_rh.service.impl;
 
-
 import com.example.gestion_rh.entity.Conge;
 import com.example.gestion_rh.entity.Employe;
 import com.example.gestion_rh.repository.CongeRepository;
@@ -10,7 +9,9 @@ import com.example.gestion_rh.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -24,26 +25,24 @@ public class CongeServiceImpl implements CongeService {
 
     @Override
     public Conge demanderConge(Conge conge) {
-        // Vérifier les dates
         if (conge.getDateDebut().isAfter(conge.getDateFin())) {
             throw new RuntimeException("Date de début doit être avant date de fin");
         }
 
-        // Vérifier les jours de congés restants
         long joursDemandes = ChronoUnit.DAYS.between(conge.getDateDebut(), conge.getDateFin()) + 1;
-        double joursRestants = calculerJoursCongesRestants(conge.getEmploye().getId(),
-                conge.getDateDebut().getYear());
+
+        double joursRestants = calculerJoursCongesRestants(
+                conge.getEmploye().getId(),
+                conge.getDateDebut().getYear()
+        );
 
         if (joursDemandes > joursRestants) {
             throw new RuntimeException("Jours de congés insuffisants");
         }
 
-        // Définir le statut initial
         conge.setStatut(Conge.StatutConge.EN_ATTENTE_MANAGER);
-
         Conge savedConge = congeRepository.save(conge);
 
-        // Envoyer notification au manager
         if (conge.getEmploye().getDepartement() != null &&
                 conge.getEmploye().getDepartement().getManager() != null) {
             emailService.envoyerNotificationCongeManager(savedConge);
@@ -60,24 +59,40 @@ public class CongeServiceImpl implements CongeService {
         Employe manager = employeRepository.findById(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
 
-        // Vérifier que le manager est bien le manager du département de l'employé
-        if (!conge.getEmploye().getDepartement().getManager().getId().equals(managerId)) {
+        // ✅ Autorisation: le manager connecté doit être le manager du département de l'employé demandeur
+        if (conge.getEmploye() == null || conge.getEmploye().getDepartement() == null
+                || conge.getEmploye().getDepartement().getManager() == null
+                || !conge.getEmploye().getDepartement().getManager().getId().equals(managerId)) {
             throw new RuntimeException("Vous n'êtes pas autorisé à valider cette demande");
         }
 
+        // ✅ Seulement si en attente manager
+        if (conge.getStatut() != Conge.StatutConge.EN_ATTENTE_MANAGER) {
+            throw new RuntimeException("Cette demande n'est plus en attente manager");
+        }
+
+        conge.setManagerValidateur(manager);
+
         if (validation) {
             conge.setStatut(Conge.StatutConge.VALIDE_MANAGER);
-            conge.setManagerValidateur(manager);
             conge.setCommentaireManager(commentaire);
+            conge.setDateValidationManager(java.time.LocalDateTime.now());
+            conge.setDateRefus(null);
+            conge.setMotifRefus(null);
 
-            // Envoyer notification au RH
             emailService.envoyerNotificationCongeRH(conge);
-        } else {
-            conge.setStatut(Conge.StatutConge.REFUSE_MANAGER);
-            conge.setManagerValidateur(manager);
-            conge.setCommentaireManager(commentaire);
 
-            // Envoyer notification à l'employé
+        } else {
+            // commentaire ici = motifRefus (car ton controller envoie motifRefus dans ce param)
+            if (commentaire == null || commentaire.trim().isEmpty()) {
+                throw new RuntimeException("Le motif du refus est obligatoire");
+            }
+
+            conge.setStatut(Conge.StatutConge.REFUSE_MANAGER);
+            conge.setMotifRefus(commentaire);
+            conge.setDateRefus(java.time.LocalDateTime.now());
+            conge.setDateValidationManager(null);
+
             emailService.envoyerNotificationRefusConge(conge, "manager");
         }
 
@@ -96,16 +111,13 @@ public class CongeServiceImpl implements CongeService {
         Employe rh = employeRepository.findById(rhId)
                 .orElseThrow(() -> new RuntimeException("RH non trouvé"));
 
+        conge.setRhValidateur(rh);
+        conge.setCommentaireRH(commentaire);
+
         if (validation) {
             conge.setStatut(Conge.StatutConge.VALIDE_RH);
-            conge.setRhValidateur(rh);
-            conge.setCommentaireRH(commentaire);
         } else {
             conge.setStatut(Conge.StatutConge.REFUSE_RH);
-            conge.setRhValidateur(rh);
-            conge.setCommentaireRH(commentaire);
-
-            // Envoyer notification à l'employé
             emailService.envoyerNotificationRefusConge(conge, "RH");
         }
 
@@ -121,6 +133,10 @@ public class CongeServiceImpl implements CongeService {
     public List<Conge> getCongesEnAttenteManager(Long managerId) {
         Employe manager = employeRepository.findById(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
+
+        if (manager.getDepartement() == null) {
+            throw new RuntimeException("Le manager n'est associé à aucun département");
+        }
 
         return congeRepository.findByDepartementAndStatut(
                 manager.getDepartement().getId(),
@@ -157,14 +173,12 @@ public class CongeServiceImpl implements CongeService {
 
     @Override
     public double calculerJoursCongesRestants(Long employeId, int annee) {
-        // Par défaut, 30 jours par an
         double joursCongesAnnuel = 30.0;
 
-        // Compter les jours déjà pris
         List<Conge> congesValides = congeRepository.findByEmployeId(employeId)
                 .stream()
-                .filter(c -> c.getStatut().equals(Conge.StatutConge.VALIDE_RH) &&
-                        c.getDateDebut().getYear() == annee)
+                .filter(c -> c.getStatut().equals(Conge.StatutConge.VALIDE_RH)
+                        && c.getDateDebut().getYear() == annee)
                 .toList();
 
         double joursPris = congesValides.stream()
@@ -172,5 +186,25 @@ public class CongeServiceImpl implements CongeService {
                 .sum();
 
         return joursCongesAnnuel - joursPris;
+    }
+
+    // ✅ AJOUTS POUR LE MANAGER
+
+    @Override
+    public List<Conge> getCongesDepartementByStatut(Long departementId, Conge.StatutConge statut) {
+        return congeRepository.findByDepartementAndStatut(departementId, statut);
+    }
+
+    @Override
+    public List<Conge> getHistoriqueCongesDepartement(Long departementId) {
+        List<Conge.StatutConge> statutsHistorique = Arrays.asList(
+                Conge.StatutConge.VALIDE_MANAGER,
+                Conge.StatutConge.REFUSE_MANAGER,
+                Conge.StatutConge.VALIDE_RH,
+                Conge.StatutConge.REFUSE_RH,
+                Conge.StatutConge.ANNULE
+        );
+
+        return congeRepository.findHistoriqueByDepartement(departementId, statutsHistorique);
     }
 }

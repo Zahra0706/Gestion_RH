@@ -69,7 +69,7 @@
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form th:action="@{/auth/logout}" method="post">
+                        <form th:action="@{/logout}" method="post">
                             <button class="dropdown-item text-danger" type="submit">
                                 <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
                             </button>
@@ -80,5 +80,68 @@
         </div>
     </div>
 </div>
+
+<!-- Header Fragment MANAGER -->
+<div th:fragment="manager-header">
+    <div class="admin-header">
+        <div class="header-left">
+            <button class="btn btn-outline-secondary d-md-none menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <h4 class="mb-0" th:text="${pageTitle ?: 'Espace Manager'}"></h4>
+            <small class="text-muted">Manager</small>
+        </div>
+
+        <div class="user-info">
+            <!-- Afficher seulement si user existe -->
+            <div th:if="${user != null}" class="user-avatar"
+                 th:text="${#strings.substring(user.nom, 0, 1) + #strings.substring(user.prenom, 0, 1)}">
+                MG
+            </div>
+            <div th:if="${user != null}">
+                <div class="fw-bold" th:text="${user.prenom + ' ' + user.nom}"></div>
+                <small class="text-muted">MANAGER</small>
+            </div>
+
+            <!-- Fallback si user n'existe pas -->
+            <div th:if="${user == null}" class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div th:if="${user == null}">
+                <div class="fw-bold" sec:authentication="name"></div>
+                <small class="text-muted">MANAGER</small>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-link text-dark" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" th:href="@{/manager/profil}">
+                            <i class="fas fa-user me-2"></i>Mon Profil
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" th:href="@{/manager/parametres}">
+                            <i class="fas fa-cog me-2"></i>Paramètres
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form th:action="@{/logout}" method="post">
+                            <button class="dropdown-item text-danger" type="submit">
+                                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

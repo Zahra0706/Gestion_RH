@@ -86,5 +86,9 @@ public class Employe {
     public enum Role {
         EMPLOYE, MANAGER, RH, ADMIN, SUPER_ADMIN
     }
+    @Override
+    public String toString() {
+        return "Employe{id=" + id + ", nom=" + nom + "}";
+    }
 
 }

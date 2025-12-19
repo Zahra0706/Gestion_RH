@@ -1,7 +1,7 @@
 package com.example.gestion_rh.service;
 
-
 import com.example.gestion_rh.entity.Conge;
+
 import java.util.List;
 
 public interface CongeService {
@@ -14,4 +14,10 @@ public interface CongeService {
     List<Conge> getCongesByStatut(Conge.StatutConge statut);
     Conge annulerConge(Long congeId, Long employeId);
     double calculerJoursCongesRestants(Long employeId, int annee);
+
+    // Manager - Congés du département
+    List<Conge> getCongesDepartementByStatut(Long departementId, Conge.StatutConge statut);
+
+    // Historique (validés + refusés) du département
+    List<Conge> getHistoriqueCongesDepartement(Long departementId);
 }

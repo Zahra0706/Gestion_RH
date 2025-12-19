@@ -84,6 +84,7 @@ public class SecurityConfig {
                                 "/auth/access-denied",
                                 "/error"
                         ).permitAll()
+                        .requestMatchers("/api/**").permitAll()   // ✅ AJOUTE ÇA
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/rh/**").hasRole("RH")
