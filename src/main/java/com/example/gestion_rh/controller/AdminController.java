@@ -635,4 +635,47 @@ public class AdminController {
     public Map<String, Object> getEvolutionCongesData(@RequestParam(defaultValue = "2024") int annee) {
         return statistiqueService.getEvolutionCongesParMois(annee);
     }
+
+    @GetMapping("/statistiques/filtrees")
+    @ResponseBody
+    public Map<String, Object> getStatistiquesFiltrees(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false) Long departementId,
+            @RequestParam(required = false) String typeAnnonceStr, // Read as string to safely handle empty/null
+            @RequestParam(required = false) Boolean statutEmploye) {
+
+        Annonce.TypeAnnonce typeAnnonce = null;
+        if (typeAnnonceStr != null && !typeAnnonceStr.isEmpty()) {
+            try {
+                typeAnnonce = Annonce.TypeAnnonce.valueOf(typeAnnonceStr);
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid enum values
+            }
+        }
+
+        return statistiqueService.getStatistiquesFiltrees(dateDebut, dateFin, departementId, typeAnnonce,
+                statutEmploye);
+    }
+
+    @GetMapping("/statistiques/export/pdf")
+    @ResponseBody
+    public Map<String, Object> getExportData(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false) Long departementId,
+            @RequestParam(required = false) String typeAnnonceStr,
+            @RequestParam(required = false) Boolean statutEmploye) {
+
+        Annonce.TypeAnnonce typeAnnonce = null;
+        if (typeAnnonceStr != null && !typeAnnonceStr.isEmpty()) {
+            try {
+                typeAnnonce = Annonce.TypeAnnonce.valueOf(typeAnnonceStr);
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid enum values
+            }
+        }
+
+        return statistiqueService.getExportData(dateDebut, dateFin, departementId, typeAnnonce, statutEmploye);
+    }
 }
