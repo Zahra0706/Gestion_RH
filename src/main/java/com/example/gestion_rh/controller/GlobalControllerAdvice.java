@@ -17,10 +17,12 @@ public class GlobalControllerAdvice {
     private final AnnonceRepository annonceRepository;
 
     @ModelAttribute
-    public void addGlobalAttributes(Model model) {
+    public void addGlobalAttributes(org.springframework.ui.Model model,
+            jakarta.servlet.http.HttpServletRequest request) {
         // Ajouter les compteurs pour le menu
         model.addAttribute("menuCountEmployes", employeRepository.count());
         model.addAttribute("menuCountDepartements", departementRepository.count());
         model.addAttribute("menuCountAnnonces", annonceRepository.count());
+        model.addAttribute("requestURI", request.getRequestURI());
     }
 }

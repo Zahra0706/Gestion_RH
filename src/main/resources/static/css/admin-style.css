@@ -18,7 +18,7 @@
     width: var(--sidebar-width);
     height: 100vh;
     background: linear-gradient(180deg, var(--secondary-color) 0%, var(--dark-color) 100%);
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     transition: all 0.3s;
     display: flex;
@@ -28,9 +28,10 @@
 .sidebar-brand {
     padding: 20px;
     text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
 }
+
 .sidebar-menu {
     padding: 10px 0;
     flex: 1 1 auto;
@@ -41,8 +42,8 @@
 .sidebar-footer {
     flex-shrink: 0;
     padding: 15px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    background: rgba(0,0,0,0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
     margin-top: auto;
 }
 
@@ -60,14 +61,14 @@
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
     text-decoration: none;
     transition: all 0.3s;
     border-left: 4px solid transparent;
 }
 
 .menu-item:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
     border-left-color: var(--primary-color);
 }
@@ -109,7 +110,7 @@
     padding: 15px 20px;
     border-radius: 10px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -145,14 +146,14 @@
     background: white;
     border-radius: 10px;
     padding: 25px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
     transition: transform 0.3s, box-shadow 0.3s;
     border-left: 5px solid var(--primary-color);
 }
 
 .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card.employes {
@@ -245,7 +246,7 @@
     background: white;
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
 }
 
 .chart-title {
@@ -259,7 +260,7 @@
     background: white;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
 }
 
@@ -345,12 +346,12 @@
     text-decoration: none;
     color: #495057;
     transition: all 0.3s;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .action-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     color: var(--primary-color);
 }
 
@@ -396,8 +397,13 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Active menu item style */
@@ -461,7 +467,8 @@
     color: #495057;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: #86b7fe;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
@@ -489,12 +496,12 @@
 .stats-card {
     transition: transform 0.2s;
     border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
 }
 
 .stats-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .1);
 }
 
 .stats-card .card-body {
@@ -585,6 +592,7 @@
 
 /* Print Styles */
 @media print {
+
     .sidebar,
     .admin-header,
     .btn,
@@ -609,7 +617,8 @@
         border-collapse: collapse !important;
     }
 
-    th, td {
+    th,
+    td {
         border: 1px solid #000 !important;
         padding: 0.5rem !important;
     }
@@ -639,8 +648,13 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Tooltip Enhancement */
@@ -768,13 +782,33 @@ h5 {
     font-size: 0.85em;
 }
 
-.bg-primary { background: linear-gradient(135deg, #3498db, #2980b9) !important; }
-.bg-secondary { background: linear-gradient(135deg, #7f8c8d, #95a5a6) !important; }
-.bg-success { background: linear-gradient(135deg, #27ae60, #219653) !important; }
-.bg-danger { background: linear-gradient(135deg, #e74c3c, #c0392b) !important; }
-.bg-warning { background: linear-gradient(135deg, #f39c12, #e67e22) !important; }
-.bg-info { background: linear-gradient(135deg, #17a2b8, #2c9cb0) !important; }
-.bg-purple { background: linear-gradient(135deg, #8e44ad, #9b59b6) !important; }
+.bg-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9) !important;
+}
+
+.bg-secondary {
+    background: linear-gradient(135deg, #7f8c8d, #95a5a6) !important;
+}
+
+.bg-success {
+    background: linear-gradient(135deg, #27ae60, #219653) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22) !important;
+}
+
+.bg-info {
+    background: linear-gradient(135deg, #17a2b8, #2c9cb0) !important;
+}
+
+.bg-purple {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6) !important;
+}
 
 /* Table */
 .table {
@@ -831,14 +865,16 @@ h5 {
 }
 
 /* Formulaires */
-.form-control, .form-select {
+.form-control,
+.form-select {
     border: 2px solid #e3f2fd;
     border-radius: 8px;
     padding: 0.625rem 1rem;
     transition: all 0.3s ease;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--secondary-blue);
     box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
     transform: translateY(-1px);
@@ -921,10 +957,19 @@ h5 {
 
 /* Animation pour le chargement */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.card, .alert, .table {
+.card,
+.alert,
+.table {
     animation: fadeIn 0.5s ease-out;
 }

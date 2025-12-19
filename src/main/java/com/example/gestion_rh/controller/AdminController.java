@@ -377,7 +377,7 @@ public class AdminController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpServletRequest request,
+    public String dashboard(Model model,
             Authentication authentication) {
         // Récupérer les statistiques
         model.addAllAttributes(statistiqueService.getStatistiquesGenerales());
@@ -416,9 +416,6 @@ public class AdminController {
         // Départements sans manager
         List<Departement> departementsSansManager = departementService.getDepartementsSansManager();
         model.addAttribute("departementsSansManager", departementsSansManager);
-
-        // Ajouter requestURI au modèle pour le menu
-        model.addAttribute("requestURI", request.getRequestURI());
 
         // Ajouter l'utilisateur connecté au modèle
         if (authentication != null && authentication.isAuthenticated()) {
@@ -463,7 +460,6 @@ public class AdminController {
         model.addAttribute("titre", "Tous les employés");
         model.addAttribute("departements", departementService.getAllDepartements());
         model.addAttribute("roles", Employe.Role.values());
-        model.addAttribute("requestURI", request.getRequestURI());
 
         return "admin/employes/liste";
     }
