@@ -71,7 +71,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/css/**",
@@ -84,7 +86,7 @@ public class SecurityConfig {
                                 "/auth/access-denied",
                                 "/error"
                         ).permitAll()
-                        .requestMatchers("/api/**").permitAll()   // ✅ AJOUTE ÇA
+                        .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/rh/**").hasRole("RH")
@@ -115,4 +117,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 }

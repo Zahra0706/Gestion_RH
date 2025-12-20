@@ -14,8 +14,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.example.gestion_rh.repository.AnnonceRepository;
+import com.example.gestion_rh.entity.Annonce;
+
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,17 +37,21 @@ public class ManagerController {
     private final CongeRepository congeRepository;
     private final CongeService congeService;
     private final EmployeService employeService;
+    private final AnnonceRepository annonceRepository;
+
 
     public ManagerController(EmployeRepository employeRepository,
                              DepartementRepository departementRepository,
                              CongeRepository congeRepository,
                              CongeService congeService,
-                             EmployeService employeService) {
+                             EmployeService employeService,
+                             AnnonceRepository annonceRepository) {
         this.employeRepository = employeRepository;
         this.departementRepository = departementRepository;
         this.congeRepository = congeRepository;
         this.congeService = congeService;
         this.employeService = employeService;
+        this.annonceRepository = annonceRepository;
     }
 
     // =========================
@@ -139,15 +150,15 @@ public class ManagerController {
         return "manager/dashboard";
     }
 
+
     // =========================
     // ✅ GESTION DES CONGÉS
     // =========================
     @GetMapping("/conges")
     public String gestionConges(Authentication authentication, Model model) {
         Optional<Employe> managerOpt = employeService.findByEmail(authentication.getName());
-        System.out.println("tis is anageopt"+
-                managerOpt
-        );
+        System.out.println("tis is anageopt" + managerOpt);
+
         if (managerOpt.isEmpty()) {
             model.addAttribute("errorMessage", "Utilisateur non trouvé");
             setEmptyCongesData(model);
@@ -263,9 +274,7 @@ public class ManagerController {
                 })
                 .toList();
 
-
         model.addAttribute("congesCalendrier", congesCalendrier);
-
 
         return "manager/conges";
     }
@@ -277,19 +286,50 @@ public class ManagerController {
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
 
+        System.out.println("========================================");
+        System.out.println("🟢 DÉBUT VALIDATION CONGÉ");
+        System.out.println("ID du congé: " + id);
+        System.out.println("Commentaire: " + commentaire);
+        System.out.println("Manager email: " + authentication.getName());
+        System.out.println("========================================");
+
         try {
             Optional<Employe> managerOpt = employeService.findByEmail(authentication.getName());
+
             if (managerOpt.isEmpty()) {
+                System.out.println("❌ ERREUR: Manager non trouvé");
                 redirectAttributes.addFlashAttribute("errorMessage", "Utilisateur non trouvé");
                 return "redirect:/manager/conges";
             }
 
             Employe manager = managerOpt.get();
-            congeService.validerCongeManager(id, manager.getId(), true, commentaire);
+            System.out.println("✅ Manager trouvé: ID=" + manager.getId() + ", Nom=" + manager.getNom());
 
-            redirectAttributes.addFlashAttribute("successMessage", "Congé validé avec succès !");
+            if (manager.getDepartement() == null) {
+                System.out.println("❌ ERREUR: Manager sans département");
+                redirectAttributes.addFlashAttribute("errorMessage", "Vous n'êtes associé à aucun département");
+                return "redirect:/manager/conges";
+            }
+
+            System.out.println("✅ Département du manager: ID=" + manager.getDepartement().getId());
+
+            // Appel du service
+            Conge congeValide = congeService.validerCongeManager(id, manager.getId(), true, commentaire);
+
+            System.out.println("✅ Congé validé avec succès! Nouveau statut: " + congeValide.getStatut());
+            System.out.println("========================================");
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "✅ Congé validé avec succès ! L'employé et le RH ont été notifiés.");
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+            System.out.println("❌ ERREUR lors de la validation:");
+            System.out.println("Message: " + e.getMessage());
+            e.printStackTrace();
+            System.out.println("========================================");
+
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "❌ Erreur : " + e.getMessage());
         }
 
         return "redirect:/manager/conges";
@@ -321,12 +361,228 @@ public class ManagerController {
     }
 
     // =========================
+// ✅ ANNONCES (MANAGER)
+// =========================
+
+    @GetMapping("/annonces")
+    public String annonces(Authentication authentication, Model model) {
+
+        String email = authentication.getName();
+        Optional<Employe> managerOpt = employeRepository.findByEmail(email);
+
+        if (managerOpt.isEmpty()) {
+            model.addAttribute("errorMessage", "Utilisateur non trouvé");
+            model.addAttribute("annonces", List.of());
+            return "manager/annonces";
+        }
+
+        Employe manager = managerOpt.get();
+
+        if (manager.getDepartement() == null) {
+            model.addAttribute("errorMessage", "Vous n'êtes associé à aucun département");
+            model.addAttribute("annonces", List.of());
+            return "manager/annonces";
+        }
+
+        Long deptId = manager.getDepartement().getId();
+
+        // ✅ annonces globales (departement null) + annonces du dept
+        List<Annonce> annonces = annonceRepository.findAnnoncesForDepartement(deptId);
+
+        model.addAttribute("annonces", annonces);
+        model.addAttribute("departement", manager.getDepartement());
+
+        return "manager/annonces";
+    }
+
+    @GetMapping("/annonces/creer")
+    public String creerAnnonceForm(Authentication authentication, Model model) {
+
+        String email = authentication.getName();
+        Optional<Employe> managerOpt = employeRepository.findByEmail(email);
+
+        if (managerOpt.isEmpty() || managerOpt.get().getDepartement() == null) {
+            model.addAttribute("errorMessage", "Accès impossible : manager ou département introuvable.");
+            return "manager/annonce-creer";
+        }
+
+        model.addAttribute("departement", managerOpt.get().getDepartement());
+        return "manager/annonce-creer";
+    }
+
+    @PostMapping("/annonces/creer")
+    public String creerAnnonce(
+            @RequestParam String titre,
+            @RequestParam String contenu,
+            @RequestParam String type,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            String email = authentication.getName();
+            Optional<Employe> managerOpt = employeRepository.findByEmail(email);
+
+            if (managerOpt.isEmpty() || managerOpt.get().getDepartement() == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Manager ou département introuvable.");
+                return "redirect:/manager/annonces";
+            }
+
+            Employe manager = managerOpt.get();
+
+            Annonce annonce = new Annonce();
+            annonce.setTitre(titre);
+            annonce.setContenu(contenu);
+
+            // ⚠️ adapte selon ton enum exact (INFO/URGENT/EVENT etc)
+            annonce.setType(Annonce.TypeAnnonce.valueOf(type));
+
+            annonce.setCreateur(manager);
+            annonce.setDepartement(manager.getDepartement());
+            annonce.setDatePublication(java.time.LocalDateTime.now());
+
+            annonceRepository.save(annonce);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Annonce publiée avec succès ✅");
+            return "redirect:/manager/annonces";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+            return "redirect:/manager/annonces/creer";
+        }
+    }
+    @GetMapping("/annonces/{id}/modifier")
+    public String afficherFormModifier(@PathVariable Long id,
+                                       Authentication authentication,
+                                       Model model,
+                                       RedirectAttributes redirectAttributes) {
+        try {
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            Annonce annonce = annonceRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Annonce introuvable"));
+
+            // sécurité simple: seulement les annonces du département du manager
+            Long deptId = manager.getDepartement().getId();
+            if (annonce.getDepartement() == null || !annonce.getDepartement().getId().equals(deptId)) {
+                throw new RuntimeException("Accès interdit");
+            }
+
+            model.addAttribute("annonce", annonce);
+            model.addAttribute("types", Annonce.TypeAnnonce.values());
+            model.addAttribute("departement", manager.getDepartement());
+
+            return "manager/annonce-modifier";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+            return "redirect:/manager/annonces";
+        }
+    }
+    @PostMapping("/annonces/{id}/modifier")
+    public String modifierAnnonce(@PathVariable Long id,
+                                  @RequestParam String titre,
+                                  @RequestParam String contenu,
+                                  @RequestParam Annonce.TypeAnnonce type,
+                                  Authentication authentication,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            Annonce annonce = annonceRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Annonce introuvable"));
+
+            Long deptId = manager.getDepartement().getId();
+            if (annonce.getDepartement() == null || !annonce.getDepartement().getId().equals(deptId)) {
+                throw new RuntimeException("Accès interdit");
+            }
+
+            annonce.setTitre(titre);
+            annonce.setContenu(contenu);
+            annonce.setType(type);
+
+            annonceRepository.save(annonce);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Annonce modifiée ✅");
+            return "redirect:/manager/annonces";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+            return "redirect:/manager/annonces";
+        }
+    }
+    @PostMapping("/annonces/{id}/supprimer")
+    public String supprimerAnnonce(@PathVariable Long id,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            // 1) manager connecté
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            if (manager.getDepartement() == null) {
+                throw new RuntimeException("Vous n'êtes associé à aucun département");
+            }
+
+            // 2) annonce à supprimer
+            Annonce annonce = annonceRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Annonce introuvable"));
+
+            // 3) sécurité : seulement annonces du dept du manager
+            Long deptId = manager.getDepartement().getId();
+            if (annonce.getDepartement() == null || !annonce.getDepartement().getId().equals(deptId)) {
+                throw new RuntimeException("Accès interdit : annonce d’un autre département");
+            }
+
+            // 4) supprimer
+            annonceRepository.delete(annonce);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Annonce supprimée ✅");
+            return "redirect:/manager/annonces";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+            return "redirect:/manager/annonces";
+        }
+    }
+
+
+
+    // =========================
     // ✅ ROUTES MENU MANAGER
     // =========================
     @GetMapping("/employes")
-    public String employes() {
+    public String employes(Authentication authentication, Model model) {
+
+        String email = authentication.getName(); // email du user connecté
+
+        Optional<Employe> managerOpt = employeRepository.findByEmail(email);
+
+        if (managerOpt.isEmpty()) {
+            model.addAttribute("errorMessage", "Utilisateur non trouvé");
+            model.addAttribute("employees", List.of());
+            return "manager/employes";
+        }
+
+        Employe manager = managerOpt.get();
+
+        if (manager.getDepartement() == null) {
+            model.addAttribute("errorMessage", "Vous n'êtes associé à aucun département");
+            model.addAttribute("employees", List.of());
+            return "manager/employes";
+        }
+
+        Long deptId = manager.getDepartement().getId();
+
+        List<Employe> employees = employeRepository.findByDepartementId(deptId);
+
+        model.addAttribute("employees", employees);
+        model.addAttribute("departement", manager.getDepartement());
+
         return "manager/employes";
     }
+
 
     @GetMapping("/departements")
     public String departements() {

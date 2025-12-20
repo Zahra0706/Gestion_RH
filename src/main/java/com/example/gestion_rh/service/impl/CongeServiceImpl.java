@@ -53,38 +53,82 @@ public class CongeServiceImpl implements CongeService {
 
     @Override
     public Conge validerCongeManager(Long congeId, Long managerId, boolean validation, String commentaire) {
+        System.out.println("📋 SERVICE: Début validerCongeManager");
+        System.out.println("   - congeId: " + congeId);
+        System.out.println("   - managerId: " + managerId);
+        System.out.println("   - validation: " + validation);
+        System.out.println("   - commentaire: " + commentaire);
+
         Conge conge = congeRepository.findById(congeId)
-                .orElseThrow(() -> new RuntimeException("Demande de congé non trouvée"));
+                .orElseThrow(() -> {
+                    System.out.println("❌ Congé non trouvé: " + congeId);
+                    return new RuntimeException("Demande de congé non trouvée");
+                });
+
+        System.out.println("✅ Congé trouvé: ID=" + conge.getId() + ", Statut actuel=" + conge.getStatut());
 
         Employe manager = employeRepository.findById(managerId)
-                .orElseThrow(() -> new RuntimeException("Manager non trouvé"));
+                .orElseThrow(() -> {
+                    System.out.println("❌ Manager non trouvé: " + managerId);
+                    return new RuntimeException("Manager non trouvé");
+                });
 
-        // ✅ Autorisation: le manager connecté doit être le manager du département de l'employé demandeur
-        if (conge.getEmploye() == null || conge.getEmploye().getDepartement() == null
-                || conge.getEmploye().getDepartement().getManager() == null
-                || !conge.getEmploye().getDepartement().getManager().getId().equals(managerId)) {
+        System.out.println("✅ Manager trouvé: " + manager.getNom());
+
+        // Vérification des autorisations
+        if (conge.getEmploye() == null) {
+            System.out.println("❌ Le congé n'a pas d'employé associé");
+            throw new RuntimeException("Le congé n'a pas d'employé associé");
+        }
+
+        if (conge.getEmploye().getDepartement() == null) {
+            System.out.println("❌ L'employé n'a pas de département");
+            throw new RuntimeException("L'employé n'a pas de département");
+        }
+
+        if (conge.getEmploye().getDepartement().getManager() == null) {
+            System.out.println("❌ Le département n'a pas de manager");
+            throw new RuntimeException("Le département n'a pas de manager");
+        }
+
+        Long departementManagerId = conge.getEmploye().getDepartement().getManager().getId();
+        System.out.println("🔍 Vérification autorisation:");
+        System.out.println("   - Manager du département: " + departementManagerId);
+        System.out.println("   - Manager connecté: " + managerId);
+
+        if (!departementManagerId.equals(managerId)) {
+            System.out.println("❌ Autorisation refusée");
             throw new RuntimeException("Vous n'êtes pas autorisé à valider cette demande");
         }
 
-        // ✅ Seulement si en attente manager
+        // Vérification du statut
+        System.out.println("🔍 Statut actuel du congé: " + conge.getStatut());
         if (conge.getStatut() != Conge.StatutConge.EN_ATTENTE_MANAGER) {
-            throw new RuntimeException("Cette demande n'est plus en attente manager");
+            System.out.println("❌ Le congé n'est pas en attente manager");
+            throw new RuntimeException("Cette demande n'est plus en attente manager (statut actuel: " + conge.getStatut() + ")");
         }
 
         conge.setManagerValidateur(manager);
 
         if (validation) {
+            System.out.println("✅ VALIDATION du congé");
             conge.setStatut(Conge.StatutConge.VALIDE_MANAGER);
             conge.setCommentaireManager(commentaire);
             conge.setDateValidationManager(java.time.LocalDateTime.now());
             conge.setDateRefus(null);
             conge.setMotifRefus(null);
 
-            emailService.envoyerNotificationCongeRH(conge);
+            try {
+                emailService.envoyerNotificationCongeRH(conge);
+                System.out.println("📧 Email envoyé au RH");
+            } catch (Exception e) {
+                System.out.println("⚠️ Erreur envoi email RH: " + e.getMessage());
+            }
 
         } else {
-            // commentaire ici = motifRefus (car ton controller envoie motifRefus dans ce param)
+            System.out.println("❌ REFUS du congé");
             if (commentaire == null || commentaire.trim().isEmpty()) {
+                System.out.println("❌ Motif de refus manquant");
                 throw new RuntimeException("Le motif du refus est obligatoire");
             }
 
@@ -93,10 +137,19 @@ public class CongeServiceImpl implements CongeService {
             conge.setDateRefus(java.time.LocalDateTime.now());
             conge.setDateValidationManager(null);
 
-            emailService.envoyerNotificationRefusConge(conge, "manager");
+            try {
+                emailService.envoyerNotificationRefusConge(conge, "manager");
+                System.out.println("📧 Email de refus envoyé");
+            } catch (Exception e) {
+                System.out.println("⚠️ Erreur envoi email refus: " + e.getMessage());
+            }
         }
 
-        return congeRepository.save(conge);
+        Conge saved = congeRepository.save(conge);
+        System.out.println("💾 Congé sauvegardé: Statut=" + saved.getStatut());
+        System.out.println("📋 FIN validerCongeManager");
+
+        return saved;
     }
 
     @Override

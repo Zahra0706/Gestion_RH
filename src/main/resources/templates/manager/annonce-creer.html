@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="layouts/header :: head">
+    <title>Créer une annonce - Manager</title>
+</head>
+
+<body>
+<div th:replace="layouts/menu-manager :: sidebar"></div>
+
+<main class="main-content">
+
+    <div th:replace="layouts/header :: admin-header"></div>
+
+    <div class="page-header mb-4">
+        <h2><i class="fas fa-plus-circle me-2"></i>Créer une annonce</h2>
+        <p class="text-muted" th:if="${departement != null}">
+            Département : <b th:text="${departement.nom}"></b>
+        </p>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="chart-card">
+        <h6 class="chart-title">Formulaire</h6>
+
+        <!-- ✅ adapte action selon ton controller -->
+        <form th:action="@{/manager/annonces/creer}" method="post" class="row g-3">
+
+            <div class="col-md-6">
+                <label class="form-label">Titre</label>
+                <input type="text" name="titre" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Type</label>
+                <!-- si tu as enum TypeAnnonce -->
+                <select name="type" class="form-select" required>
+                    <option value="">-- Choisir --</option>
+                    <option value="GENERALE">GENERALE</option>
+                    <option value="DEPARTEMENT">DEPARTEMENT</option>
+                    <option value="IMPORTANTE">IMPORTANTE</option>
+                    <option value="INFORMATION">INFORMATION</option>
+                    <option value="URGENT">URGENT</option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Contenu</label>
+                <textarea name="contenu" class="form-control" rows="4" required></textarea>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-1"></i> Publier
+                </button>
+
+                <a th:href="@{/manager/annonces}" class="btn btn-secondary">
+                    Annuler
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+    <div th:replace="layouts/footer :: admin-footer"></div>
+</main>
+</body>
+</html>

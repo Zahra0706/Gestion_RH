@@ -23,6 +23,19 @@
         <p class="text-muted">Validez ou refusez les demandes de congés de votre département</p>
     </div>
 
+    <!-- Messages de succès/erreur -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="stats-grid">
 
@@ -212,12 +225,14 @@
                             <td th:text="${conge.dateDemande != null ? #temporals.format(conge.dateDemande, 'dd/MM/yyyy HH:mm') : '-'}"></td>
 
                             <td>
+                                <!-- Bouton Valider -->
                                 <button class="btn btn-sm btn-success me-1"
                                         data-bs-toggle="modal"
                                         th:data-bs-target="'#validerModal' + ${conge.id}">
                                     <i class="fas fa-check"></i>
                                 </button>
 
+                                <!-- Bouton Refuser -->
                                 <button class="btn btn-sm btn-danger"
                                         data-bs-toggle="modal"
                                         th:data-bs-target="'#refuserModal' + ${conge.id}">
@@ -237,27 +252,21 @@
 
                                             <form th:action="@{'/manager/conges/' + ${conge.id} + '/valider'}" method="post">
                                                 <div class="modal-body">
-                                                    <p>Êtes-vous sûr de vouloir valider cette demande ?</p>
-                                                    <div class="alert alert-info">
-                                                        <strong th:text="${conge.employe != null ? (conge.employe.prenom + ' ' + conge.employe.nom) : '-'}"></strong><br>
-                                                        Du <span th:text="${conge.dateDebut != null ? #temporals.format(conge.dateDebut, 'dd/MM/yyyy') : '-'}"></span>
-                                                        au <span th:text="${conge.dateFin != null ? #temporals.format(conge.dateFin, 'dd/MM/yyyy') : '-'}"></span><br>
+                                                    <p class="mb-3">Voulez-vous vraiment valider ce congé ?</p>
+                                                    <div class="alert alert-info mb-0">
+                                                        <strong th:text="${conge.employe.prenom + ' ' + conge.employe.nom}"></strong><br>
+                                                        Du <span th:text="${#temporals.format(conge.dateDebut, 'dd/MM/yyyy')}"></span>
+                                                        au <span th:text="${#temporals.format(conge.dateFin, 'dd/MM/yyyy')}"></span><br>
                                                         <strong th:text="${conge.nombreJours}">0</strong> jours
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Commentaire (optionnel)</label>
-                                                        <textarea name="commentaire" class="form-control" rows="3"
-                                                                  placeholder="Ajoutez un commentaire..."></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                                                     <button type="submit" class="btn btn-success">
-                                                        <i class="fas fa-check"></i> Valider
+                                                        <i class="fas fa-check"></i> Oui, valider
                                                     </button>
                                                 </div>
                                             </form>
-
                                         </div>
                                     </div>
                                 </div>
@@ -275,30 +284,28 @@
 
                                             <form th:action="@{'/manager/conges/' + ${conge.id} + '/refuser'}" method="post">
                                                 <div class="modal-body">
-                                                    <p>Êtes-vous sûr de vouloir refuser ?</p>
-                                                    <div class="alert alert-warning">
-                                                        <strong th:text="${conge.employe != null ? (conge.employe.prenom + ' ' + conge.employe.nom) : '-'}"></strong><br>
-                                                        Du <span th:text="${conge.dateDebut != null ? #temporals.format(conge.dateDebut, 'dd/MM/yyyy') : '-'}"></span>
-                                                        au <span th:text="${conge.dateFin != null ? #temporals.format(conge.dateFin, 'dd/MM/yyyy') : '-'}"></span>
+                                                    <p class="mb-3">Pourquoi refusez-vous ce congé ?</p>
+                                                    <div class="alert alert-warning mb-3">
+                                                        <strong th:text="${conge.employe.prenom + ' ' + conge.employe.nom}"></strong><br>
+                                                        Du <span th:text="${#temporals.format(conge.dateDebut, 'dd/MM/yyyy')}"></span>
+                                                        au <span th:text="${#temporals.format(conge.dateFin, 'dd/MM/yyyy')}"></span>
                                                     </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Motif du refus <span class="text-danger">*</span></label>
-                                                        <textarea name="motifRefus" class="form-control" rows="3"
-                                                                  placeholder="Expliquez la raison..." required></textarea>
-                                                    </div>
+                                                    <textarea name="motifRefus"
+                                                              class="form-control"
+                                                              rows="3"
+                                                              placeholder="Motif du refus (obligatoire)"
+                                                              required></textarea>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                                                     <button type="submit" class="btn btn-danger">
-                                                        <i class="fas fa-times"></i> Refuser
+                                                        <i class="fas fa-times"></i> Confirmer le refus
                                                     </button>
                                                 </div>
                                             </form>
-
                                         </div>
                                     </div>
                                 </div>
-
                             </td>
                         </tr>
 
