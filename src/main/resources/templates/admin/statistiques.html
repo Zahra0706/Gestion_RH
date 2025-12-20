@@ -18,6 +18,12 @@
 
     <!-- jsPDF pour PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Compatibility bridge: Ensure jsPDF is globally available for plugins
+        if (window.jspdf && window.jspdf.jsPDF) {
+            window.jsPDF = window.jspdf.jsPDF;
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 
@@ -1335,8 +1341,14 @@
             }
 
             // Manually attach autoTable if it didn't attach automatically
-            if (window.jspdfAutoTable && typeof jsPDF.API.autoTable !== 'function') {
-                jsPDF.API.autoTable = window.jspdfAutoTable;
+            // Checks multiple locations where the plugin might be
+            if (typeof jsPDF.API.autoTable !== 'function') {
+                if (window.jspdfAutoTable) {
+                    jsPDF.API.autoTable = window.jspdfAutoTable;
+                } else if (window.jspdf && window.jspdf.plugin && window.jspdf.plugin.autotable) {
+                    // Some versions path
+                    jsPDF.API.autoTable = window.jspdf.plugin.autotable;
+                }
             }
 
             const doc = new jsPDF();
@@ -1496,19 +1508,37 @@
                 const headers = ['Nom', 'Manager', 'Total Emp.', 'Emp. Actifs'];
 
                 try {
-                    doc.autoTable({
-                        head: [headers],
-                        body: tableData,
-                        startY: 30,
-                        theme: 'striped',
-                        headStyles: { fillColor: primaryColor },
-                        styles: { fontSize: 10 }
-                    });
+                    if (typeof doc.autoTable === 'function') {
+                        doc.autoTable({
+                            head: [headers],
+                            body: tableData,
+                            startY: 30,
+                            theme: 'striped',
+                            headStyles: { fillColor: primaryColor },
+                            styles: { fontSize: 10 }
+                        });
+                    } else if (typeof window.jspdfAutoTable === 'function') {
+                        // Fallback call
+                        window.jspdfAutoTable(doc, {
+                            head: [headers],
+                            body: tableData,
+                            startY: 30,
+                            theme: 'striped',
+                            headStyles: { fillColor: primaryColor },
+                            styles: { fontSize: 10 }
+                        });
+                    } else {
+                        throw new Error("Plugin AutoTable non détecté. Impossible de générer le tableau.");
+                    }
                 } catch (e) {
                     console.error("autoTable failed", e);
-                    doc.text("Erreur technique lors de la génération du tableau.", 15, 40);
+                    doc.setFontSize(10);
+                    doc.setTextColor(255, 0, 0);
+                    doc.text("Erreur lors de la génération du tableau: " + e.message, 15, 40);
                 }
             } else {
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
                 doc.text("Aucun donnée départementale disponible.", 15, 40);
             }
 
