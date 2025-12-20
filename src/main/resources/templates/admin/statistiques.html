@@ -352,14 +352,8 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-filter me-1"></i> Appliquer filtres
                         </button>
-                        <button type="button" class="btn btn-success" onclick="exportStatistics()">
-                            <i class="fas fa-file-export me-1"></i> Exporter
-                        </button>
                     </div>
                 </form>
-
-                <!-- Remove old simple button container if present or merge -->
-                <!-- <div class="d-flex align-items-end flex-column mb-4"> ... </div> replaced by above form buttons -->
 
                 <!-- Key Statistics Cards -->
                 <div class="row g-3 mb-4">
@@ -1238,24 +1232,6 @@
             });
         }
 
-        // Fonctions d'export
-        function exportStatistics() {
-            showLoading();
-
-            setTimeout(() => {
-                // Générer un rapport complet
-                const data = collectAllStatistics();
-
-                // Exporter en plusieurs formats
-                exportToExcel(data);
-                exportToPDF(data);
-                exportToCSV(data);
-
-                hideLoading();
-                showToast('Export complet', 'Les données ont été exportées dans tous les formats', 'success');
-            }, 2000);
-        }
-
         function collectAllStatistics() {
             const data = {
                 period: currentPeriod,
@@ -1613,8 +1589,7 @@
                             cells[0].textContent,
                             cells[1].textContent,
                             cells[2].textContent,
-                            cells[3].textContent,
-                            cells[4].textContent
+                            cells[3].textContent
                         ]);
                     }
                 });
