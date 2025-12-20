@@ -561,7 +561,6 @@
                                             <th>Manager</th>
                                             <th>Employés</th>
                                             <th>Statut</th>
-                                            <th>Taux d'occupation</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -577,18 +576,6 @@
                                             <td>
                                                 <span th:if="${dept.isActif}" class="badge bg-success">Actif</span>
                                                 <span th:unless="${dept.isActif}" class="badge bg-danger">Inactif</span>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="progress flex-grow-1 me-2" style="height: 6px;">
-                                                        <div class="progress-bar bg-info" role="progressbar"
-                                                            th:style="'width: ' + ${(dept.employes != null ? dept.employes.size() : 0) * 10} + '%'"
-                                                            th:attr="aria-valuenow=${(dept.employes != null ? dept.employes.size() : 0) * 10}"
-                                                            aria-valuemin="0" aria-valuemax="100"></div>
-                                                    </div>
-                                                    <small
-                                                        th:text="${(dept.employes != null ? dept.employes.size() : 0) * 10}">0</small>%
-                                                </div>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -779,25 +766,14 @@
             } else {
                 document.getElementById('periodeFilter').value = 'year';
                 handlePeriodChange.call(document.getElementById('periodeFilter'));
-                // Si pas de params, load default (year) via applyFilters appelé automatiquement ?
-                // Non, on appelle applyFilters explicitement si on veut charger au démarrage
+
             }
 
             // Si des paramètres sont présents, appliquer les filtres, sinon charger par défaut
             if ([...params].length > 0) {
                 applyFilters();
             } else {
-                // Initial load (default year)
-                // Trigger default date set
                 handlePeriodChange.call(document.getElementById('periodeFilter'));
-                // Optionally apply default year filter on load or just rely on server-side initial render?
-                // Server render is NOT filtered by date by default (it shows totals).
-                // User request: "Ajouter filtres... conserver dans l'URL".
-                // It might be better to apply the default Year filter client-side on load to be consistent with the "This Year" default selection?
-                // Or just let the server show ALL time stats initially?
-                // Given the prompt "Ajouter filtres...", usually one expects "All time" unless filtered.
-                // But I set "This Year" as selected in HTML.
-                // So I should apply it.
                 applyFilters();
             }
         }
@@ -823,9 +799,6 @@
             updateText('generalesCount', data.generalesCount);
             updateText('importantesCount', data.importantesCount);
             updateText('departementCount', data.departementCount);
-            // Missing info count in response? I didn't add it in backend explicitly to map?
-            // Backend adds: generalesCount, importantesCount, departementCount. 
-            // `informationCount` is missing in my backend update. I should fix backend or ignore.
 
             // Update Progress Bars
             updateProgress('progressActivite', data.tauxActivite);
@@ -1517,11 +1490,10 @@
                     d.nom,
                     d.manager,
                     d.totalEmployes,
-                    d.employesActifs,
-                    d.tauxOccupation
+                    d.employesActifs
                 ]);
 
-                const headers = ['Nom', 'Manager', 'Total Emp.', 'Emp. Actifs', 'Occupation'];
+                const headers = ['Nom', 'Manager', 'Total Emp.', 'Emp. Actifs'];
 
                 try {
                     doc.autoTable({
@@ -1598,7 +1570,7 @@
                 const deptData = [
                     ['Départements Détail'],
                     [''],
-                    ['Nom', 'Manager', 'Nombre d\'employés', 'Statut', 'Taux d\'occupation']
+                    ['Nom', 'Manager', 'Nombre d\'employés', 'Statut']
                 ];
 
                 const table = document.getElementById('departementTable');
@@ -1664,7 +1636,7 @@
 
                 // Départements
                 csvContent += "Départements Détail\n";
-                csvContent += "Nom,Manager,Nombre d'employés,Statut,Taux d'occupation\n";
+                csvContent += "Nom,Manager,Nombre d'employés,Statut\n";
 
                 const table = document.getElementById('departementTable');
                 const rows = Array.from(table.tBodies[0].rows);
@@ -1705,7 +1677,7 @@
             const rows = Array.from(table.querySelectorAll('tr'));
 
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Département,Manager,Employés,Statut,Taux d'occupation\n";
+            csvContent += "Département,Manager,Employés,Statut\n";
 
             rows.slice(1).forEach(row => { // Skiper l'en-tête
                 if (row.style.display !== 'none') {
