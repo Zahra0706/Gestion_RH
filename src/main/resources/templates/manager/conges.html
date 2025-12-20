@@ -90,54 +90,7 @@
 
     </div>
 
-    <!-- Filters Section -->
-    <div class="chart-card mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="chart-title mb-0">Filtrer les demandes</h6>
-<!--            <button class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">-->
-<!--                <i class="fas fa-redo"></i> Réinitialiser-->
-<!--            </button>-->
-        </div>
-        <form th:action="@{/manager/conges}" method="get" class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">Statut</label>
-                <select name="statut" class="form-select">
-                    <option value="" th:selected="${param.statut == null}">Tous les statuts</option>
-                    <option value="EN_ATTENTE_MANAGER" th:selected="${param.statut == 'EN_ATTENTE_MANAGER'}">En attente</option>
-                    <option value="VALIDE_MANAGER" th:selected="${param.statut == 'VALIDE_MANAGER'}">Validé par moi</option>
-                    <option value="VALIDE_RH" th:selected="${param.statut == 'VALIDE_RH'}">Validé RH</option>
-                    <option value="REFUSE_MANAGER" th:selected="${param.statut == 'REFUSE_MANAGER'}">Refusé par moi</option>
-                    <option value="REFUSE_RH" th:selected="${param.statut == 'REFUSE_RH'}">Refusé RH</option>
 
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Type de congé</label>
-                <select name="type" class="form-select">
-                    <option value="" th:selected="${param.type == null}">Tous les types</option>
-                    <option value="CONGE_PAYE" th:selected="${param.type == 'CONGE_PAYE'}">Congé payé</option>
-                    <option value="CONGE_MALADIE" th:selected="${param.type == 'CONGE_MALADIE'}">Congé maladie</option>
-                    <option value="CONGE_SANS_SOLDE" th:selected="${param.type == 'CONGE_SANS_SOLDE'}">Sans solde</option>
-                    <option value="CONGE_MATERNITE" th:selected="${param.type == 'CONGE_MATERNITE'}">Maternité</option>
-                    <option value="CONGE_PATERNITE" th:selected="${param.type == 'CONGE_PATERNITE'}">Paternité</option>
-
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Date début</label>
-                <input type="date" name="dateDebut" class="form-control" th:value="${param.dateDebut}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Date fin</label>
-                <input type="date" name="dateFin" class="form-control" th:value="${param.dateFin}">
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-search"></i> Filtrer
-                </button>
-            </div>
-        </form>
-    </div>
 
     <!-- Tabs -->
     <ul class="nav nav-tabs mb-4" id="congesTabs" role="tablist">
