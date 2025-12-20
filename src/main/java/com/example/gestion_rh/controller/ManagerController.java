@@ -654,9 +654,67 @@
 
 
         @GetMapping("/departements")
-        public String departements() {
+        public String departements(Authentication authentication,
+                                   @RequestParam(value = "q", required = false) String q,
+                                   Model model) {
+
+            String email = authentication.getName();
+
+            Optional<Employe> managerOpt = employeRepository.findByEmail(email);
+            if (managerOpt.isEmpty()) {
+                model.addAttribute("errorMessage", "Utilisateur non trouvé");
+                model.addAttribute("departement", null);
+                model.addAttribute("employees", List.of());
+                model.addAttribute("totalEmployes", 0);
+                model.addAttribute("employesActifs", 0);
+                model.addAttribute("employesInactifs", 0);
+                return "manager/departements";
+            }
+
+            Employe manager = managerOpt.get();
+            if (manager.getDepartement() == null) {
+                model.addAttribute("errorMessage", "Vous n'êtes associé à aucun département");
+                model.addAttribute("departement", null);
+                model.addAttribute("employees", List.of());
+                model.addAttribute("totalEmployes", 0);
+                model.addAttribute("employesActifs", 0);
+                model.addAttribute("employesInactifs", 0);
+                return "manager/departements";
+            }
+
+            Departement dep = manager.getDepartement();
+            Long deptId = dep.getId();
+
+            List<Employe> employees = employeRepository.findByDepartementId(deptId);
+
+            // ✅ filtre recherche (nom/prénom)
+            if (q != null && !q.isBlank()) {
+                String qq = q.trim().toLowerCase();
+                employees = employees.stream()
+                        .filter(e ->
+                                (e.getNom() != null && e.getNom().toLowerCase().contains(qq)) ||
+                                        (e.getPrenom() != null && e.getPrenom().toLowerCase().contains(qq))
+                        )
+                        .toList();
+                model.addAttribute("q", q); // pour garder la valeur dans l’input
+            } else {
+                model.addAttribute("q", "");
+            }
+
+            long totalEmployes = employees.size();
+            long employesActifs = employees.stream().filter(e -> Boolean.TRUE.equals(e.getIsCompteActif())).count();
+            long employesInactifs = totalEmployes - employesActifs;
+
+            model.addAttribute("departement", dep);
+            model.addAttribute("employees", employees);
+            model.addAttribute("totalEmployes", totalEmployes);
+            model.addAttribute("employesActifs", employesActifs);
+            model.addAttribute("employesInactifs", employesInactifs);
+
             return "manager/departements";
         }
+
+
 
         private void setEmptyDashboard(Model model) {
             model.addAttribute("totalEmployes", 0);
