@@ -70,7 +70,6 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <form th:action="@{${requestURI}}" method="get" class="row align-items-end">
-                        <!-- Preserve hidden params if needed (like active/inactive mode if it was a param, here it's URI based) -->
 
                         <div class="col-md-3">
                             <div class="mb-3">
@@ -334,12 +333,6 @@
                 </div>
             </div>
 
-            <!-- Stats Summary (kept as is, but maybe updated dynamically later if needed) -->
-            <!-- Note: The original stats in the controller are for the whole list, if we want filtered stats we'd need to calculate them. 
-             For now, we will rely on server stats passed or kept simple. The original code used #lists.size. 
-             We should probably update these to use counts from DB if we want accuracy on filtered results, 
-             or just show total global stats. Let's keep the blocks but update the values if possible or leave them static for "Total" context.
-        -->
             <!-- Stats Summary -->
             <div class="row mt-4">
                 <div class="col-md-6">

@@ -39,7 +39,7 @@
             <button class="btn btn-outline-secondary d-md-none menu-toggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h4 class="mb-0" th:text="${pageTitle ?: 'Tableau de Bord'}"></h4>
+            <h4 class="mb-0" th:text="${pageTitle ?: 'Gestion des Ressources Humaines'}"></h4>
             <small class="text-muted" sec:authorize="hasRole('SUPER_ADMIN')">Super Administrateur</small>
             <small class="text-muted" sec:authorize="hasRole('ADMIN')">Administrateur</small>
         </div>

@@ -152,8 +152,6 @@ public class AdminProfilController {
                 return "redirect:/admin/profil/changer-mot-de-passe";
             }
 
-            // CORRECTION : Utiliser la méthode changerMotDePasse du service
-            // ou si elle n'existe pas, sauvegarder manuellement
             try {
                 // Option 1: Si la méthode existe dans le service
                 employeService.changerMotDePasse(user.getId(), newPassword);

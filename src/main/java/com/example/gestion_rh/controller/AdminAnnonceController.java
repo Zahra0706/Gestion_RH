@@ -206,10 +206,7 @@ public class AdminAnnonceController {
 
         model.addAttribute("departements", departementService.getAllDepartements());
 
-        // Statistiques globales (pour les cartes en haut) - On garde le calcul sur TOUT
-        // pour l'instant comme demandé
-        // Idéalement, on créerait une méthode service pour avoir des stats filtrées
-        // sans tout charger, mais findAll est acceptable pour l'instant.
+
         List<Annonce> allAnnonces = annonceService.getAllAnnonces();
         long totalAnnonces = allAnnonces.size();
         long importantesCount = allAnnonces.stream().filter(a -> a.getType() == Annonce.TypeAnnonce.IMPORTANTE).count();
@@ -231,10 +228,4 @@ public class AdminAnnonceController {
         return "admin/annonces/liste";
     }
 
-    // Les anciennes méthodes séparées (/type/{type} et /departement/{id}) ne sont
-    // plus nécessaires
-    // car gérées par les paramètres de requête de la méthode principale.
-    // On peut les supprimer ou les rediriger vers la nouvelle méthode si
-    // nécessaire,
-    // mais pour une refonte propre, on les supprime.
 }

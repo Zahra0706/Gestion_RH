@@ -33,13 +33,6 @@ public class AnnonceSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("departement").get("id"), departementId));
             }
 
-            // Note: If no department filter is provided, we might want to include null
-            // departments (General announcements)
-            // depeding on business logic? Or is that handled by the controller/service
-            // logic calling this?
-            // For strict filtering by department ID: existing logic is fine.
-            // If the user selects "All Departments", departementId is null, so we show all.
-
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
