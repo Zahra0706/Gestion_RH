@@ -18,6 +18,9 @@
     import com.example.gestion_rh.entity.Annonce;
     import com.example.gestion_rh.entity.Salaire;
     import com.example.gestion_rh.entity.Contrat;
+    import com.example.gestion_rh.entity.Reunion;
+
+
 
 
     import java.time.LocalDate;
@@ -39,6 +42,7 @@
         private final AnnonceRepository annonceRepository;
         private final SalaireRepository salaireRepository;
         private final ContratRepository contratRepository;
+        private final ReunionRepository reunionRepository;
 
 
 
@@ -50,7 +54,8 @@
                                  EmployeService employeService,
                                  AnnonceRepository annonceRepository,
                                  SalaireRepository salaireRepository,
-                                 ContratRepository contratRepository) {
+                                 ContratRepository contratRepository,
+                                 ReunionRepository reunionRepository) {
             this.employeRepository = employeRepository;
             this.departementRepository = departementRepository;
             this.congeRepository = congeRepository;
@@ -59,6 +64,7 @@
             this.annonceRepository = annonceRepository;
             this.salaireRepository =salaireRepository;
             this.contratRepository = contratRepository;
+            this.reunionRepository = reunionRepository;
         }
 
         // =========================
@@ -197,6 +203,222 @@
 
             return "manager/salaires";
         }
+        // =========================
+        // ✅ Reunion
+        // =========================
+        @GetMapping("/reunions")
+        public String reunions(Authentication authentication, Model model) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElse(null);
+
+            if (manager == null || manager.getDepartement() == null) {
+                model.addAttribute("errorMessage", "Vous n'êtes associé à aucun département");
+                model.addAttribute("reunions", List.of());
+                return "manager/reunions";
+            }
+
+            Long deptId = manager.getDepartement().getId();
+
+            List<Reunion> reunions = reunionRepository
+                    .findByDepartementIdOrderByDateHeureDebutDesc(deptId);
+
+            model.addAttribute("departement", manager.getDepartement());
+            model.addAttribute("reunions", reunions);
+
+            // Stats simples (à venir / passées)
+            LocalDateTime now = LocalDateTime.now();
+            long aVenir = reunions.stream().filter(r -> r.getDateHeureDebut() != null && r.getDateHeureDebut().isAfter(now)).count();
+            long passees = reunions.size() - aVenir;
+
+            model.addAttribute("reunionsAVenir", aVenir);
+            model.addAttribute("reunionsPassees", passees);
+            model.addAttribute("totalReunions", reunions.size());
+
+            return "manager/reunions";
+        }
+        @GetMapping("/reunions/creer")
+        public String creerReunionForm(Authentication authentication, Model model) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElse(null);
+
+            if (manager == null || manager.getDepartement() == null) {
+                model.addAttribute("errorMessage", "Vous n'êtes associé à aucun département");
+                model.addAttribute("departement", null);
+                model.addAttribute("employees", List.of());
+                return "manager/reunion-creer";
+            }
+
+            Long deptId = manager.getDepartement().getId();
+
+            model.addAttribute("departement", manager.getDepartement());
+            model.addAttribute("employees", employeRepository.findByDepartementId(deptId)); // pour participants
+            return "manager/reunion-creer";
+        }
+
+
+        @PostMapping("/reunions/creer")
+        public String creerReunion(@RequestParam String titre,
+                                   @RequestParam(required = false) String description,
+                                   @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime dateHeureDebut,
+                                   @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime dateHeureFin,
+                                   @RequestParam(required = false) String lieu,
+                                   @RequestParam(required = false) List<Long> participantIds,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Manager introuvable"));
+
+            if (manager.getDepartement() == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Aucun département associé.");
+                return "redirect:/manager/reunions";
+            }
+
+            // validation simple
+            if (dateHeureFin.isBefore(dateHeureDebut)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "La date de fin doit être بعد la date début.");
+                return "redirect:/manager/reunions/creer";
+            }
+
+            Reunion r = new Reunion();
+            r.setTitre(titre);
+            r.setDescription(description);
+            r.setDateHeureDebut(dateHeureDebut);
+            r.setDateHeureFin(dateHeureFin);
+            r.setLieu(lieu);
+
+            r.setCreateur(manager);
+            r.setDepartement(manager.getDepartement());
+
+            // participants (optionnel)
+            if (participantIds != null && !participantIds.isEmpty()) {
+                List<Employe> participants = employeRepository.findAllById(participantIds);
+
+                // sécurité : participants du même département
+                Long deptId = manager.getDepartement().getId();
+                participants = participants.stream()
+                        .filter(e -> e.getDepartement() != null && deptId.equals(e.getDepartement().getId()))
+                        .collect(Collectors.toList()); // ✅
+                r.setParticipants(participants);
+            }
+
+            reunionRepository.save(r);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Réunion créée ✅");
+            return "redirect:/manager/reunions";
+        }
+        @GetMapping("/reunions/{id}/modifier")
+        public String modifierReunionForm(@PathVariable Long id,
+                                          Authentication authentication,
+                                          Model model,
+                                          RedirectAttributes redirectAttributes) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            if (manager.getDepartement() == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Aucun département associé");
+                return "redirect:/manager/reunions";
+            }
+
+            Long deptId = manager.getDepartement().getId();
+
+            Reunion reunion = reunionRepository.findByIdAndDepartementId(id, deptId)
+                    .orElseThrow(() -> new RuntimeException("Réunion introuvable ou accès interdit"));
+
+            // optionnel : limiter à createur
+            if (!reunion.getCreateur().getId().equals(manager.getId())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez modifier que vos réunions.");
+                return "redirect:/manager/reunions";
+            }
+
+            model.addAttribute("reunion", reunion);
+            model.addAttribute("departement", manager.getDepartement());
+            model.addAttribute("employees", employeRepository.findByDepartementId(deptId));
+            return "manager/reunion-modifier";
+        }
+        @PostMapping("/reunions/{id}/modifier")
+        public String modifierReunion(@PathVariable Long id,
+                                      @RequestParam String titre,
+                                      @RequestParam(required = false) String description,
+                                      @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime dateHeureDebut,
+                                      @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime dateHeureFin,
+                                      @RequestParam(required = false) String lieu,
+                                      @RequestParam(required = false) List<Long> participantIds,
+                                      Authentication authentication,
+                                      RedirectAttributes redirectAttributes) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            Long deptId = manager.getDepartement().getId();
+
+            Reunion reunion = reunionRepository.findByIdAndDepartementId(id, deptId)
+                    .orElseThrow(() -> new RuntimeException("Réunion introuvable ou accès interdit"));
+
+            if (!reunion.getCreateur().getId().equals(manager.getId())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez modifier que vos réunions.");
+                return "redirect:/manager/reunions";
+            }
+
+            if (dateHeureFin.isBefore(dateHeureDebut)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "La date de fin doit être بعد la date début.");
+                return "redirect:/manager/reunions/" + id + "/modifier";
+            }
+
+            reunion.setTitre(titre);
+            reunion.setDescription(description);
+            reunion.setDateHeureDebut(dateHeureDebut);
+            reunion.setDateHeureFin(dateHeureFin);
+            reunion.setLieu(lieu);
+            if (participantIds != null) {
+                List<Employe> participants = employeRepository.findAllById(participantIds);
+
+                participants = participants.stream()
+                        .filter(e -> e.getDepartement() != null && deptId.equals(e.getDepartement().getId()))
+                        .collect(Collectors.toList()); // ✅ modifiable
+
+                // ✅ encore mieux pour Hibernate : modifier la collection existante
+                reunion.getParticipants().clear();
+                reunion.getParticipants().addAll(participants);
+            }
+
+            reunionRepository.save(reunion);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Réunion modifiée ✅");
+            return "redirect:/manager/reunions";
+        }
+        @PostMapping("/reunions/{id}/supprimer")
+        public String supprimerReunion(@PathVariable Long id,
+                                       Authentication authentication,
+                                       RedirectAttributes redirectAttributes) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            if (manager.getDepartement() == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Aucun département associé");
+                return "redirect:/manager/reunions";
+            }
+
+            Long deptId = manager.getDepartement().getId();
+
+            Reunion reunion = reunionRepository.findByIdAndDepartementId(id, deptId)
+                    .orElseThrow(() -> new RuntimeException("Réunion introuvable ou accès interdit"));
+
+            if (!reunion.getCreateur().getId().equals(manager.getId())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez supprimer que vos réunions.");
+                return "redirect:/manager/reunions";
+            }
+
+            reunionRepository.delete(reunion);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Réunion supprimée ✅");
+            return "redirect:/manager/reunions";
+        }
+
 
         // =========================
         // ✅ GESTION DES CONGÉS

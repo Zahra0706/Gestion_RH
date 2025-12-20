@@ -7,11 +7,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReunionRepository extends JpaRepository<Reunion, Long> {
     List<Reunion> findByCreateurId(Long createurId);
     List<Reunion> findByDepartementId(Long departementId);
+    List<Reunion> findByDepartementIdOrderByDateHeureDebutDesc(Long departementId);
+
+    Optional<Reunion> findByIdAndDepartementId(Long id, Long departementId);
+
 
     @Query("SELECT r FROM Reunion r WHERE :employeId IN (SELECT p.id FROM r.participants p)")
     List<Reunion> findByParticipantId(@Param("employeId") Long employeId);
