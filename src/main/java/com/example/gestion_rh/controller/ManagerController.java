@@ -6,6 +6,7 @@
     import com.example.gestion_rh.repository.*;
     import com.example.gestion_rh.service.CongeService;
     import com.example.gestion_rh.service.EmployeService;
+    import com.example.gestion_rh.service.EvaluationService;
     import org.springframework.security.core.Authentication;
     import org.springframework.security.core.context.SecurityContextHolder;
     import org.springframework.stereotype.Controller;
@@ -19,6 +20,7 @@
     import com.example.gestion_rh.entity.Salaire;
     import com.example.gestion_rh.entity.Contrat;
     import com.example.gestion_rh.entity.Reunion;
+    import com.example.gestion_rh.entity.Evaluation;
 
 
 
@@ -43,6 +45,9 @@
         private final SalaireRepository salaireRepository;
         private final ContratRepository contratRepository;
         private final ReunionRepository reunionRepository;
+        private final EvaluationRepository evaluationRepository;
+        private final EvaluationService evaluationService;
+
 
 
 
@@ -55,7 +60,9 @@
                                  AnnonceRepository annonceRepository,
                                  SalaireRepository salaireRepository,
                                  ContratRepository contratRepository,
-                                 ReunionRepository reunionRepository) {
+                                 ReunionRepository reunionRepository,
+                                 EvaluationRepository evaluationRepository,
+                                 EvaluationService evaluationService) {
             this.employeRepository = employeRepository;
             this.departementRepository = departementRepository;
             this.congeRepository = congeRepository;
@@ -65,6 +72,8 @@
             this.salaireRepository =salaireRepository;
             this.contratRepository = contratRepository;
             this.reunionRepository = reunionRepository;
+            this.evaluationRepository = evaluationRepository;
+            this.evaluationService = evaluationService;
         }
 
         // =========================
@@ -418,6 +427,138 @@
             redirectAttributes.addFlashAttribute("successMessage", "Réunion supprimée ✅");
             return "redirect:/manager/reunions";
         }
+        // =========================
+        // ✅ Evaluiation
+        // =========================
+        @GetMapping("/evaluations")
+        public String evaluations(Authentication authentication, Model model) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Manager introuvable"));
+
+            if (manager.getDepartement() == null) {
+                model.addAttribute("errorMessage", "Aucun département associé");
+                model.addAttribute("evaluations", List.of());
+                return "manager/evaluations";
+            }
+
+            Long deptId = manager.getDepartement().getId();
+            List<Evaluation> evaluations =
+                    evaluationRepository.findByEmploye_Departement_IdOrderByAnneeDesc(deptId);
+
+            model.addAttribute("evaluations", evaluations);
+            model.addAttribute("departement", manager.getDepartement());
+
+            return "manager/evaluations";
+        }
+        @GetMapping("/evaluations/{id}/remplir")
+        public String remplirEvaluationForm(@PathVariable Long id,
+                                            Authentication authentication,
+                                            Model model,
+                                            RedirectAttributes ra) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Manager introuvable"));
+
+            Long deptId = manager.getDepartement().getId();
+
+            Evaluation eval = evaluationRepository.findByIdAndEmploye_Departement_Id(id, deptId)
+                    .orElseThrow(() -> new RuntimeException("Évaluation introuvable ou accès interdit"));
+
+            model.addAttribute("evaluation", eval);
+            model.addAttribute("departement", manager.getDepartement());
+
+            return "manager/evaluation-remplir";
+        }
+
+        @GetMapping("/evaluations/creer")
+        public String creerEvaluationForm(Authentication authentication, Model model) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Manager introuvable"));
+
+            if (manager.getDepartement() == null) {
+                model.addAttribute("errorMessage", "Aucun département associé");
+                model.addAttribute("employees", List.of());
+                return "evaluation-remplir";
+            }
+
+            Long deptId = manager.getDepartement().getId();
+
+            List<Employe> employees = employeRepository.findByDepartementId(deptId).stream()
+                    .filter(e -> !e.getId().equals(manager.getId()))
+                    .toList();
+
+            model.addAttribute("employees", employees);
+            model.addAttribute("anneeActuelle", LocalDate.now().getYear());
+            return "evaluation-remplir";
+        }
+        @PostMapping("/evaluations/{id}/remplir")
+        public String remplirEvaluation(@PathVariable Long id,
+                                        @RequestParam double scorePerformance,
+                                        @RequestParam double scoreCompetences,
+                                        @RequestParam(required = false) String commentairesManager,
+                                        Authentication authentication,
+                                        RedirectAttributes ra) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Manager introuvable"));
+
+            try {
+                evaluationService.remplirEvaluation(id, manager.getId(),
+                        scorePerformance, scoreCompetences, commentairesManager);
+
+                ra.addFlashAttribute("successMessage", "Évaluation enregistrée ✅");
+                return "redirect:/manager/evaluations";
+
+            } catch (Exception e) {
+                ra.addFlashAttribute("errorMessage", "Erreur : " + e.getMessage());
+                return "redirect:/manager/evaluations/" + id + "/remplir";
+            }
+        }
+
+        @PostMapping("/evaluations/creer")
+        public String creerEvaluation(@RequestParam Long employeId,
+                                      @RequestParam int annee,
+                                      Authentication authentication,
+                                      RedirectAttributes ra) {
+
+            Employe manager = employeRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Manager introuvable"));
+
+            Employe employe = employeRepository.findById(employeId)
+                    .orElseThrow(() -> new RuntimeException("Employé introuvable"));
+
+            Long deptManager = manager.getDepartement() != null ? manager.getDepartement().getId() : null;
+            Long deptEmploye = employe.getDepartement() != null ? employe.getDepartement().getId() : null;
+
+            if (deptManager == null || deptEmploye == null || !deptManager.equals(deptEmploye)) {
+                ra.addFlashAttribute("errorMessage", "Accès interdit : autre département");
+                return "redirect:/manager/evaluations";
+            }
+
+            if (evaluationRepository.findByEmployeIdAndAnnee(employeId, annee).isPresent()) {
+                ra.addFlashAttribute("errorMessage", "Une évaluation existe déjà pour cet employé et cette année.");
+                return "redirect:/manager/evaluations";
+            }
+
+            Evaluation ev = Evaluation.builder()
+                    .annee(annee)
+                    .statut(Evaluation.StatutEvaluation.EN_ATTENTE)
+                    .dateCreation(LocalDate.now())
+                    .employe(employe)
+                    .manager(manager)
+                    .scorePerformance(0)
+                    .scoreCompetences(0)
+                    .scoreGlobal(0)
+                    .build();
+
+            evaluationRepository.save(ev);
+
+            ra.addFlashAttribute("successMessage", "Évaluation créée ✅");
+            return "redirect:/manager/evaluations";
+        }
+
 
 
         // =========================
