@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <div th:fragment="rh-sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-white sidebar"
+        style="width: 280px; height: 100vh; position: fixed; overflow-y: auto; z-index: 1000; background: linear-gradient(180deg, #2980b9 0%, #3498db 100%);">
+
+        <a href="/rh/dashboard"
+            class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <i class="fas fa-user-tie fa-2x me-2"></i>
+            <span class="fs-4 fw-bold">HR Manager <small class="fs-6 opacity-75">RH Edition</small></span>
+        </a>
+        <hr class="my-3 opacity-50">
+
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item mb-1">
+                <a th:href="@{/rh/dashboard}" class="nav-link text-white"
+                    th:classappend="${#request.requestURI == '/rh/dashboard' ? 'active bg-white bg-opacity-25' : ''}">
+                    <i class="fas fa-tachometer-alt me-2"></i> Tableau de bord
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a th:href="@{/rh/employes}" class="nav-link text-white"
+                    th:classappend="${#request.requestURI.startsWith('/rh/employes') ? 'active bg-white bg-opacity-25' : ''}">
+                    <i class="fas fa-users me-2"></i> Employés
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a th:href="@{/rh/conges}" class="nav-link text-white"
+                    th:classappend="${#request.requestURI.startsWith('/rh/conges') ? 'active bg-white bg-opacity-25' : ''}">
+                    <i class="fas fa-calendar-check me-2"></i> Congés
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a th:href="@{/rh/contrats}" class="nav-link text-white"
+                    th:classappend="${#request.requestURI.startsWith('/rh/contrats') ? 'active bg-white bg-opacity-25' : ''}">
+                    <i class="fas fa-file-contract me-2"></i> Contrats
+                </a>
+            <li class="nav-item mb-1">
+                <a th:href="@{/rh/contrats/templates/selection}" class="nav-link text-white"
+                    th:classappend="${#request.requestURI.startsWith('/rh/contrats/templates') ? 'active bg-white bg-opacity-25' : ''}">
+                    <i class="fas fa-file-signature me-2"></i> Générateur
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a th:href="@{/rh/evaluations}" class="nav-link text-white"
+                    th:classappend="${#request.requestURI.startsWith('/rh/evaluations') ? 'active bg-white bg-opacity-25' : ''}">
+                    <i class="fas fa-chart-line me-2"></i> Évaluations
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a th:href="@{/rh/statistiques}" class="nav-link text-white"
+                    th:classappend="${#request.requestURI.startsWith('/rh/statistiques') ? 'active bg-white bg-opacity-25' : ''}">
+                    <i class="fas fa-chart-pie me-2"></i> Statistiques
+                </a>
+            </li>
+        </ul>
+
+        <hr class="my-3 opacity-50">
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                data-bs-toggle="dropdown">
+                <div class="rounded-circle bg-white bg-opacity-25 d-flex justify-content-center align-items-center me-2"
+                    style="width: 32px; height: 32px;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <strong>RH Manager</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark shadow">
+                <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2"></i>Profil</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item text-danger" th:href="@{/auth/logout}"><i
+                            class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+
+</html>

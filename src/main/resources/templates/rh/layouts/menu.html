@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+
+<body>
+    <!-- Sidebar Menu Fragment -->
+    <div th:fragment="sidebar">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h3><i class="fas fa-users me-2"></i>HR<span>Manager</span></h3>
+                <small class="text-muted">Espace RH</small>
+            </div>
+
+            <nav class="sidebar-menu">
+                <!-- Dashboard -->
+                <a th:href="@{/rh/dashboard}" class="menu-item"
+                    th:classappend="${requestURI != null && requestURI == '/rh/dashboard' ? 'active' : ''}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="menu-text">Tableau de Bord</span>
+                </a>
+
+                <!-- Gestion des Employés -->
+                <div class="menu-group">
+                    <a th:href="@{/rh/employes}" class="menu-item d-flex justify-content-between align-items-center"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/employes') ? 'active' : ''}">
+                        <div>
+                            <i class="fas fa-user-friends me-2"></i>
+                            <span class="menu-text">Employés</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Gestion des Congés -->
+                <div class="menu-group">
+                    <a th:href="@{/rh/conges}" class="menu-item d-flex justify-content-between align-items-center"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/conges') ? 'active' : ''}">
+                        <div>
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            <span class="menu-text">Congés</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Déconnexion -->
+                <div class="menu-group mt-5">
+                    <form th:action="@{/auth/logout}" method="post" class="menu-item logout-form">
+                        <button type="submit" class="btn p-0 m-0 border-0 text-white">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="menu-text">Déconnexion</span>
+                        </button>
+                    </form>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="text-center text-muted py-1">
+                    <small>© 2025 HR Manager</small><br>
+                    <small>v1.0.0</small>
+                </div>
+            </div>
+        </aside>
+    </div>
+</body>
+
+</html>

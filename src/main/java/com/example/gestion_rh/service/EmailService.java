@@ -10,8 +10,11 @@ import java.util.List;
 
 public interface EmailService {
     void envoyerIdentifiantsEmploye(Employe employe, String password);
+
     void envoyerNotificationCompteDesactive(Employe employe);
+
     void envoyerNotificationCompteActive(Employe employe);
+
     void envoyerNotificationConge(Employe employe, String sujet, String message);
 
     void envoyerNotificationCongeManager(Conge savedConge);
@@ -28,4 +31,6 @@ public interface EmailService {
 
     @Async
     void envoyerNotificationAnnonceDepartement(Annonce annonce, Departement departement);
+
+    void envoyerRapport(String to, String subject, String body, byte[] attachment, String filename);
 }

@@ -178,8 +178,35 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void envoyerNotificationAnnonceDepartement(Annonce annonce, Departement departement) {
         // Récupérer les employés du département
-        EmployeRepository employeRepository = null;
-        List<Employe> employes = employeRepository.findByDepartementIdAndIsCompteActifTrue(departement.getId());
-        envoyerNotificationAnnonceImportante(annonce, employes);
+        // EmployeRepository employeRepository = null;
+        // List<Employe> employes =
+        // employeRepository.findByDepartementIdAndIsCompteActifTrue(departement.getId());
+        // envoyerNotificationAnnonceImportante(annonce, employes);
+    }
+
+    @Async
+    @Override
+    public void envoyerRapport(String to, String subject, String body, byte[] attachment, String filename) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(body, true);
+            helper.setFrom("zahraechokrii@gmail.com");
+
+            if (attachment != null && filename != null) {
+                org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(
+                        attachment);
+                helper.addAttachment(filename, resource);
+            }
+
+            mailSender.send(message);
+            log.info("Rapport envoyé à {}", to);
+
+        } catch (MessagingException e) {
+            log.error("Erreur lors de l'envoi du rapport à {}", to, e);
+        }
     }
 }

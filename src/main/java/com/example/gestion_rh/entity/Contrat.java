@@ -16,8 +16,13 @@ public class Contrat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String typeContrat;
+    private TypeContrat typeContrat;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatutContrat statut;
 
     @Column(nullable = false)
     private LocalDate dateDebut;
@@ -29,7 +34,37 @@ public class Contrat {
 
     private Double heuresHebdomadaires;
 
-    @OneToOne
-    @JoinColumn(name = "employe_id", unique = true)
+    // Période d'essai
+    private Integer periodeEssaiMois;
+    private LocalDate dateFinPeriodeEssai;
+
+    // Autres infos
+    @Column(columnDefinition = "TEXT")
+    private String avantages;
+
+    private String convention;
+
+    private String fichierContrat;
+
+    // Validation & Signature
+    @Column(unique = true)
+    private String referenceContrat;
+
+    private String signatureToken;
+    private LocalDate dateEnvoiSignature;
+    private LocalDate dateLimiteSignature;
+    private boolean estSigne;
+
+    // Use ManyToOne to allow history
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employe_id", nullable = false)
     private Employe employe;
+
+    public enum TypeContrat {
+        CDI, CDD, STAGE, ALTERNANCE, FREELANCE
+    }
+
+    public enum StatutContrat {
+        ACTIF, BROUILLON, TERMINE, ARCHIVE
+    }
 }

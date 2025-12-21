@@ -10,7 +10,15 @@ import java.util.Optional;
 
 @Repository
 public interface ContratRepository extends JpaRepository<Contrat, Long> {
-    Optional<Contrat> findByEmployeId(Long employeId);
-    List<Contrat> findByTypeContrat(String typeContrat);
-    List<Contrat> findByDateFinBefore(LocalDate date);
+    List<Contrat> findByEmployeId(Long employeId);
+
+    Optional<Contrat> findByEmployeIdAndStatut(Long employeId, Contrat.StatutContrat statut);
+
+    List<Contrat> findByTypeContrat(Contrat.TypeContrat typeContrat);
+
+    List<Contrat> findByStatut(Contrat.StatutContrat statut);
+
+    List<Contrat> findByDateFinBeforeAndStatut(LocalDate date, Contrat.StatutContrat statut);
+
+    long countByTypeContrat(Contrat.TypeContrat type);
 }

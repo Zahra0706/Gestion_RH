@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/menu-rh}">
+
+<head>
+    <title>Éditeur de Contrat</title>
+    <!-- TinyMCE CDN -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <style>
+        .tox-promotion {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="container-fluid p-4">
+        <div class="row mb-3">
+            <div class="col">
+                <h2 th:text="'Édition : ' + ${template.nom}">Édition de Contrat</h2>
+            </div>
+            <div class="col text-end">
+                <a href="/rh/contrats/templates/selection" class="btn btn-secondary me-2">Retour</a>
+                <button onclick="previewPdf()" class="btn btn-info text-white me-2"><i
+                        class="fas fa-eye me-2"></i>Aperçu PDF</button>
+                <button onclick="downloadPdf()" class="btn btn-success"><i
+                        class="fas fa-file-download me-2"></i>Télécharger PDF</button>
+            </div>
+        </div>
+
+        <div class="row h-100">
+            <!-- Sidebar : Configuration -->
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="configForm">
+                            <div class="mb-3">
+                                <label class="form-label">Employé</label>
+                                <select id="employeSelect" class="form-select" onchange="updateEmployee(this.value)">
+                                    <option value="">-- Sélectionner un employé --</option>
+                                    <option th:each="emp : ${employes}" th:value="${emp.id}"
+                                        th:text="${emp.nom + ' ' + emp.prenom}"
+                                        th:selected="${selectedEmploye != null and selectedEmploye.id == emp.id}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <hr>
+                            <h6>Variables Disponibles</h6>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm text-start"
+                                    onclick="insertVar('${employe.nom_complet}')">${employe.nom_complet}</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm text-start"
+                                    onclick="insertVar('${employe.poste}')">${employe.poste}</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm text-start"
+                                    onclick="insertVar('${contrat.salaire_brut}')">${contrat.salaire_brut}</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm text-start"
+                                    onclick="insertVar('${contrat.date_debut}')">${contrat.date_debut}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Area -->
+            <div class="col-md-9">
+                <textarea id="contractEditor" th:text="${template.contenuHtml}"></textarea>
+            </div>
+        </div>
+
+        <!-- Hidden Form for Download -->
+        <form id="downloadForm" action="/rh/contrats/templates/generer/download" method="post" target="_blank"
+            style="display:none;">
+            <input type="hidden" name="templateId" th:value="${template.id}">
+            <input type="hidden" name="employeId" id="hiddenEmployeId">
+            <input type="hidden" name="htmlContent" id="hiddenHtmlContent">
+        </form>
+
+        <!-- Modal Preview -->
+        <div class="modal fade" id="previewModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Aperçu du Contrat</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body bg-light">
+                        <div id="previewContent" class="bg-white p-5 shadow mx-auto"
+                            style="max-width: 21cm; min-height: 29.7cm;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            // Init TinyMCE
+            tinymce.init({
+                selector: '#contractEditor',
+                height: 700,
+                plugins: 'advlist autolink lists link image charmap preview anchor pagebreak',
+                toolbar: 'undo redo | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+            });
+
+            function insertVar(variable) {
+                tinymce.activeEditor.insertContent(variable);
+            }
+
+            function updateEmployee(id) {
+                if (id) {
+                    window.location.href = '/rh/contrats/templates/generer/' + [[${ template.id }]] + '?employeId=' + id;
+                }
+            }
+
+            function previewPdf() {
+                const content = tinymce.activeEditor.getContent();
+                const empId = document.getElementById('employeSelect').value;
+
+                fetch('/rh/contrats/templates/generer/preview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        templateId: [[${ template.id }]],
+                        employeId: empId,
+                        htmlContent: content
+                    })
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('previewContent').innerHTML = html;
+                        new bootstrap.Modal(document.getElementById('previewModal')).show();
+                    });
+            }
+
+            function downloadPdf() {
+                document.getElementById('hiddenEmployeId').value = document.getElementById('employeSelect').value;
+                document.getElementById('hiddenHtmlContent').value = tinymce.activeEditor.getContent();
+                document.getElementById('downloadForm').submit();
+            }
+        </script>
+    </div>
+</body>
+
+</html>
