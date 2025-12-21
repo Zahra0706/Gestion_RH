@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="layouts/header :: head">
+    <title>Annonces - Manager</title>
+</head>
+
+<body>
+<div th:replace="layouts/menu-manager :: sidebar"></div>
+
+<main class="main-content">
+
+    <div th:replace="layouts/header :: admin-header"></div>
+
+    <div class="page-header mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="fas fa-bullhorn me-2"></i>Annonces</h2>
+            <p class="text-muted" th:if="${departement != null}">
+                Département : <b th:text="${departement.nom}"></b>
+            </p>
+        </div>
+
+        <!-- Bouton créer -->
+        <a class="btn btn-primary" th:href="@{/manager/annonces/creer}">
+            <i class="fas fa-plus me-1"></i> Nouvelle annonce
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="chart-card">
+        <h6 class="chart-title">Liste des annonces</h6>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>Titre</th>
+                    <th>Contenu</th>
+                    <th>Type</th>
+                    <th>Publication</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr th:each="a : ${annonces}">
+                    <td class="fw-bold" th:text="${a.titre}">Titre</td>
+                    <td th:text="${a.contenu}">Contenu</td>
+                    <td>
+                        <span class="badge bg-info"
+                              th:text="${a.type != null ? a.type : '---'}"></span>
+                    </td>
+                    <td th:text="${a.datePublication != null ? #temporals.format(a.datePublication,'dd/MM/yyyy HH:mm') : '-'}">
+                        -
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex flex-column align-items-end gap-2">
+
+                            <!-- Modifier -->
+                            <a th:href="@{/manager/annonces/{id}/modifier(id=${a.id})}"
+                               class="btn btn-sm btn-outline-primary w-auto">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+
+                            <!-- Supprimer -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center"
+                                    data-bs-toggle="modal"
+                                    th:attr="data-bs-target='#deleteModal' + ${a.id}">
+                                <i class="fas fa-trash-alt me-1"></i> Supprimer
+                            </button>
+
+
+                        </div>
+
+                        <!-- Modal (en dehors du bouton, mieux) -->
+                        <div class="modal fade" th:id="'deleteModal' + ${a.id}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirmation</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                    <div class="modal-body text-start">
+                                        Supprimer cette annonce ?
+                                    </div>
+
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            Annuler
+                                        </button>
+
+                                        <form th:action="@{/manager/annonces/{id}/supprimer(id=${a.id})}" method="post">
+                                            <button type="submit" class="btn btn-danger">
+                                                Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(annonces)}">
+                    <td colspan="4" class="text-center text-muted py-4">
+                        Aucune annonce
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:replace="layouts/footer :: admin-footer"></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="layouts/header :: head">
+    <title>Gestion des Départements - Administration</title>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="layouts/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="layouts/header :: admin-header" th:with="pageTitle='Gestion des Départements'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="container-fluid mt-3">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0">
+                <i class="fas fa-building me-2"></i>Gestion des Départements
+            </h5>
+            <div>
+                <a th:href="@{/admin/departements/creer}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Nouveau Département
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Statut</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">Tous les départements</option>
+                                <option value="active">Actifs seulement</option>
+                                <option value="inactive">Inactifs seulement</option>
+                                <option value="no-manager">Sans manager</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Recherche</label>
+                            <input type="text" class="form-control" id="searchInput"
+                                   placeholder="Nom, code, description...">
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary w-100" id="clearFilters">
+                            <i class="fas fa-times me-2"></i>Effacer les filtres
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Departments Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="departmentsTable">
+                        <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Nom</th>
+                            <th>Description</th>
+                            <th>Manager</th>
+                            <th>Nombre d'employés</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="departement : ${departements}">
+                            <td>
+                                <span class="badge bg-secondary" th:text="${departement.code}"></span>
+                            </td>
+                            <td>
+                                <strong th:text="${departement.nom}"></strong>
+                            </td>
+                            <td>
+                                <small class="text-muted" th:if="${departement.description != null && !departement.description.isEmpty()}"
+                                       th:text="${departement.description}"></small>
+                                <small class="text-muted" th:unless="${departement.description != null && !departement.description.isEmpty()}">
+                                    Aucune description
+                                </small>
+                            </td>
+                            <td>
+                                <div th:if="${departement.manager != null}">
+                                    <div th:text="${departement.manager.prenom + ' ' + departement.manager.nom}"></div>
+                                    <small class="text-muted" th:text="${departement.manager.email}"></small>
+                                </div>
+                                <div th:unless="${departement.manager != null}">
+                                    <span class="badge bg-warning">Non assigné</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info" th:text="${departement.employes != null ? departement.employes.size() : 0}"></span>
+                                employés
+                            </td>
+                            <td>
+                                    <span th:if="${departement.isActif}" class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Actif
+                                    </span>
+                                <span th:unless="${departement.isActif}" class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>Inactif
+                                    </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a th:href="@{'/admin/departements/' + ${departement.id} + '/modifier'}"
+                                       class="btn btn-outline-primary"
+                                       title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+
+                                    <th:block th:if="${departement.isActif}">
+                                        <form th:action="@{'/admin/departements/' + ${departement.id} + '/desactiver'}"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Êtes-vous sûr de vouloir désactiver ce département ?')">
+                                            <button type="submit" class="btn btn-outline-warning" title="Désactiver">
+                                                <i class="fas fa-toggle-off"></i>
+                                            </button>
+                                        </form>
+                                    </th:block>
+
+                                    <th:block th:unless="${departement.isActif}">
+                                        <form th:action="@{'/admin/departements/' + ${departement.id} + '/activer'}"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Êtes-vous sûr de vouloir activer ce département ?')">
+                                            <button type="submit" class="btn btn-outline-success" title="Activer">
+                                                <i class="fas fa-toggle-on"></i>
+                                            </button>
+                                        </form>
+                                    </th:block>
+
+                                    <form th:action="@{'/admin/departements/' + ${departement.id} + '/supprimer'}"
+                                          method="post"
+                                          class="d-inline"
+                                          th:if="${departement.employes == null || departement.employes.isEmpty()}"
+                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce département ? Cette action est irréversible.')">
+                                        <button type="submit" class="btn btn-outline-danger" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+
+                                    <button type="button"
+                                            class="btn btn-outline-info"
+                                            title="Voir les détails"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#departmentModal"
+                                            th:attr="data-department-id=${departement.id}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(departements)}">
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-building fa-2x mb-3"></i>
+                                <h5>Aucun département trouvé</h5>
+                                <p class="mb-0">Commencez par créer un nouveau département</p>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Summary -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Total Départements</h6>
+                                <h3 class="mb-0" th:text="${#lists.size(departements)}">0</h3>
+                            </div>
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Départements Actifs</h6>
+                                <h3 class="mb-0" th:text="${#lists.size(departements.?[isActif == true])}">0</h3>
+                            </div>
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Sans Manager</h6>
+                                <h3 class="mb-0" th:text="${#lists.size(departements.?[manager == null])}">0</h3>
+                            </div>
+                            <i class="fas fa-user-slash fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Employés Total</h6>
+                                <h3 class="mb-0" th:text="${totalEmployees}">0</h3>
+                            </div>
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Details Modal -->
+    <div class="modal fade" id="departmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-building me-2"></i>Détails du Département
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="departmentDetails">
+                    <!-- Content will be loaded via AJAX -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="mt-3">Chargement des informations...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="layouts/footer :: admin-footer"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="layouts/footer :: scripts"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Table filtering
+        const table = document.getElementById('departmentsTable');
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value;
+
+            for (let row of rows) {
+                const cells = row.getElementsByTagName('td');
+                let showRow = true;
+
+                // Search filter
+                if (searchTerm) {
+                    let found = false;
+                    for (let cell of cells) {
+                        if (cell.textContent.toLowerCase().includes(searchTerm)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) showRow = false;
+                }
+
+                // Status filter
+                if (statusValue) {
+                    if (statusValue === 'active') {
+                        const statusCell = cells[5].querySelector('.badge');
+                        if (statusCell && !statusCell.textContent.includes('Actif')) {
+                            showRow = false;
+                        }
+                    } else if (statusValue === 'inactive') {
+                        const statusCell = cells[5].querySelector('.badge');
+                        if (statusCell && !statusCell.textContent.includes('Inactif')) {
+                            showRow = false;
+                        }
+                    } else if (statusValue === 'no-manager') {
+                        const managerCell = cells[3].querySelector('.badge');
+                        if (!managerCell || !managerCell.textContent.includes('Non assigné')) {
+                            showRow = false;
+                        }
+                    }
+                }
+
+                row.style.display = showRow ? '' : 'none';
+            }
+
+            updateRowCount();
+        }
+
+        function updateRowCount() {
+            const visibleRows = table.querySelectorAll('tbody tr:not([style*="display: none"])').length;
+            const totalRows = table.querySelectorAll('tbody tr').length;
+
+            const countElement = document.getElementById('rowCount');
+            if (countElement) {
+                countElement.textContent = `${visibleRows} sur ${totalRows} départements`;
+            }
+        }
+
+        searchInput.addEventListener('keyup', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+
+        clearFiltersBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            statusFilter.value = '';
+            filterTable();
+        });
+
+        // Load department details in modal
+        const departmentModal = document.getElementById('departmentModal');
+        if (departmentModal) {
+            departmentModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const departmentId = button.getAttribute('data-department-id');
+                const modalBody = document.getElementById('departmentDetails');
+
+                // Load department details via AJAX
+                fetch('/admin/departements/' + departmentId + '/details')
+                    .then(response => response.text())
+                    .then(html => {
+                        modalBody.innerHTML = html;
+                    })
+                    .catch(error => {
+                        modalBody.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                Erreur lors du chargement des détails: ${error.message}
+                            </div>
+                        `;
+                    });
+            });
+        }
+
+        // Export functionality
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const visibleRows = table.querySelectorAll('tbody tr:not([style*="display: none"])');
+
+                let csv = [];
+                // Headers
+                csv.push(['Code', 'Nom', 'Description', 'Manager', 'Employés', 'Statut'].join(','));
+
+                // Data
+                visibleRows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    let rowData = [];
+
+                    cells.forEach((cell, index) => {
+                        if (index !== cells.length - 1) { // Skip actions column
+                            let text = cell.textContent.trim();
+                            // Remove badge content if present
+                            const badge = cell.querySelector('.badge');
+                            if (badge) {
+                                text = badge.textContent.trim();
+                            }
+                            rowData.push(`"${text}"`);
+                        }
+                    });
+
+                    csv.push(rowData.join(','));
+                });
+
+                const csvContent = csv.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+
+                link.setAttribute('href', url);
+                link.setAttribute('download', `departements_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showToast('Export réussi', 'Les données ont été exportées avec succès.', 'success');
+            });
+        }
+
+        function showToast(title, message, type = 'info') {
+            // Simple toast implementation
+            const toast = document.createElement('div');
+            toast.className = `toast show position-fixed top-0 end-0 m-3`;
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <div class="toast-header bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} text-white">
+                    <strong class="me-auto">${title}</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        // Initial filter
+        filterTable();
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

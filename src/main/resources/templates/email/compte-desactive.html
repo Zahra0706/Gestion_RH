@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compte désactivé - HR Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .alert {
+            background: #fed7d7;
+            border: 2px solid #fc8181;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #e6fffa;
+            border: 2px solid #81e6d9;
+            color: #234e52;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .details {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>HR Manager</h1>
+    <p>Notification de compte</p>
+</div>
+
+<div class="content">
+    <h2>Cher <span th:text="${employe.prenom + ' ' + employe.nom}"></span>,</h2>
+
+    <div class="alert">
+        <h3> Votre compte a été désactivé</h3>
+        <p>Nous vous informons que votre compte sur la plateforme HR Manager a été désactivé par l'administration.</p>
+    </div>
+
+    <div class="info">
+        <h4>Conséquences :</h4>
+        <ul>
+            <li>Vous ne pouvez plus vous connecter à la plateforme</li>
+            <li>Vos accès sont temporairement suspendus</li>
+            <li>Toutes les fonctionnalités sont inaccessibles</li>
+        </ul>
+    </div>
+
+    <div class="details">
+        <h4>Détails :</h4>
+        <p><strong>Date de désactivation :</strong> <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy à HH:mm')}"></span></p>
+        <p><strong>Matricule :</strong> <span th:text="${employe.matricule}"></span></p>
+        <p><strong>Email :</strong> <span th:text="${employe.email}"></span></p>
+        <p><strong>Département :</strong> <span th:text="${employe.departement != null ? employe.departement.nom : 'Non assigné'}"></span></p>
+    </div>
+
+    <h4>Que faire ensuite ?</h4>
+    <ol>
+        <li>Pour toute question concernant cette désactivation, contactez directement votre responsable ou le service RH</li>
+        <li>Si vous pensez qu'il s'agit d'une erreur, veuillez contacter l'administration</li>
+        <li>Une fois votre compte réactivé, vous recevrez une nouvelle notification par email</li>
+    </ol>
+
+    <p><strong>Pour toute assistance :</strong></p>
+    <ul>
+        <li>Contactez le service RH : rh@entreprise.com</li>
+        <li>Téléphone : +212 5 XX XX XX XX</li>
+    </ul>
+
+    <p>Cordialement,<br>
+        <strong>L'équipe HR Manager</strong></p>
+</div>
+
+<div class="footer">
+    <p>© 2025 HR Manager. Tous droits réservés.</p>
+    <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+</div>
+</body>
+</html>

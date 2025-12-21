@@ -1,0 +1,223 @@
+<!--C:\Users\pc\Desktop\gestion-rh\src\main\resources\templates\manager\dashboard.html<!DOCTYPE html>-->
+
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+    lang="fr">
+
+<head th:replace="layouts/header :: head">
+    <title>Tableau de Bord - Administration</title>
+</head>
+
+<body>
+    <!-- Sidebar Menu -->
+    <div th:replace="layouts/menu-manager :: sidebar"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <!-- Header -->
+        <div th:replace="layouts/header :: admin-header"></div>
+
+
+
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <!-- Employés Card -->
+            <div class="stat-card employes">
+                <div class="stat-icon employes">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number" th:text="${totalEmployes}">0</div>
+                <div class="stat-text">Employés au total</div>
+                <div class="d-flex justify-content-between mt-3">
+                    <small>
+                        <span class="text-success" th:text="${employesActifs}">0</span> actifs
+                    </small>
+                    <small>
+                        <span class="text-danger" th:text="${employesInactifs}">0</span> inactifs
+                    </small>
+                </div>
+            </div>
+
+            <!-- Congés Card -->
+            <div class="stat-card conges">
+                <div class="stat-icon conges">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-number" th:text="${totalConges}">0</div>
+                <div class="stat-text">Demandes de congés</div>
+                <div class="d-flex justify-content-between mt-3">
+                    <small>
+                        <span class="text-warning" th:text="${congesEnAttente}">0</span> en attente
+                    </small>
+                    <small>
+                        <span class="text-success" th:text="${congesValides}">0</span> validés
+                    </small>
+                </div>
+            </div>
+
+            <!-- Départements Card -->
+            <div class="stat-card departements">
+                <div class="stat-icon departements">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-number" th:text="${totalDepartements}">0</div>
+                <div class="stat-text">Départements</div>
+                <div class="d-flex justify-content-between mt-3">
+                    <small>
+                        <span class="text-success" th:text="${departementsAvecManager}">0</span> avec manager
+                    </small>
+                    <small>
+                        <span class="text-warning" th:text="${totalDepartements - departementsAvecManager}">0</span>
+                        sans manager
+                    </small>
+                </div>
+                <div class="stat-trend trend-up" th:if="${tauxOccupation > 80}">
+                    <i class="fas fa-arrow-up"></i>
+                    <span th:text="${#numbers.formatDecimal(tauxOccupation, 1, 1)}">0</span>% occupation
+                </div>
+            </div>
+
+            <!-- Rôles Card -->
+            <div class="stat-card roles">
+                <div class="stat-icon roles">
+                    <i class="fas fa-user-tag"></i>
+                </div>
+                <div class="stat-number" th:text="${#maps.size(statistiquesParRole)}">0</div>
+                <div class="stat-text">Rôles différents</div>
+                <div class="mt-3">
+                    <small th:each="entry : ${statistiquesParRole}" class="d-block">
+                        <span th:text="${entry.key}">ROLE</span>:
+                        <span th:text="${entry.value}" class="fw-bold">0</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <!-- Distribution par rôle -->
+            <div class="chart-card">
+                <h6 class="chart-title">Distribution par Rôle</h6>
+                <div class="chart-container">
+                    <canvas id="roleChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <!-- Employés par département -->
+            <div class="chart-card">
+                <h6 class="chart-title">Employés par Département</h6>
+                <div class="chart-container">
+                    <canvas id="departementChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="chart-card">
+            <h6 class="chart-title">Actions Rapides</h6>
+            <div class="quick-actions">
+
+
+                <a th:href="@{/manager/conges}" class="action-btn">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Valider Congés</span>
+                </a>
+                <a th:href="@{/manager/annonces}" class="action-btn">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Publier Annonce</span>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Recent Activity Section -->
+        <div class="row mt-4">
+            <!-- Derniers employés ajoutés -->
+            <!-- Derniers employés ajoutés -->
+            <div class="col-12">
+                <div class="recent-employees-card">
+                    <div class="table-card-header">
+                        <h6>
+                            <i class="fas fa-users"></i>
+                            Derniers Employés Ajoutés
+                        </h6>
+                        <div class="table-search">
+                            <input type="text" id="employeeSearchInput" class="form-control"
+                                placeholder="Rechercher...">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="recentEmployeesTable" class="table recent-employees-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-user"></i> Nom</th>
+                                    <th><i class="fas fa-envelope"></i> Email</th>
+                                    <th><i class="fas fa-briefcase"></i> Poste</th>
+                                    <th><i class="fas fa-calendar-alt"></i> Date d'embauche</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="employe : ${derniersEmployes}">
+                                    <td th:text="${employe.prenom + ' ' + employe.nom}"></td>
+                                    <td th:text="${employe.email}"></td>
+                                    <td>
+                                        <span
+                                            th:class="${'badge-role ' + (employe.poste != null && employe.poste.name() == 'DEVELOPPEUR' ? 'badge-dev' : (employe.poste != null && employe.poste.name() == 'MANAGER' ? 'badge-manager' : 'badge-default'))}"
+                                            th:text="${employe.poste}"></span>
+                                    </td>
+                                    <td th:text="${#temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Footer -->
+        <div th:replace="layouts/footer :: admin-footer"></div>
+    </main>
+
+    <!-- Scripts -->
+    <!--<div th:replace="layouts/footer :: scripts"></div>-->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('employeeSearchInput');
+            const tableBody = document.querySelector('#recentEmployeesTable tbody');
+            const rows = tableBody.querySelectorAll('tr');
+
+            /**
+             * Normalise une chaîne de caractères : minuscule et sans accents
+             */
+            function normalizeText(str) {
+                return str.toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .trim();
+            }
+
+            if (searchInput && tableBody) {
+                searchInput.addEventListener('input', function () {
+                    const searchTerm = normalizeText(this.value);
+
+                    rows.forEach(row => {
+                        // On récupère tout le texte de la ligne pour une recherche globale
+                        const rowText = normalizeText(row.textContent);
+
+                        if (rowText.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
