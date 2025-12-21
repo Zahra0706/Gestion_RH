@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="department-details">
+    <div th:if="${departement != null}">
+        <!-- Department Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                         style="width: 60px; height: 60px; font-size: 24px;">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h4 class="mb-0" th:text="${departement.nom}"></h4>
+                        <p class="text-muted mb-0">
+                            Code: <span class="badge bg-secondary" th:text="${departement.code}"></span>
+                            <span class="ms-2" th:if="${departement.isActif}" class="badge bg-success">
+                                <i class="fas fa-check-circle"></i> Actif
+                            </span>
+                            <span class="ms-2" th:unless="${departement.isActif}" class="badge bg-danger">
+                                <i class="fas fa-times-circle"></i> Inactif
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Information -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h6 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Informations
+                </h6>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Description:</label>
+                    <div class="border rounded p-3 bg-light">
+                        <p th:if="${departement.description != null && !departement.description.isEmpty()}"
+                           th:text="${departement.description}"></p>
+                        <p th:unless="${departement.description != null && !departement.description.isEmpty()}"
+                           class="text-muted fst-italic">Aucune description disponible</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Manager:</label>
+                            <div th:if="${departement.manager != null}" class="border rounded p-3 bg-light">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px; font-size: 16px;">
+                                        <span th:text="${#strings.substring(departement.manager.prenom, 0, 1) + #strings.substring(departement.manager.nom, 0, 1)}"></span>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-0" th:text="${departement.manager.prenom + ' ' + departement.manager.nom}"></h6>
+                                        <small class="text-muted" th:text="${departement.manager.email}"></small>
+                                        <br>
+                                        <small class="text-muted" th:text="${departement.manager.poste}"></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:unless="${departement.manager != null}" class="border rounded p-3 bg-light">
+                                <span class="text-warning">
+                                    <i class="fas fa-user-slash me-2"></i>Aucun manager assigné
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Statistiques:</label>
+                            <div class="border rounded p-3 bg-light">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <h3 class="mb-0 text-primary"
+                                            th:text="${departement.employes != null ? departement.employes.size() : 0}">
+                                        </h3>
+                                        <small class="text-muted">Employés</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <h3 class="mb-0 text-success"
+                                            th:text="${departement.annonces != null ? departement.annonces.size() : 0}">
+                                        </h3>
+                                        <small class="text-muted">Annonces</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employees List -->
+        <div class="row" th:if="${departement.employes != null && !departement.employes.isEmpty()}">
+            <div class="col-12">
+                <h6 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-users me-2"></i>Employés du Département
+                    <span class="badge bg-primary ms-2" th:text="${departement.employes.size()}"></span>
+                </h6>
+
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Poste</th>
+                            <th>Statut</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="employe : ${departement.employes}">
+                            <td th:text="${employe.prenom + ' ' + employe.nom}"></td>
+                            <td th:text="${employe.email}"></td>
+                            <td>
+                                <span class="badge bg-info" th:text="${employe.poste}"></span>
+                            </td>
+                            <td>
+                                <span th:if="${employe.isCompteActif}" class="badge bg-success">Actif</span>
+                                <span th:unless="${employe.isCompteActif}" class="badge bg-danger">Inactif</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Employees Message -->
+        <div class="row" th:unless="${departement.employes != null && !departement.employes.isEmpty()}">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Aucun employé n'est actuellement assigné à ce département.
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-end gap-2">
+                    <a th:href="@{'/admin/departements/' + ${departement.id} + '/modifier'}"
+                       class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Modifier
+                    </a>
+                    <a th:href="@{'/admin/employes?departement=' + ${departement.id}}"
+                       class="btn btn-outline-secondary">
+                        <i class="fas fa-users me-2"></i>Voir les employés
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div th:unless="${departement != null}" class="alert alert-danger">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        Département non trouvé.
+    </div>
+</div>
+</body>
+</html>

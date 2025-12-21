@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="layouts/header :: head">
+    <title>Ajouter un Employé - Administration</title>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="layouts/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="layouts/header :: admin-header" th:with="pageTitle='Ajouter un Employé'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Creation Form -->
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-plus me-2"></i>Nouvel Employé
+                        </h5>
+                        <small class="text-white-50">Un mot de passe aléatoire sera généré et envoyé par email</small>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/employes/creer}" method="post" th:object="${employe}">
+                            <!-- Informations Personnelles -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-id-card me-2"></i>Informations Personnelles
+                                    </h6>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="nom" class="form-label">Nom *</label>
+                                    <input type="text" class="form-control" id="nom"
+                                           th:field="*{nom}" required
+                                           placeholder="Entrez le nom">
+                                    <div class="invalid-feedback">
+                                        Veuillez entrer le nom.
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="prenom" class="form-label">Prénom *</label>
+                                    <input type="text" class="form-control" id="prenom"
+                                           th:field="*{prenom}" required
+                                           placeholder="Entrez le prénom">
+                                    <div class="invalid-feedback">
+                                        Veuillez entrer le prénom.
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="email"
+                                           th:field="*{email}" required
+                                           placeholder="exemple@entreprise.com">
+                                    <div class="invalid-feedback">
+                                        Veuillez entrer une adresse email valide.
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="telephone" class="form-label">Téléphone</label>
+                                    <input type="tel" class="form-control" id="telephone"
+                                           th:field="*{telephone}"
+                                           placeholder="+212 6 XX XX XX XX">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="dateNaissance" class="form-label">Date de Naissance</label>
+                                    <input type="date" class="form-control" id="dateNaissance"
+                                           th:field="*{dateNaissance}">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="adresse" class="form-label">Adresse *</label>
+                                    <input type="text" class="form-control" id="adresse"
+                                           th:field="*{adresse}" required
+                                           placeholder="Adresse complète">
+                                </div>
+                            </div>
+
+                            <!-- Informations Professionnelles -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-briefcase me-2"></i>Informations Professionnelles
+                                    </h6>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="matricule" class="form-label">Matricule</label>
+                                    <input type="text" class="form-control" id="matricule"
+                                           th:field="*{matricule}"
+                                           placeholder="Laisser vide pour génération automatique">
+                                    <small class="text-muted">Format: ADM0001, RH0001, MGR0001, EMP0001</small>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="dateEmbauche" class="form-label">Date d'Embauche *</label>
+                                    <input type="date" class="form-control" id="dateEmbauche"
+                                           th:field="*{dateEmbauche}" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="poste" class="form-label">Poste *</label>
+                                    <select class="form-select" id="poste" th:field="*{poste}" required>
+                                        <option value="">Sélectionnez un poste</option>
+                                        <option th:each="poste : ${postes}"
+                                                th:value="${poste}"
+                                                th:text="${poste}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="role" class="form-label">Rôle *</label>
+                                    <select class="form-select" id="role" th:field="*{role}" required>
+                                        <option value="">Sélectionnez un rôle</option>
+                                        <option th:each="role : ${roles}"
+                                                th:value="${role}"
+                                                th:text="${role}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="departement" class="form-label">Département</label>
+                                    <select class="form-select" id="departement" th:field="*{departement}">
+                                        <option value="">Sélectionnez un département</option>
+                                        <option th:each="dept : ${departements}"
+                                                th:value="${dept.id}"
+                                                th:text="${dept.nom}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Options Supplémentaires -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-cog me-2"></i>Options
+                                    </h6>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="password" class="form-label">Mot de passe</label>
+                                    <input type="text" class="form-control" id="password"
+                                           name="password"
+                                           placeholder="Laisser vide pour génération automatique">
+                                    <small class="text-muted">Si vide, un mot de passe aléatoire sécurisé sera généré</small>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check mt-4 pt-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="isCompteActif"
+                                               id="isCompteActif" checked value="true">
+                                        <label class="form-check-label" for="isCompteActif">
+                                            Compte actif immédiatement
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between">
+                                        <a th:href="@{/admin/employes}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>Retour
+                                        </a>
+                                        <div>
+                                            <button type="reset" class="btn btn-outline-warning me-2">
+                                                <i class="fas fa-redo me-2"></i>Réinitialiser
+                                            </button>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-user-plus me-2"></i>Créer l'Employé
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            * Champs obligatoires. Un email avec les identifiants sera envoyé à l'adresse fournie.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="layouts/footer :: admin-footer"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="layouts/footer :: scripts"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-generate matricule based on role
+        const roleSelect = document.getElementById('role');
+        const matriculeInput = document.getElementById('matricule');
+
+        if (roleSelect && matriculeInput) {
+            roleSelect.addEventListener('change', function() {
+                if (!matriculeInput.value) {
+                    const role = this.value;
+                    let prefix = 'EMP';
+
+                    if (role.includes('ADMIN')) prefix = 'ADM';
+                    else if (role === 'RH') prefix = 'RH';
+                    else if (role === 'MANAGER') prefix = 'MGR';
+
+                    // Get next number from server would be better, but for demo:
+                    matriculeInput.value = prefix + '0001';
+                }
+            });
+        }
+
+        // Set default date for dateEmbauche to today
+        const dateEmbaucheInput = document.getElementById('dateEmbauche');
+        if (dateEmbaucheInput && !dateEmbaucheInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateEmbaucheInput.value = today;
+        }
+
+        // Form validation
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

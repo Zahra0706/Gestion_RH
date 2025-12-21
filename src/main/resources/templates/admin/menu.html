@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<body>
+<!-- Sidebar Menu Fragment -->
+<div th:fragment="sidebar">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h3><i class="fas fa-users me-2"></i>HR<span>Manager</span></h3>
+            <small class="text-muted">Panel d'Administration</small>
+        </div>
+
+        <nav class="sidebar-menu">
+            <!-- Dashboard -->
+            <a th:href="@{/admin/dashboard}" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span class="menu-text">Tableau de Bord</span>
+            </a>
+
+            <!-- Gestion des Employés -->
+            <div class="menu-group">
+                <a th:href="@{/admin/employes}" class="menu-item">
+                    <i class="fas fa-user-friends"></i>
+                    <span class="menu-text">Employés</span>
+                    <span th:if="${totalEmployes != null}" class="menu-badge" th:text="${totalEmployes}">0</span>
+                </a>
+            </div>
+
+            <!-- Gestion des Départements -->
+            <div class="menu-group">
+                <a th:href="@{/admin/departements}" class="menu-item">
+                    <i class="fas fa-building"></i>
+                    <span class="menu-text">Départements</span>
+                    <span th:if="${totalDepartements != null}" class="menu-badge" th:text="${totalDepartements}">0</span>
+                </a>
+            </div>
+
+            <!-- Gestion des Congés -->
+            <div class="menu-group">
+                <a th:href="@{/admin/conges}" class="menu-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="menu-text">Congés</span>
+                    <span th:if="${congesEnAttente != null}" class="menu-badge" th:text="${congesEnAttente}">0</span>
+                </a>
+            </div>
+
+            <!-- Gestion des Annonces -->
+            <a th:href="@{/admin/annonces}" class="menu-item">
+                <i class="fas fa-bullhorn"></i>
+                <span class="menu-text">Annonces</span>
+            </a>
+
+            <!-- Gestion des Contrats -->
+            <a th:href="@{/admin/contrats}" class="menu-item">
+                <i class="fas fa-file-contract"></i>
+                <span class="menu-text">Contrats</span>
+            </a>
+
+            <!-- Gestion des Salaires -->
+            <a th:href="@{/admin/salaires}" class="menu-item">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span class="menu-text">Salaires</span>
+            </a>
+
+            <!-- Évaluations -->
+            <a th:href="@{/admin/evaluations}" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span class="menu-text">Évaluations</span>
+            </a>
+
+            <!-- Réunions -->
+            <a th:href="@{/admin/reunions}" class="menu-item">
+                <i class="fas fa-calendar-check"></i>
+                <span class="menu-text">Réunions</span>
+            </a>
+
+            <!-- Statistiques -->
+            <a th:href="@{/admin/statistiques}" class="menu-item">
+                <i class="fas fa-chart-pie"></i>
+                <span class="menu-text">Statistiques</span>
+            </a>
+
+            <!-- Paramètres -->
+            <div class="menu-group">
+                <a th:href="@{/admin/parametres}" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span class="menu-text">Paramètres</span>
+                </a>
+            </div>
+
+            <!-- Déconnexion -->
+            <div class="menu-group mt-5">
+                <form th:action="@{/logout}" method="post" class="menu-item logout-form">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="menu-text">Déconnexion</span>
+                    <button type="submit" class="btn btn-link p-0 m-0 border-0"></button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="text-center text-muted py-3">
+                <small>© 2025 HR Manager</small><br>
+                <small>v1.0.0</small>
+            </div>
+        </div>
+    </aside>
+</div>
+</body>
+</html>

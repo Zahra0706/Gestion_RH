@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="layouts/header :: head">
+    <title>Salaires - Manager</title>
+</head>
+
+<body>
+<div th:replace="layouts/menu-manager :: sidebar"></div>
+
+<main class="main-content">
+    <div th:replace="layouts/header :: admin-header"></div>
+
+    <div class="page-header mb-4">
+        <h2><i class="fas fa-money-bill-wave me-2"></i>Salaires</h2>
+        <p class="text-muted" th:if="${departement != null}">
+            Département : <b th:text="${departement.nom}"></b>
+        </p>
+    </div>
+
+    <!-- Message erreur -->
+    <div th:if="${errorMessage}" class="alert alert-danger">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="chart-card">
+        <h6 class="chart-title">Salaires des employés du département</h6>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Employé</th>
+                    <th>Mois/Année</th>
+                    <th>Date paiement</th>
+                    <th>Primes</th>
+                    <th>Retenues</th>
+                    <th>Salaire brut</th>
+                    <th>Salaire net</th>
+                    <th>PDF</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <!-- Aucun employé -->
+                <tr th:if="${#lists.isEmpty(employees)}">
+                    <td colspan="8" class="text-center text-muted py-4">
+                        Aucun employé trouvé
+                    </td>
+                </tr>
+
+                <!-- Boucle employés -->
+                <th:block th:each="e : ${employees}"
+                          th:with="listeSalaires=${salairesParEmploye[e.id]}">
+
+                    <tr>
+                        <td colspan="8" class="fw-bold bg-light">
+                            <i class="fas fa-user me-1"></i>
+                            <span th:text="${e.prenom + ' ' + e.nom}"></span>
+                        </td>
+                    </tr>
+
+                    <!-- Aucun salaire -->
+                    <tr th:if="${listeSalaires == null or #lists.isEmpty(listeSalaires)}">
+                        <td></td>
+                        <td colspan="7" class="text-muted">
+
+                        </td>
+                    </tr>
+
+                    <!-- Salaires -->
+                    <tr th:each="s : ${listeSalaires}"
+                        th:if="${listeSalaires != null and !#lists.isEmpty(listeSalaires)}">
+
+                        <td></td>
+                        <td th:text="${s.moisAnnee}"></td>
+                        <td th:text="${s.datePaiement != null ? #temporals.format(s.datePaiement, 'dd/MM/yyyy') : '-'}"></td>
+                        <td th:text="${s.primes}"></td>
+                        <td th:text="${s.retenues}"></td>
+                        <td th:text="${s.salaireBrut}"></td>
+                        <td th:text="${s.salaireNet}"></td>
+
+                        <!-- ✅ ICI la correction: cheminFichierPDF -->
+                        <td>
+                            <a class="btn btn-sm btn-outline-primary"
+                               th:if="${s.cheminFichierPDF != null}"
+                               th:href="${s.cheminFichierPDF}"
+                               target="_blank">
+                                <i class="fas fa-file-pdf me-1"></i>Voir
+                            </a>
+                            <span class="text-muted" th:if="${s.cheminFichierPDF == null}">-</span>
+                        </td>
+                    </tr>
+
+                </th:block>
+
+                </tbody>
+            </table>
+        </div>
+
+        <small class="text-muted d-block mt-2">
+
+        </small>
+    </div>
+
+    <div th:replace="layouts/footer :: admin-footer"></div>
+</main>
+</body>
+</html>

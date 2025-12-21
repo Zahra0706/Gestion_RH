@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+
+<head th:replace="layouts/header :: head">
+    <title>Mon Département - Manager</title>
+</head>
+
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="layouts/menu-manager :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+
+    <!-- Header -->
+    <div th:replace="layouts/header :: admin-header"></div>
+
+    <!-- Page Title -->
+    <div class="page-header mb-4">
+        <h2><i class="fas fa-building me-2"></i>Mon Département</h2>
+        <p class="text-muted">
+    </div>
+
+    <!-- Messages de succès/erreur -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Si aucun département -->
+    <div th:if="${departement == null}" class="chart-card">
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+            Aucun département associé à votre compte.
+        </div>
+    </div>
+
+    <!-- Contenu si département existe -->
+    <div th:if="${departement != null}">
+
+        <!-- Info Département -->
+        <div class="chart-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="chart-title mb-0">
+                    <i class="fas fa-info-circle"></i> Informations du département
+                </h6>
+
+                <span class="badge"
+                      th:classappend="${departement.isActif} ? ' bg-success' : ' bg-secondary'"
+                      th:text="${departement.isActif} ? 'Actif' : 'Inactif'">
+                </span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="p-3 border rounded bg-light">
+                        <small class="text-muted d-block">Code</small>
+                        <div class="fw-bold" th:text="${departement.code}">-</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="p-3 border rounded bg-light">
+                        <small class="text-muted d-block">Nom</small>
+                        <div class="fw-bold" th:text="${departement.nom}">-</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="p-3 border rounded bg-light">
+                        <small class="text-muted d-block">Manager</small>
+                        <div class="fw-bold"
+                             th:text="${departement.manager != null ? (departement.manager.prenom + ' ' + departement.manager.nom) : '—'}">
+                            —
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="p-3 border rounded bg-light">
+                        <small class="text-muted d-block">Description</small>
+                        <div th:text="${departement.description != null ? departement.description : '—'}">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+
+            <!-- Total employés -->
+            <div class="stat-card employes">
+                <div class="stat-icon employes">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number" th:text="${totalEmployes}">0</div>
+                <div class="stat-text">Employés du département</div>
+            </div>
+
+            <!-- Employés actifs -->
+            <div class="stat-card conges">
+                <div class="stat-icon conges">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-number" th:text="${employesActifs}">0</div>
+                <div class="stat-text">Comptes actifs</div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>OK</span>
+                </div>
+            </div>
+
+            <!-- Employés inactifs -->
+            <div class="stat-card departements">
+                <div class="stat-icon departements">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+                <div class="stat-number" th:text="${employesInactifs}">0</div>
+                <div class="stat-text">Comptes inactifs</div>
+            </div>
+
+            <!-- Taux activité -->
+            <div class="stat-card roles">
+                <div class="stat-icon roles">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+
+                <div class="stat-number"
+                     th:text="${totalEmployes != 0 ? #numbers.formatDecimal((employesActifs * 100.0) / totalEmployes, 1, 0) : 0}">
+                    0
+                </div>
+                <div class="stat-text">% Actifs</div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        Base: <span th:text="${totalEmployes}">0</span> employés
+                    </small>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Liste des employés -->
+        <div class="chart-card mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="chart-title mb-0">
+                    <i class="fas fa-list"></i> Employés du département
+                </h6>
+
+                <!-- Recherche simple (optionnel) -->
+                <form th:action="@{/manager/departements}" method="get" class="d-flex" style="gap:10px;">
+                    <input type="text" name="q" class="form-control form-control-sm"
+                           placeholder="Rechercher (nom/prénom)"
+                           th:value="${q}">
+                    <button class="btn btn-sm btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+
+                    </button>
+                </form>
+
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Employé</th>
+                        <th>Email</th>
+                        <th>Poste</th>
+                        <th>Rôle</th>
+                        <th>Statut</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="e : ${employees}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2"
+                                     th:text="${(e.prenom != null and #strings.length(e.prenom) > 0 ? #strings.substring(e.prenom,0,1) : '?')
+                                            + (e.nom != null and #strings.length(e.nom) > 0 ? #strings.substring(e.nom,0,1) : '?')}">
+                                </div>
+                                <div>
+                                    <div class="fw-bold" th:text="${e.prenom + ' ' + e.nom}">—</div>
+                                    <small class="text-muted" th:text="${e.matricule != null ? e.matricule : ''}"></small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td th:text="${e.email != null ? e.email : '-'}">-</td>
+                        <td th:text="${e.poste != null ? e.poste : '-'}">-</td>
+                        <td>
+                            <span class="badge bg-info"
+                                  th:text="${e.role != null ? e.role.name() : '-'}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${e.isCompteActif} ? ' bg-success' : ' bg-secondary'"
+                                  th:text="${e.isCompteActif} ? 'Actif' : 'Inactif'">
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(employees)}">
+                        <td colspan="5" class="text-center text-muted py-5">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                            Aucun employé dans ce département.
+                        </td>
+                    </tr>
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="layouts/footer :: admin-footer"></div>
+
+</main>
+
+<style>
+    .avatar-circle {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: bold; font-size: 14px;
+    }
+</style>
+
+</body>
+</html>
