@@ -9,6 +9,7 @@ import com.example.gestion_rh.service.ContractGenerationService;
 import com.example.gestion_rh.service.EmployeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/rh/contrats/templates")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('RH', 'ADMIN', 'SUPER_ADMIN')")
 public class RhTemplateController {
 
     private final ContratTemplateRepository templateRepository;
@@ -25,10 +27,54 @@ public class RhTemplateController {
     private final EmployeService employeService;
     private final ContratRepository contratRepository;
 
-    @GetMapping("/selection")
-    public String selectionTemplate(Model model) {
+    @GetMapping("/liste")
+    public String listeTemplates(Model model) {
         model.addAttribute("templates", templateRepository.findAll());
-        return "rh/contrats/templates/selection";
+        return "rh/contrats/templates/liste";
+    }
+
+    @GetMapping("/nouveau")
+    public String nouveauTemplate(Model model) {
+        model.addAttribute("template", new ContratTemplate());
+        return "rh/contrats/templates/form";
+    }
+
+    @GetMapping("/modifier/{id}")
+    public String modifierTemplate(@PathVariable Long id, Model model) {
+        ContratTemplate template = templateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Template invalide"));
+        model.addAttribute("template", template);
+        return "rh/contrats/templates/form";
+    }
+
+    @PostMapping("/sauvegarder")
+    public String sauvegarderTemplate(@ModelAttribute ContratTemplate template) {
+        if (template.isDefault()) {
+            // Unset other defaults if this one is set to default
+            templateRepository.findAll().forEach(t -> {
+                if (t.isDefault() && !t.getId().equals(template.getId())) {
+                    t.setDefault(false);
+                    templateRepository.save(t);
+                }
+            });
+        }
+        templateRepository.save(template);
+        return "redirect:/rh/contrats/templates/liste";
+    }
+
+    @PostMapping("/supprimer/{id}")
+    public String supprimerTemplate(@PathVariable Long id) {
+        templateRepository.deleteById(id);
+        return "redirect:/rh/contrats/templates/liste";
+    }
+
+    @PostMapping("/set-default/{id}")
+    public String setDefault(@PathVariable Long id) {
+        templateRepository.findAll().forEach(t -> {
+            t.setDefault(t.getId().equals(id));
+            templateRepository.save(t);
+        });
+        return "redirect:/rh/contrats/templates/liste";
     }
 
     @GetMapping("/generer/{id}")

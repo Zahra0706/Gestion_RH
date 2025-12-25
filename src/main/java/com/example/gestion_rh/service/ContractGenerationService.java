@@ -53,11 +53,12 @@ public class ContractGenerationService {
                 employe.getDepartement() != null ? employe.getDepartement().getNom() : "[Département]");
 
         // Company
-        vars.put("entreprise.nom", "TechInnovate SA");
-        vars.put("entreprise.adresse_siege", "123 Avenue Mohamed VI, Casablanca");
-        vars.put("entreprise.siret", "123 456 789 00012");
-        vars.put("entreprise.ape", "6202A");
-        vars.put("entreprise.representant_legal", "M. KARIM Directeur");
+        vars.put("entreprise.nom", "TECHSOLUTIONS SARL");
+        vars.put("entreprise.adresse_siege", "123 Boulevard Zerktouni, Casablanca 20000");
+        vars.put("entreprise.contact", "+212 5 22 XX XX XX | contact@techsolutions.ma");
+        vars.put("entreprise.juridique", "RC: 123456 | ICE: 002123456000000 | Patente: 12345678");
+        vars.put("entreprise.representant_legal", "M. Directeur Général");
+        vars.put("entreprise.qualite_representant", "Gérant");
 
         // Contract
         if (contrat != null) {
@@ -68,10 +69,13 @@ public class ContractGenerationService {
                     contrat.getDateFin() != null ? contrat.getDateFin().format(dtf) : "Non applicable");
             vars.put("contrat.salaire_brut", String.format("%.2f", contrat.getSalaireBase()));
             vars.put("contrat.periode_essai",
-                    contrat.getPeriodeEssaiMois() != null ? contrat.getPeriodeEssaiMois() + " mois" : "Non spécifiée");
+                    contrat.getDureeEssai() != null ? contrat.getDureeEssai().toString() : "90");
             vars.put("contrat.duree_hebdomadaire",
                     contrat.getHeuresHebdomadaires() != null ? contrat.getHeuresHebdomadaires().toString() : "44");
-            vars.put("contrat.lieu_travail", "Casablanca, Siège");
+            vars.put("contrat.lieu_travail", "Casablanca");
+            vars.put("contrat.avantages",
+                    contrat.getAvantages() != null && !contrat.getAvantages().isEmpty() ? contrat.getAvantages()
+                            : "Aucun avantage particulier mentionné");
             vars.put("reference_contrat",
                     contrat.getReferenceContrat() != null ? contrat.getReferenceContrat() : "PROVISOIRE");
         } else {

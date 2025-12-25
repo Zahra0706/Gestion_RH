@@ -1,95 +1,115 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<head th:replace="rh/layouts/header :: head">
     <title>Nouveau Contrat</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
-<body class="bg-light">
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0"><i class="fas fa-file-signature me-2"></i>Nouveau Contrat</h4>
-                    </div>
-                    <div class="card-body p-4">
-                        <form th:action="@{/rh/contrats}" th:object="${contrat}" method="post">
+<body>
+    <div th:replace="rh/layouts/menu :: sidebar"></div>
 
-                            <!-- Employee Selection -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Employé Concerné</label>
-                                <select class="form-select" th:field="*{employe}" required>
-                                    <option value="">Sélectionner un employé...</option>
-                                    <option th:each="emp : ${employes}" th:value="${emp.id}"
-                                        th:text="${emp.nom + ' ' + emp.prenom + ' - ' + (emp.departement != null ? emp.departement.nom : 'Sans Dpt')}">
-                                    </option>
-                                </select>
+    <main class="main-content">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0"><i class="fas fa-file-signature me-2"></i>Nouveau Contrat</h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Messages -->
+                            <div th:if="${success}" class="alert alert-success alert-dismissible fade show"
+                                role="alert">
+                                <i class="fas fa-check-circle me-2"></i><span th:text="${success}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i><span th:text="${error}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
                             </div>
 
-                            <hr>
+                            <form th:action="@{/rh/contrats/creer}" th:object="${contrat}" method="post">
 
-                            <div class="row g-3">
-                                <!-- Type & Salary -->
-                                <div class="col-md-6">
-                                    <label class="form-label">Type de Contrat</label>
-                                    <select class="form-select" th:field="*{typeContrat}" required>
-                                        <option th:each="type : ${typesContrat}" th:value="${type}" th:text="${type}">
-                                            Type</option>
+                                <!-- Employee Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Employé Concerné</label>
+                                    <select class="form-select" th:field="*{employe}" required>
+                                        <option value="">Sélectionner un employé...</option>
+                                        <option th:each="emp : ${employes}" th:value="${emp.id}"
+                                            th:text="${emp.nom + ' ' + emp.prenom + ' - ' + (emp.departement != null ? emp.departement.nom : 'Sans Dpt')}">
+                                        </option>
                                     </select>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Salaire de Base (MAD)</label>
-                                    <input type="number" step="0.01" class="form-control" th:field="*{salaireBase}"
-                                        required>
+
+                                <hr>
+
+                                <div class="row g-3">
+                                    <!-- Type & Salary -->
+                                    <div class="col-md-6">
+                                        <label class="form-label">Type de Contrat</label>
+                                        <select class="form-select" th:field="*{typeContrat}" required>
+                                            <option th:each="type : ${typesContrat}" th:value="${type}"
+                                                th:text="${type}">
+                                                Type</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Salaire de Base (MAD)</label>
+                                        <input type="number" step="0.01" class="form-control" th:field="*{salaireBase}"
+                                            required>
+                                    </div>
+
+                                    <!-- Dates -->
+                                    <div class="col-md-6">
+                                        <label class="form-label">Date de Début</label>
+                                        <input type="date" class="form-control" th:field="*{dateDebut}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Date de Fin (Optionnel)</label>
+                                        <input type="date" class="form-control" th:field="*{dateFin}">
+                                        <div class="form-text">Laisser vide pour un CDI</div>
+                                    </div>
+
+                                    <!-- Hours -->
+                                    <div class="col-md-6">
+                                        <label class="form-label">Heures Hebdomadaires</label>
+                                        <input type="number" step="0.5" class="form-control"
+                                            th:field="*{heuresHebdomadaires}" placeholder="Ex: 44">
+                                    </div>
+
+                                    <!-- Trial Period -->
+                                    <div class="col-md-6">
+                                        <label class="form-label">Période d'Essai (Jours)</label>
+                                        <input type="number" class="form-control" th:field="*{dureeEssai}"
+                                            placeholder="Ex: 90">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Référence Contrat</label>
+                                        <input type="text" class="form-control" th:field="*{referenceContrat}"
+                                            placeholder="Auto-généré si vide (REF-2024-XXX)">
+                                    </div>
                                 </div>
 
-                                <!-- Dates -->
-                                <div class="col-md-6">
-                                    <label class="form-label">Date de Début</label>
-                                    <input type="date" class="form-control" th:field="*{dateDebut}" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Date de Fin (Optionnel)</label>
-                                    <input type="date" class="form-control" th:field="*{dateFin}">
-                                    <div class="form-text">Laisser vide pour un CDI</div>
+                                <div class="mb-3 mt-3">
+                                    <label class="form-label">Avantages & Primes</label>
+                                    <textarea class="form-control" th:field="*{avantages}" rows="3"
+                                        placeholder="Voiture de fonction, Tickets restaurant, 13ème mois..."></textarea>
                                 </div>
 
-                                <!-- Hours -->
-                                <div class="col-md-6">
-                                    <label class="form-label">Heures Hebdomadaires</label>
-                                    <input type="number" step="0.5" class="form-control"
-                                        th:field="*{heuresHebdomadaires}" placeholder="Ex: 44">
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <a href="/rh/contrats" class="btn btn-secondary">Annuler</a>
+                                    <button type="submit" class="btn btn-success">Enregistrer le Contrat</button>
                                 </div>
-
-                                <!-- Trial Period -->
-                                <div class="col-md-6">
-                                    <label class="form-label">Période d'Essai (Mois)</label>
-                                    <input type="number" class="form-control" th:field="*{periodeEssaiMois}"
-                                        placeholder="Ex: 3">
-                                </div>
-                            </div>
-
-                            <div class="mb-3 mt-3">
-                                <label class="form-label">Avantages & Primes</label>
-                                <textarea class="form-control" th:field="*{avantages}" rows="3"
-                                    placeholder="Voiture de fonction, Tickets restaurant, 13ème mois..."></textarea>
-                            </div>
-
-                            <div class="d-flex justify-content-end gap-2 mt-4">
-                                <a href="/rh/contrats" class="btn btn-secondary">Annuler</a>
-                                <button type="submit" class="btn btn-success">Enregistrer le Contrat</button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

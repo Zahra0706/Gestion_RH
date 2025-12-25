@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="~{rh/layouts/header :: head}">
+    <title>Formulaire d'Évaluation</title>
+    <style>
+        .star-rating {
+            font-size: 2rem;
+            display: inline-flex;
+            gap: 5px;
+            pointer-events: auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .star-rating i {
+            color: #dee2e6;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 5px;
+            display: inline-block;
+        }
+
+        .star-rating i:hover {
+            transform: scale(1.3);
+            color: #ffc107;
+        }
+
+        .star-rating i.active {
+            color: #ffc107;
+            text-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+        }
+
+        .rating-label-value {
+            font-weight: bold;
+            color: #ffc107;
+            margin-left: 10px;
+            font-size: 1.2rem;
+        }
+
+        .section-card {
+            border-left: 5px solid #007bff;
+            transition: transform 0.2s;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{rh/layouts/menu :: sidebar}"></div>
+
+    <main class="main-content">
+        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Évaluation de Performance</h1>
+            <a th:href="${isTest} ? @{/rh/evaluations/campagnes/{id}(id=${evaluation.campagne.id})} : @{/manager/evaluations}"
+                class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour
+            </a>
+        </div>
+
+        <!-- Employee Info Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 th:text="${evaluation.employe.nom} + ' ' + ${evaluation.employe.prenom}">Nom Prénom</h5>
+                        <p class="text-muted mb-1">
+                            <i class="fas fa-id-badge me-2"></i><span
+                                th:text="${evaluation.employe.matricule}">MAT123</span>
+                        </p>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-briefcase me-2"></i><span
+                                th:text="${evaluation.employe.poste}">Poste</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Campagne:</strong> <span
+                                th:text="${evaluation.campagne.nomCampagne}">2024</span></p>
+                        <p class="mb-0"><strong>Deadline:</strong>
+                            <span
+                                th:text="${#temporals.format(evaluation.campagne.dateLimiteManager, 'dd/MM/yyyy')}">31/12/2024</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form th:action="${isTest} ? 
+                        @{/rh/evaluations/evaluations/{id}/test-completer(id=${evaluation.id})} : 
+                        @{/manager/evaluations/{id}/completer(id=${evaluation.id})}" method="post" id="evaluationForm">
+
+            <!-- SECTION 1: PERFORMANCE (40%) -->
+            <div class="card shadow-sm mb-4 section-card" style="border-left-color: #007bff;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Performance (40% du score)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Qualité du travail</label>
+                        <div class="star-rating" data-input="qualiteTravail">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="qualiteTravail" id="qualiteTravail">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Productivité</label>
+                        <div class="star-rating" data-input="productivite">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="productivite" id="productivite">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fiabilité</label>
+                        <div class="star-rating" data-input="fiabilite">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="fiabilite" id="fiabilite">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Respect des délais</label>
+                        <div class="star-rating" data-input="respectDelais">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="respectDelais" id="respectDelais">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: COMPÉTENCES (30%) -->
+            <div class="card shadow-sm mb-4 section-card" style="border-left-color: #28a745;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Compétences (30% du score)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Compétences techniques</label>
+                        <div class="star-rating" data-input="competencesTechniques">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="competencesTechniques" id="competencesTechniques">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Résolution de problèmes</label>
+                        <div class="star-rating" data-input="resolutionProblemes">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="resolutionProblemes" id="resolutionProblemes">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Apprentissage continu</label>
+                        <div class="star-rating" data-input="apprentissage">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="apprentissage" id="apprentissage">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Partage des connaissances</label>
+                        <div class="star-rating" data-input="partageConnaissances">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="partageConnaissances" id="partageConnaissances">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: OBJECTIFS (30%) -->
+            <div class="card shadow-sm mb-4 section-card" style="border-left-color: #ffc107;">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-bullseye me-2"></i>Objectifs (30% du score)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Atteinte des objectifs</label>
+                        <div class="star-rating" data-input="atteinteObjectifs">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="atteinteObjectifs" id="atteinteObjectifs">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contribution à l'équipe</label>
+                        <div class="star-rating" data-input="contributionEquipe">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="contributionEquipe" id="contributionEquipe">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Innovation</label>
+                        <div class="star-rating" data-input="innovation">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="innovation" id="innovation">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Adaptation au changement</label>
+                        <div class="star-rating" data-input="adaptationChangement">
+                            <i class="fas fa-star" data-value="1"></i>
+                            <i class="fas fa-star" data-value="2"></i>
+                            <i class="fas fa-star" data-value="3"></i>
+                            <i class="fas fa-star" data-value="4"></i>
+                            <i class="fas fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="adaptationChangement" id="adaptationChangement">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: COMMENTAIRES -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Commentaires et Recommandations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Points forts</label>
+                        <textarea name="pointsForts" class="form-control" rows="3"
+                            placeholder="Listez les principales forces de l'employé..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Axes d'amélioration</label>
+                        <textarea name="axesAmelioration" class="form-control" rows="3"
+                            placeholder="Identifiez les domaines nécessitant du développement..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Plan d'action recommandé</label>
+                        <textarea name="planAction" class="form-control" rows="3"
+                            placeholder="Proposez des actions concrètes pour l'amélioration..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Commentaires généraux</label>
+                        <textarea name="commentairesManager" class="form-control" rows="4"
+                            placeholder="Vos commentaires sur la performance globale..."></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="besoinFormation" id="besoinFormation">
+                        <label class="form-check-label" for="besoinFormation">
+                            Besoin de formation identifié
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCORE PREVIEW -->
+            <div class="card shadow-sm mb-4 score-preview text-white">
+                <div class="card-body text-center">
+                    <h3>Score Global Prévisionnel</h3>
+                    <h1 class="display-1 mb-0" id="scoreGlobalDisplay">-</h1>
+                    <p class="mb-0" id="categorieDisplay">-</p>
+                </div>
+            </div>
+
+            <!-- Hidden calculated scores -->
+            <input type="hidden" name="scorePerformance" id="scorePerformance">
+            <input type="hidden" name="scoreCompetences" id="scoreCompetences">
+            <input type="hidden" name="scoreObjectifs" id="scoreObjectifs">
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-between mb-5">
+                <button type="submit" name="action" value="sauvegarder" class="btn btn-secondary">
+                    <i class="fas fa-save me-2"></i>Sauvegarder (Brouillon)
+                </button>
+                <button type="submit" name="action" value="finaliser" class="btn btn-success btn-lg">
+                    <i class="fas fa-check me-2"></i>Finaliser l'Évaluation
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Evaluation script initialized - Version 2');
+
+            // Star rating system
+            const containers = document.querySelectorAll('.star-rating');
+
+            containers.forEach(container => {
+                const stars = container.querySelectorAll('i');
+                const inputId = container.dataset.input;
+                const input = document.getElementById(inputId);
+
+                // Add a value display span if not exists
+                let valueDisplay = container.nextElementSibling;
+                if (!valueDisplay || !valueDisplay.classList.contains('rating-label-value')) {
+                    valueDisplay = document.createElement('span');
+                    valueDisplay.classList.add('rating-label-value');
+                    container.parentNode.insertBefore(valueDisplay, container.nextSibling);
+                }
+
+                stars.forEach(star => {
+                    // Click handler
+                    star.onclick = function (e) {
+                        e.preventDefault();
+                        const value = parseInt(this.getAttribute('data-value'));
+                        input.value = value;
+                        console.log('Clicked category ' + inputId + ' value: ' + value);
+
+                        updateStars(stars, value);
+                        valueDisplay.textContent = value + '/5';
+                        calculateScores();
+                    };
+
+                    // Hover effects
+                    star.onmouseover = function () {
+                        const val = parseInt(this.getAttribute('data-value'));
+                        stars.forEach((s, idx) => {
+                            if (idx < val) s.style.color = '#ffc107';
+                            else s.style.color = '#dee2e6';
+                        });
+                    };
+                });
+
+                container.onmouseout = function () {
+                    const currentVal = parseInt(input.value) || 0;
+                    updateStars(stars, currentVal);
+                    stars.forEach(s => s.style.color = '');
+                };
+            });
+
+            function updateStars(stars, value) {
+                stars.forEach((s, idx) => {
+                    if (idx < value) s.classList.add('active');
+                    else s.classList.remove('active');
+                });
+            }
+
+            function calculateScores() {
+                const categories = {
+                    'Performance': ['qualiteTravail', 'productivite', 'fiabilite', 'respectDelais'],
+                    'Competences': ['competencesTechniques', 'resolutionProblemes', 'apprentissage', 'partageConnaissances'],
+                    'Objectifs': ['atteinteObjectifs', 'contributionEquipe', 'innovation', 'adaptationChangement']
+                };
+
+                let averages = {};
+
+                for (let cat in categories) {
+                    let scores = categories[cat].map(id => {
+                        let val = parseFloat(document.getElementById(id).value);
+                        return isNaN(val) ? 0 : val;
+                    });
+                    let filled = scores.filter(s => s > 0);
+                    let avg = filled.length > 0 ? (scores.reduce((a, b) => a + b, 0) / filled.length) : 0;
+                    averages[cat] = avg;
+                    document.getElementById('score' + cat).value = avg.toFixed(2);
+                }
+
+                // Global Weighted Score
+                const global = (averages['Performance'] * 0.4) + (averages['Competences'] * 0.3) + (averages['Objectifs'] * 0.3);
+
+                const display = document.getElementById('scoreGlobalDisplay');
+                if (display) display.textContent = global > 0 ? global.toFixed(2) + ' / 5.0' : '-';
+
+                const catDisplay = document.getElementById('categorieDisplay');
+                if (catDisplay) {
+                    let text = '-';
+                    if (global >= 4.5) text = 'EXCELLENT';
+                    else if (global >= 4.0) text = 'TRÈS BIEN';
+                    else if (global >= 3.0) text = 'SATISFAISANT';
+                    else if (global >= 2.0) text = 'À AMÉLIORER';
+                    else if (global > 0) text = 'INSUFFISANT';
+                    catDisplay.textContent = text;
+                }
+            }
+        });
+    </script>
+
+    <div th:replace="~{rh/layouts/footer :: footer}"></div>
+</body>
+
+</html>

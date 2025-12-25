@@ -1,36 +1,58 @@
 package com.example.gestion_rh.service;
 
-import com.example.gestion_rh.entity.Annonce;
 import com.example.gestion_rh.entity.Conge;
-import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.entity.Employe;
-import org.springframework.scheduling.annotation.Async;
 
-import java.util.List;
-
+/**
+ * Service for sending emails
+ */
 public interface EmailService {
+
+    /**
+     * Send contract by email with PDF attachment
+     * 
+     * @param destinataire  Email address of recipient
+     * @param sujet         Email subject
+     * @param contenu       Email body content
+     * @param pdfAttachment PDF file content as byte array
+     * @param nomFichier    Attachment filename
+     */
+    void envoyerContratParEmail(String destinataire, String sujet, String contenu,
+            byte[] pdfAttachment, String nomFichier);
+
+    /**
+     * Send simple email without attachment
+     * 
+     * @param destinataire Email address
+     * @param sujet        Subject
+     * @param contenu      Body content
+     */
+    void envoyerEmail(String destinataire, String sujet, String contenu);
+
+    // Notification methods for Conge (Leave) management
+    void envoyerNotificationCongeManager(Conge conge);
+
+    void envoyerNotificationCongeRH(Conge conge);
+
+    void envoyerNotificationRefusConge(Conge conge, String source);
+
+    void envoyerNotificationConge(Employe employe, String sujet, String message);
+
+    // Notification methods for Employe (Employee) management
     void envoyerIdentifiantsEmploye(Employe employe, String password);
 
     void envoyerNotificationCompteDesactive(Employe employe);
 
     void envoyerNotificationCompteActive(Employe employe);
 
-    void envoyerNotificationConge(Employe employe, String sujet, String message);
+    // Report sending
+    void envoyerRapport(String destinataire, String sujet, String contenu, byte[] attachment, String nomFichier);
 
-    void envoyerNotificationCongeManager(Conge savedConge);
+    // Salary Management
+    void envoyerFicheDePaie(com.example.gestion_rh.entity.Salaire salaire, Employe employe);
 
-    void envoyerNotificationCongeRH(Conge conge);
+    void envoyerRappelSalaireNonValide(Employe rh,
+            java.util.List<com.example.gestion_rh.entity.Salaire> salairesEnAttente);
 
-    void envoyerNotificationRefusConge(Conge conge, String manager);
-
-    @Async
-    void envoyerNotificationAnnonce(Annonce annonce, Employe recipient);
-
-    @Async
-    void envoyerNotificationAnnonceImportante(Annonce annonce, List<Employe> recipients);
-
-    @Async
-    void envoyerNotificationAnnonceDepartement(Annonce annonce, Departement departement);
-
-    void envoyerRapport(String to, String subject, String body, byte[] attachment, String filename);
+    void envoyerConfirmationPaiement(com.example.gestion_rh.entity.Salaire salaire);
 }

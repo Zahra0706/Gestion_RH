@@ -1,7 +1,9 @@
 package com.example.gestion_rh.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Entity
@@ -9,38 +11,13 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Evaluation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private int annee;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatutEvaluation statut;
-
-    private double scorePerformance;
-
-    private double scoreCompetences;
-
-    private double scoreGlobal;
-
-    @Column(length = 1000)
-    private String commentairesManager;
-
-    @Column(length = 1000)
-    private String commentairesRH;
-
-    @Column(nullable = false)
-    private LocalDate dateCreation;
-
-    private LocalDate dateCompletion;
-
     @ManyToOne
-    @JoinColumn(name = "employe_id", nullable = false)
+    @JoinColumn(name = "employe_id", nullable = true)
     private Employe employe;
 
     @ManyToOne
@@ -48,10 +25,47 @@ public class Evaluation {
     private Employe manager;
 
     @ManyToOne
-    @JoinColumn(name = "rh_id")
-    private Employe rh;
+    @JoinColumn(name = "createur_rh_id")
+    private Employe createurRH;
 
-    public enum StatutEvaluation {
-        EN_ATTENTE, EN_COURS, COMPLETEE, ARCHIVEE
-    }
+    @ManyToOne
+    @JoinColumn(name = "campagne_id", nullable = false)
+    private EvaluationCampagne campagne;
+
+    @Column(nullable = false)
+    private Integer annee;
+
+    private LocalDate dateCreation;
+
+    private LocalDate dateEvaluation;
+
+    private LocalDate dateCompletion;
+
+    @Enumerated(EnumType.STRING)
+    private StatutEvaluation statut;
+
+    private Double scorePerformance; // 1-5
+
+    private Double scoreCompetences; // 1-5
+
+    private Double scoreObjectifs; // 1-5
+
+    private Double scoreGlobal;
+
+    @Column(columnDefinition = "TEXT")
+    private String commentairesManager;
+
+    @Column(columnDefinition = "TEXT")
+    private String commentairesRH;
+
+    @Column(columnDefinition = "TEXT")
+    private String pointsForts;
+
+    @Column(columnDefinition = "TEXT")
+    private String axesAmelioration;
+
+    @Column(columnDefinition = "TEXT")
+    private String planAction;
+
+    private Boolean besoinFormation;
 }

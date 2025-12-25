@@ -9,6 +9,7 @@ import com.example.gestion_rh.entity.Employe;
 import com.example.gestion_rh.repository.CongeRepository;
 import com.example.gestion_rh.repository.EmployeRepository;
 import com.example.gestion_rh.service.CongeService;
+import com.example.gestion_rh.service.CongeDisponibiliteIntegrationService;
 import com.example.gestion_rh.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class CongeServiceImpl implements CongeService {
     private final CongeRepository congeRepository;
     private final EmployeRepository employeRepository;
     private final EmailService emailService;
+    private final CongeDisponibiliteIntegrationService congeDisponibiliteIntegrationService;
 
     private static final int JOURS_CONGES_ANNUEL = 30;
 
@@ -104,6 +106,16 @@ public class CongeServiceImpl implements CongeService {
             conge.setStatut(Conge.StatutConge.VALIDE_RH);
             conge.setRhValidateur(rh);
             conge.setCommentaireRH(commentaire);
+
+            // Notification d'approbation
+            emailService.envoyerNotificationConge(
+                    conge.getEmploye(),
+                    "Votre demande de congé a été approuvée",
+                    "Votre demande de congé du " + conge.getDateDebut() + " au " + conge.getDateFin()
+                            + " a été approuvée par les RH.");
+
+            // Sync with Presence module
+            congeDisponibiliteIntegrationService.synchroniserConge(conge);
         } else {
             conge.setStatut(Conge.StatutConge.REFUSE_RH);
             conge.setRhValidateur(rh);

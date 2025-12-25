@@ -308,11 +308,16 @@ public class DataInitializer {
     public CommandLineRunner initSampleConges(CongeRepository congeRepository,
             EmployeRepository employeRepository) {
         return args -> {
-            // Only create sample data if no congés exist
-            if (congeRepository.count() > 0) {
-                System.out.println("Congés existent déjà, pas de création");
+            // Ensure we have pending requests for testing
+            long pendingRequests = congeRepository.countByStatut(Conge.StatutConge.VALIDE_MANAGER)
+                    + congeRepository.countByStatut(Conge.StatutConge.EN_ATTENTE_RH);
+
+            if (pendingRequests >= 3) {
+                System.out.println("Suffisance de congés en attente pour les tests (" + pendingRequests + ")");
                 return;
             }
+
+            System.out.println("Génération de nouvelles demandes de congé pour test...");
 
             LocalDate today = LocalDate.now();
 

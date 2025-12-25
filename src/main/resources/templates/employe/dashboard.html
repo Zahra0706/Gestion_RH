@@ -1,143 +1,151 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <title>Tableau de Bord Employé</title>
 </head>
+
 <body>
-<div th:fragment="content">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Tableau de Bord</h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <span class="badge bg-primary" th:text="${employe.departement.nom}"></span>
+    <div th:fragment="content">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Tableau de Bord</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <span class="badge bg-primary" th:text="${employe.departement.nom}"></span>
+            </div>
         </div>
-    </div>
 
-    <!-- Statistiques -->
-    <div class="row">
-        <div class="col-md-3">
-            <div class="stat-card bg-primary text-white">
-                <h5><i class="fas fa-sun"></i> Jours Congés Restants</h5>
-                <h2 th:text="${joursRestants}">0</h2>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card bg-success text-white">
-                <h5><i class="fas fa-file-invoice-dollar"></i> Fiches de Paie</h5>
-                <h2 th:text="${#lists.size(salaires)}">0</h2>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card bg-info text-white">
-                <h5><i class="fas fa-calendar-check"></i> Congés Approuvés</h5>
-                <h2 th:text="${congesApprouves}">0</h2>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card bg-warning text-white">
-                <h5><i class="fas fa-clock"></i> Congés en Attente</h5>
-                <h2 th:text="${congesEnAttente}">0</h2>
-            </div>
-        </div>
-    </div>
-
-    <!-- Actions Rapides -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Actions Rapides</h5>
+        <!-- Statistiques -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-card bg-primary text-white">
+                    <h5><i class="fas fa-sun"></i> Jours Congés Restants</h5>
+                    <h2 th:text="${joursRestants}">0</h2>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <a href="/employe/conges/demander" class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-plus"></i><br>
-                                Demander un Congé
-                            </a>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card bg-success text-white">
+                    <h5><i class="fas fa-file-invoice-dollar"></i> Fiches de Paie</h5>
+                    <h2 th:text="${#lists.size(salaires)}">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card bg-info text-white">
+                    <h5><i class="fas fa-calendar-check"></i> Congés Approuvés</h5>
+                    <h2 th:text="${congesApprouves}">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card bg-warning text-white">
+                    <h5><i class="fas fa-clock"></i> Congés en Attente</h5>
+                    <h2 th:text="${congesEnAttente}">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Rapides -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Actions Rapides</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <a href="/employe/conges/demander" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-plus"></i><br>
+                                    Demander un Congé
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="/employe/contrats" class="btn btn-danger btn-lg w-100">
+                                    <i class="fas fa-file-contract"></i><br>
+                                    Mes Contrats
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="/employe/salaires" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-file-pdf"></i><br>
+                                    Mes Fiches de Paie
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="/employe/profil" class="btn btn-info btn-lg w-100">
+                                    <i class="fas fa-user-edit"></i><br>
+                                    Modifier Mon Profil
+                                </a>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <a href="/employe/salaires" class="btn btn-success btn-lg w-100">
-                                <i class="fas fa-file-pdf"></i><br>
-                                Mes Fiches de Paie
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/employe/profil" class="btn btn-info btn-lg w-100">
-                                <i class="fas fa-user-edit"></i><br>
-                                Modifier Mon Profil
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/employe/reunions" class="btn btn-warning btn-lg w-100">
-                                <i class="fas fa-calendar-alt"></i><br>
-                                Mes Réunions
-                            </a>
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <a href="/employe/reunions" class="btn btn-warning btn-lg w-100">
+                                    <i class="fas fa-calendar-alt"></i><br>
+                                    Mes Réunions
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Dernières Demandes de Congé -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Mes Dernières Demandes de Congé</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                            <tr>
-                                <th>Date Début</th>
-                                <th>Date Fin</th>
-                                <th>Type</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="conge : ${conges}">
-                                <td th:text="${#dates.format(conge.dateDebut, 'dd/MM/yyyy')}"></td>
-                                <td th:text="${#dates.format(conge.dateFin, 'dd/MM/yyyy')}"></td>
-                                <td>
-                                            <span class="badge"
-                                                  th:classappend="${conge.typeConge == 'PAYE'} ? 'bg-success' :
+        <!-- Dernières Demandes de Congé -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Mes Dernières Demandes de Congé</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date Début</th>
+                                        <th>Date Fin</th>
+                                        <th>Type</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="conge : ${conges}">
+                                        <td th:text="${#dates.format(conge.dateDebut, 'dd/MM/yyyy')}"></td>
+                                        <td th:text="${#dates.format(conge.dateFin, 'dd/MM/yyyy')}"></td>
+                                        <td>
+                                            <span class="badge" th:classappend="${conge.typeConge == 'PAYE'} ? 'bg-success' :
                                                                   ${conge.typeConge == 'MALADIE'} ? 'bg-danger' :
-                                                                  'bg-info'"
-                                                  th:text="${conge.typeConge}">
+                                                                  'bg-info'" th:text="${conge.typeConge}">
                                             </span>
-                                </td>
-                                <td>
-                                            <span class="badge"
-                                                  th:classappend="${conge.statut == 'VALIDE_RH'} ? 'bg-success' :
+                                        </td>
+                                        <td>
+                                            <span class="badge" th:classappend="${conge.statut == 'VALIDE_RH'} ? 'bg-success' :
                                                                   ${conge.statut == 'REFUSE_RH' || conge.statut == 'REFUSE_MANAGER'} ? 'bg-danger' :
                                                                   ${conge.statut == 'VALIDE_MANAGER'} ? 'bg-info' :
-                                                                  'bg-warning'"
-                                                  th:text="${conge.statut}">
+                                                                  'bg-warning'" th:text="${conge.statut}">
                                             </span>
-                                </td>
-                                <td>
-                                    <a th:href="@{/employe/conges/{id}(id=${conge.id})}"
-                                       class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a th:if="${conge.statut == 'EN_ATTENTE_MANAGER'}"
-                                       th:href="@{/employe/conges/{id}/annuler(id=${conge.id})}"
-                                       class="btn btn-sm btn-danger">
-                                        <i class="fas fa-times"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/employe/conges/{id}(id=${conge.id})}"
+                                                class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a th:if="${conge.statut == 'EN_ATTENTE_MANAGER'}"
+                                                th:href="@{/employe/conges/{id}/annuler(id=${conge.id})}"
+                                                class="btn btn-sm btn-danger">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </body>
+
 </html>

@@ -1,88 +1,303 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gestion des Salaires - RH</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .sidebar {
-            width: 280px;
-            height: 100vh;
-            position: fixed;
-            background: linear-gradient(180deg, #2980b9 0%, #3498db 100%);
-        }
-
-        .main-content {
-            margin-left: 280px;
-            padding: 20px;
-            background: #f8f9fa;
-            min-height: 100vh;
-        }
-    </style>
+<head th:replace="~{rh/layouts/header :: head}">
+    <title>Gestion des Salaires</title>
 </head>
 
 <body>
-    <div class="d-flex flex-column flex-shrink-0 p-3 text-white sidebar">
-        <a href="/rh/dashboard" class="d-flex align-items-center mb-3 text-white text-decoration-none">
-            <i class="fas fa-user-tie fa-2x me-2"></i><span class="fs-4 fw-bold">HR Manager</span>
-        </a>
-        <hr class="opacity-50">
-        <ul class="nav nav-pills flex-column mb-auto">
-            <li><a href="/rh/dashboard" class="nav-link text-white"><i class="fas fa-tachometer-alt me-2"></i>Tableau de
-                    bord</a></li>
-            <li><a href="/rh/employes" class="nav-link text-white"><i class="fas fa-users me-2"></i>Employés</a></li>
-            <li><a href="/rh/conges" class="nav-link text-white"><i class="fas fa-calendar-check me-2"></i>Congés</a>
-            </li>
-            <li><a href="/rh/contrats" class="nav-link text-white"><i class="fas fa-file-contract me-2"></i>Contrats</a>
-            </li>
-            <li><a href="/rh/evaluations" class="nav-link text-white"><i
-                        class="fas fa-chart-line me-2"></i>Évaluations</a></li>
-            <li><a href="/rh/salaires" class="nav-link text-white active bg-white bg-opacity-25"><i
-                        class="fas fa-money-bill-wave me-2"></i>Salaires</a></li>
-            <li><a href="/rh/statistiques" class="nav-link text-white"><i
-                        class="fas fa-chart-pie me-2"></i>Statistiques</a></li>
-        </ul>
-    </div>
+    <div th:replace="~{rh/layouts/menu :: sidebar}"></div>
 
     <main class="main-content">
-        <h1 class="h3 mb-4" style="color: #3498db;"><i class="fas fa-money-bill-wave me-2"></i>Gestion des Salaires</h1>
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Gestion des Salaires</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <a th:href="@{/rh/salaires/calculer}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-calculator me-2"></i>Nouveau Calcul
+                    </a>
+                    <a th:href="@{/rh/salaires/dashboard}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-chart-bar me-2"></i>Tableau de bord
+                    </a>
+                </div>
+                <form th:action="@{/rh/salaires}" method="get" class="d-flex align-items-center gap-2">
+                    <select name="statut" class="form-select form-select-sm" style="width: auto;">
+                        <option value="TOUS" th:selected="${statutActuel == 'TOUS'}">Tous les statuts</option>
+                        <option value="EN_ATTENTE" th:selected="${statutActuel == 'EN_ATTENTE'}">En Attente</option>
+                        <option value="VALIDE" th:selected="${statutActuel == 'VALIDE'}">Validé</option>
+                        <option value="PAYE" th:selected="${statutActuel == 'PAYE'}">Payé</option>
+                    </select>
 
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm border-start border-4 border-success">
+                    <div class="input-group input-group-sm">
+                        <!-- We use a hidden input for the combined 'mois' (YYYY-MM) -->
+                        <!-- Using a little JS to combine them on submit, or just handle separated in controller? 
+                              Controller expects 'mois' as string. Let's keep it simple: 
+                              Use a text input for month in 'YYYY-MM' format OR use logic. 
+                              User wanted "change the field".
+                              Let's use the separate selects and a hidden field for 'mois'. -->
+                        <select id="filterMonth" class="form-select" style="max-width: 100px;">
+                            <option value="">Mois...</option>
+                            <option value="01">Jan</option>
+                            <option value="02">Fév</option>
+                            <option value="03">Mar</option>
+                            <option value="04">Avr</option>
+                            <option value="05">Mai</option>
+                            <option value="06">Juin</option>
+                            <option value="07">Juil</option>
+                            <option value="08">Août</option>
+                            <option value="09">Sep</option>
+                            <option value="10">Oct</option>
+                            <option value="11">Nov</option>
+                            <option value="12">Déc</option>
+                        </select>
+                        <select id="filterYear" class="form-select" style="max-width: 90px;">
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                        </select>
+                        <input type="hidden" name="mois" id="moisInput" th:value="${moisActuel}">
+
+                        <button type="submit" class="btn btn-primary" onclick="updateMoisInput()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <a th:href="@{/rh/salaires(statut='TOUS')}" class="btn btn-outline-secondary"
+                            title="Réinitialiser">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Drive Alerts -->
+        <div th:if="${driveSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fab fa-google-drive me-2"></i> Fiche envoyée à Google Drive :
+            <a th:href="${driveLink}" target="_blank" class="alert-link">Voir sur Drive</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${driveError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fab fa-google-drive me-2"></i> Erreur Google Drive : <span th:text="${driveError}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Stats Charts Section -->
+        <div class="row g-4 mb-4" th:if="${stats}">
+            <!-- KPI Cards reduced to 2 cols to save space for chart? Or Chart below? -->
+            <div class="col-md-3">
+                <div class="card bg-primary text-white h-100 shadow-sm">
                     <div class="card-body">
-                        <h6 class="text-muted">Masse Salariale</h6>
-                        <h3 class="text-success">-- DH</h3>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="card-title mb-0">Total Masse Salariale</h6>
+                            <i class="fas fa-coins fa-2x opacity-50"></i>
+                        </div>
+                        <h3 class="fw-bold mb-0"
+                            th:text="${#numbers.formatDecimal(stats.totalMasseSalariale, 1, 2) + ' Dhs'}">0.00</h3>
+                        <small class="text-white-50">Total Brute</small>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm border-start border-4 border-primary">
+            <div class="col-md-3">
+                <div class="card bg-success text-white h-100 shadow-sm">
                     <div class="card-body">
-                        <h6 class="text-muted">Salaire Moyen</h6>
-                        <h3 class="text-primary">-- DH</h3>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="card-title mb-0">Salaire Moyen</h6>
+                            <i class="fas fa-chart-line fa-2x opacity-50"></i>
+                        </div>
+                        <h3 class="fw-bold mb-0"
+                            th:text="${#numbers.formatDecimal(stats.moyenneSalaire, 1, 2) + ' Dhs'}">0.00</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm border-start border-4 border-warning">
-                    <div class="card-body">
-                        <h6 class="text-muted">Fiches de Paie</h6>
-                        <h3 class="text-warning">--</h3>
+            <div class="col-md-6">
+                <!-- Visualisation Chart -->
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body p-2">
+                        <canvas id="salaryChart" style="max-height: 120px;"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Fiches de Paie</h5>
-            </div>
+        <!-- Script for Date Filter and Charts -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script th:inline="javascript">
+            function updateMoisInput() {
+                var m = document.getElementById('filterMonth').value;
+                var y = document.getElementById('filterYear').value;
+                if (m && y) {
+                    document.getElementById('moisInput').value = y + '-' + m;
+                } else {
+                    document.getElementById('moisInput').value = '';
+                }
+            }
+
+            // Set initial values for selectors based on moisActuel (YYYY-MM)
+            document.addEventListener('DOMContentLoaded', function () {
+                var currentMois = /*[[${moisActuel}]]*/ '';
+                if (currentMois && currentMois.length >= 7) {
+                    document.getElementById('filterYear').value = currentMois.substring(0, 4);
+                    document.getElementById('filterMonth').value = currentMois.substring(5, 7);
+                }
+
+                // Initialize Chart if stats exist
+                var stats = /*[[${stats}]]*/ null;
+                if (stats) {
+                    var ctx = document.getElementById('salaryChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar', // Horizontal bar? Or simple bar.
+                        data: {
+                            labels: ['Total Brut', 'Total Net'],
+                            datasets: [{
+                                label: 'Montant (Dhs)',
+                                data: [stats.totalMasseSalariale, stats.totalNet],
+                                backgroundColor: ['#4e73df', '#1cc88a'],
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y', // Horizontal
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { x: { display: false }, y: { grid: { display: false } } }
+                        }
+                    });
+                }
+            });
+        </script>
+
+        <!-- Tableau -->
+        <div class="card shadow-sm">
             <div class="card-body">
-                <p class="text-muted">Module de gestion des salaires à implémenter...</p>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employé</th>
+                            <th>Poste</th>
+                            <th>Salaire Brut</th>
+                            <th>Primes/Retenues</th>
+                            <th>Net à Payer</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="salaire : ${salaires}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-initial rounded-circle bg-label-primary me-2"
+                                        th:text="${#strings.substring(salaire.employe.prenom,0,1) + #strings.substring(salaire.employe.nom,0,1)}">
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0"
+                                            th:text="${salaire.employe.prenom + ' ' + salaire.employe.nom}">Nom</h6>
+                                        <small class="text-muted" th:text="${salaire.employe.matricule}">MAT123</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td th:text="${salaire.employe.poste}">Poste</td>
+                            <td th:text="${#numbers.formatDecimal(salaire.salaireBrut, 1, 2) + ' Dhs'}">10000.00
+                            </td>
+                            <td>
+                                <small class="text-success d-block"
+                                    th:if="${salaire.primes + salaire.primeAnciennete + salaire.primePerformance > 0}">
+                                    + <span
+                                        th:text="${#numbers.formatDecimal(salaire.primes + salaire.primeAnciennete + salaire.primePerformance, 1, 2)}">0.00</span>
+                                </small>
+                                <small class="text-danger d-block"
+                                    th:if="${salaire.retenues + salaire.cotisationsSociales + salaire.impots > 0}">
+                                    - <span
+                                        th:text="${#numbers.formatDecimal(salaire.retenues + salaire.cotisationsSociales + salaire.impots, 1, 2)}">0.00</span>
+                                </small>
+                            </td>
+                            <td class="fw-bold text-primary"
+                                th:text="${#numbers.formatDecimal(salaire.salaireNet, 1, 2) + ' Dhs'}">8500.00</td>
+
+                            <!-- Drive Column -->
+                            <td>
+                                <span th:if="${salaire.driveLink}">
+                                    <a th:href="${salaire.driveLink}" target="_blank"
+                                        class="btn btn-sm btn-outline-success" title="Voir sur Drive">
+                                        <i class="fab fa-google-drive"></i>
+                                    </a>
+                                </span>
+                                <span th:unless="${salaire.driveLink}" class="text-muted small">
+                                    -
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge" th:classappend="${salaire.statutPaiement == 'PAYE' ? 'bg-success' :
+                                                  (salaire.statutPaiement == 'VALIDE' ? 'bg-info' : 'bg-warning')}"
+                                    th:text="${salaire.statutPaiement}">STATUT</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{/rh/salaires/calculer/{id}(id=${salaire.employe.id})}"
+                                        class="btn btn-outline-primary" title="Recalculer">
+                                        <i class="fas fa-calculator"></i>
+                                    </a>
+
+                                    <form
+                                        th:if="${salaire.statutPaiement != 'VALIDE' && salaire.statutPaiement != 'PAYE'}"
+                                        th:action="@{/rh/salaires/{id}/valider(id=${salaire.id})}" method="post"
+                                        class="d-inline">
+                                        <button type="submit" class="btn btn-outline-success" title="Valider">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+
+                                    <form th:if="${salaire.statutPaiement == 'VALIDE'}"
+                                        th:action="@{/rh/salaires/{id}/payer(id=${salaire.id})}" method="post"
+                                        class="d-inline">
+                                        <button type="submit" class="btn btn-outline-success" title="Payer">
+                                            <i class="fas fa-money-bill"></i>
+                                        </button>
+                                    </form>
+
+                                    <a th:href="@{/rh/salaires/{id}/pdf(id=${salaire.id})}" target="_blank"
+                                        class="btn btn-outline-secondary" title="PDF">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+
+                                    <!-- Drive Button -->
+                                    <form th:action="@{/rh/salaires/{id}/upload-drive(id=${salaire.id})}" method="post"
+                                        class="d-inline">
+                                        <button type="submit" class="btn btn-outline-warning"
+                                            title="Envoyer vers Drive">
+                                            <i class="fab fa-google-drive"></i>
+                                        </button>
+                                    </form>
+
+                                    <form th:action="@{/rh/salaires/{id}/supprimer(id=${salaire.id})}" method="post"
+                                        class="d-inline"
+                                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce salaire ?');">
+                                        <button type="submit" class="btn btn-outline-danger" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(salaires)}">
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                Aucun salaire trouvé pour cette période.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>

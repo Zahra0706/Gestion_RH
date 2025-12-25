@@ -24,7 +24,6 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // Injection directe de UserDetailsService (Spring trouvera automatiquement CustomUserDetailsService)
     private final UserDetailsService userDetailsService;
 
     @Bean
@@ -37,7 +36,7 @@ public class SecurityConfig {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-        authProvider.setHideUserNotFoundExceptions(false); // Pour voir les vraies erreurs
+        authProvider.setHideUserNotFoundExceptions(false);
         return authProvider;
     }
 
@@ -86,7 +85,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
-                        .requestMatchers("/rh/**").hasRole("RH")
+                        .requestMatchers("/rh/**").hasRole("RH")  // FIXED: Only RH role
                         .requestMatchers("/manager/**").hasRole("MANAGER")
                         .requestMatchers("/employe/**").hasRole("EMPLOYE")
                         .anyRequest().authenticated()

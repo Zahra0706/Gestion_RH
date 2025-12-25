@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{rh/layouts/dashboard}">
+
+<head>
+    <title>Statistiques des Contrats</title>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Statistiques des Contrats</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a href="/rh/contrats" class="btn btn-sm btn-outline-secondary">
+                    Retour à la liste
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- CDI -->
+            <div class="col-md-3 mb-4">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">CDI</h5>
+                        <p class="card-text display-4" th:text="${detailedStats['CDI'] ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            <!-- CDD -->
+            <div class="col-md-3 mb-4">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">CDD</h5>
+                        <p class="card-text display-4" th:text="${detailedStats['CDD'] ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            <!-- SIGNE -->
+            <div class="col-md-3 mb-4">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Signés</h5>
+                        <p class="card-text display-4" th:text="${detailedStats['SIGNE'] ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            <!-- BROUILLON -->
+            <div class="col-md-3 mb-4">
+                <div class="card bg-secondary text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Brouillons</h5>
+                        <p class="card-text display-4" th:text="${detailedStats['BROUILLON'] ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

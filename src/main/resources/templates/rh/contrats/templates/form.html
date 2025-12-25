@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{rh/layouts/menu}">
+
+<head>
+    <title>Édition du Modèle de Contrat</title>
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <style>
+        .variable-badge {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #dee2e6;
+            margin-bottom: 8px;
+            font-family: monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .variable-badge:hover {
+            background-color: #f8f9fa;
+            border-color: #0d6efd;
+            transform: translateX(3px);
+        }
+
+        .tox-promotion {
+            display: none !important;
+        }
+
+        .sidebar-vars {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="container-fluid py-4 px-4">
+        <form th:action="@{/rh/contrats/templates/sauvegarder}" th:object="${template}" method="post">
+            <input type="hidden" th:field="*{id}">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark">
+                        <i class="fas fa-edit me-3 text-primary"></i>
+                        <span th:text="${template.id == null ? 'Nouveau Modèle' : 'Modifier le Modèle'}">Éditer</span>
+                    </h2>
+                </div>
+                <div>
+                    <a th:href="@{/rh/contrats/templates/liste}" class="btn btn-outline-secondary me-2">Annuler</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-2"></i>Enregistrer le Modèle
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nom du Modèle</label>
+                                <input type="text" class="form-control" th:field="*{nom}"
+                                    placeholder="Ex: CDI Cadre - Standard" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Description</label>
+                                <textarea class="form-control" th:field="*{description}" rows="2"
+                                    placeholder="Brève description de l'usage de ce modèle..."></textarea>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Type de Contrat</label>
+                                    <select class="form-select" th:field="*{typeContrat}">
+                                        <option
+                                            th:each="type : ${T(com.example.gestion_rh.entity.Contrat.TypeContrat).values()}"
+                                            th:value="${type}" th:text="${type}">CDI</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" th:field="*{default}"
+                                            id="isDefault">
+                                        <label class="form-check-label fw-bold" for="isDefault">Définir comme modèle par
+                                            défaut</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label fw-bold">Contenu HTML</label>
+                                <textarea id="editor" th:field="*{contenuHtml}"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-magic me-2 text-warning"></i>Variables</h5>
+                            <small class="text-muted">Cliquez pour insérer</small>
+                        </div>
+                        <div class="card-body sidebar-vars">
+                            <h6 class="text-primary mt-2 mb-3">Employé</h6>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${employe.nom_complet}')">
+                                <span>Nom Complet</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${employe.adresse}')">
+                                <span>Adresse</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${employe.poste}')">
+                                <span>Poste</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-3 rounded variable-badge" onclick="insertVar('${employe.matricule}')">
+                                <span>Matricule</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+
+                            <h6 class="text-primary mt-2 mb-3">Entreprise</h6>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${entreprise.nom}')">
+                                <span>Nom Entreprise</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-3 rounded variable-badge"
+                                onclick="insertVar('${entreprise.adresse_siege}')">
+                                <span>Siège Social</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+
+                            <h6 class="text-primary mt-2 mb-3">Contrat</h6>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${contrat.type}')">
+                                <span>Type Contrat</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${contrat.salaire_brut}')">
+                                <span>Salaire Brut</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${contrat.date_debut}')">
+                                <span>Date Début</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-1 rounded variable-badge"
+                                onclick="insertVar('${contrat.periode_essai}')">
+                                <span>Période d'essai</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${contrat.avantages}')">
+                                <span>Avantages</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                            <div class="p-2 mb-1 rounded variable-badge" onclick="insertVar('${reference_contrat}')">
+                                <span>Référence</span> <i class="fas fa-plus-circle text-muted"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        tinymce.init({
+            selector: '#editor',
+            height: 600,
+            plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help',
+            toolbar: 'undo redo | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | code | help',
+            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+        });
+
+        function insertVar(variable) {
+            tinymce.activeEditor.insertContent(variable);
+        }
+    </script>
+</body>
+
+</html>

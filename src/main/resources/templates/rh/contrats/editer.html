@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="rh/layouts/header :: head">
+    <title>Éditer le Contrat</title>
+</head>
+
+<head>
+    <!-- Quill Theme -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        #editor-container {
+            height: 500px;
+            background: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="rh/layouts/menu :: sidebar"></div>
+
+    <main class="main-content">
+        <div class="container py-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0">Édition du Contrat #<span th:text="${contrat.id}">1</span></h2>
+                <div>
+                    <a th:href="@{/rh/contrats/{id}(id=${contrat.id})}"
+                        class="btn btn-outline-secondary me-2">Annuler</a>
+                    <button id="saveBtn" onclick="saveContent()" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Enregistrer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages flash -->
+            <div th:if="${success}"
+                class="alert alert-success alert-dismissible fade show mb-4 shadow-sm border-0 border-start border-success border-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle me-3 fs-4"></i>
+                    <div>
+                        <strong class="d-block">Succès</strong>
+                        <span th:text="${success}">Contenu mis à jour</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${error}"
+                class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm border-0 border-start border-danger border-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                    <div>
+                        <strong class="d-block">Erreur</strong>
+                        <span th:text="${error}">Erreur lors de la sauvegarde</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card shadow border-0">
+                <div class="card-body p-0">
+                    <!-- Source HTML (hidden) -->
+                    <div id="html-source" th:utext="${contrat.contentHtml}" style="display: none;"></div>
+                    <!-- Editor container -->
+                    <div id="editor-container"></div>
+                </div>
+            </div>
+
+            <form id="saveForm" th:action="@{/rh/contrats/{id}/editer(id=${contrat.id})}" method="post" class="d-none">
+                <input type="hidden" id="contentHtml" name="contentHtml">
+            </form>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        // Initialize Quill
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, 4, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Load content from hidden source div
+        var initialHtml = document.getElementById('html-source').innerHTML;
+        if (initialHtml && initialHtml.trim().length > 0) {
+            quill.root.innerHTML = initialHtml;
+        }
+
+        function saveContent() {
+            var btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enregistrement...';
+
+            var html = quill.root.innerHTML;
+            document.getElementById('contentHtml').value = html;
+            document.getElementById('saveForm').submit();
+        }
+    </script>
+
+</body>
+
+</html>

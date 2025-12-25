@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -83,22 +84,109 @@ public class RhController {
         return "rh/employes/liste";
     }
 
+    // ==================== EMPLOYES CRUD ====================
+
+    @GetMapping("/employes/creer")
+    public String showCreateEmployeForm(Model model) {
+        if (!model.containsAttribute("employe")) {
+            model.addAttribute("employe", new Employe());
+        }
+        model.addAttribute("departements", departementService.getAllDepartements());
+        model.addAttribute("roles", Employe.Role.values());
+        model.addAttribute("postes", Employe.Poste.values());
+        return "rh/employes/creer";
+    }
+
+    @PostMapping("/employes/creer")
+    public String createEmploye(@ModelAttribute Employe employe,
+            @RequestParam(required = false) String password,
+            RedirectAttributes redirectAttributes) {
+        try {
+            employeService.creerEmploye(employe, password);
+            redirectAttributes.addFlashAttribute("success",
+                    "Employé créé avec succès. Les identifiants ont été envoyés par email.");
+            return "redirect:/rh/employes";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la création : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("employe", employe);
+            return "redirect:/rh/employes/creer";
+        }
+    }
+
+    @GetMapping("/employes/{id}/modifier")
+    public String showEditEmployeForm(@PathVariable Long id, Model model) {
+        Employe employe = employeService.getEmployeById(id)
+                .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
+
+        model.addAttribute("employe", employe);
+        model.addAttribute("departements", departementService.getAllDepartements());
+        model.addAttribute("roles", Employe.Role.values());
+        model.addAttribute("postes", Employe.Poste.values());
+        return "rh/employes/modifier";
+    }
+
+    @PostMapping("/employes/{id}/modifier")
+    public String updateEmploye(@PathVariable Long id,
+            @ModelAttribute Employe employe,
+            RedirectAttributes redirectAttributes) {
+        try {
+            employeService.updateEmploye(id, employe);
+            redirectAttributes.addFlashAttribute("success", "Employé mis à jour avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la mise à jour : " + e.getMessage());
+        }
+        return "redirect:/rh/employes/" + id + "/modifier";
+    }
+
+    @PostMapping("/employes/{id}/supprimer")
+    public String deleteEmploye(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            employeService.deleteEmploye(id);
+            redirectAttributes.addFlashAttribute("success", "Employé supprimé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+        }
+        return "redirect:/rh/employes";
+    }
+
+    @PostMapping("/employes/{id}/desactiver")
+    public String desactiverCompte(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            employeService.desactiverCompte(id);
+            redirectAttributes.addFlashAttribute("success", "Compte désactivé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/rh/employes/" + id + "/modifier";
+    }
+
+    @PostMapping("/employes/{id}/activer")
+    public String activerCompte(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            employeService.activerCompte(id);
+            redirectAttributes.addFlashAttribute("success", "Compte activé avec succès");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/rh/employes/" + id + "/modifier";
+    }
+
+    @PostMapping("/employes/{id}/reinitialiser-mot-de-passe")
+    public String reinitialiserMotDePasse(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            employeService.reinitialiserMotDePasse(id);
+            redirectAttributes.addFlashAttribute("success", "Mot de passe réinitialisé et envoyé par email");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/rh/employes/" + id + "/modifier";
+    }
+
     // ==================== CONGÉS DASHBOARD ====================
 
     @GetMapping("/conges/dashboard")
-    public String congesDashboard(Model model) {
-        CongeStatsDTO stats = congeService.getStatistiques();
-        model.addAttribute("stats", stats);
-
-        // Top employees
-        List<Object[]> topEmployees = congeService.getTopEmployeesByConges(LocalDate.now().getYear());
-        model.addAttribute("topEmployees", topEmployees);
-
-        // Monthly trends
-        List<Object[]> tendances = congeService.getTendancesMensuelles(LocalDate.now().getYear());
-        model.addAttribute("tendances", tendances);
-
-        return "rh/conges/dashboard";
+    public String congesDashboard() {
+        return "redirect:/rh/conges/en-attente";
     }
 
     @GetMapping("/conges/dashboard/stats")
@@ -110,17 +198,11 @@ public class RhController {
     // ==================== CONGÉS LIST & VALIDATION ====================
 
     @GetMapping("/conges")
-    public String getConges(Model model) {
-        model.addAttribute("congesEnAttente", congeService.getCongesEnAttenteRH());
-        model.addAttribute("stats", congeService.getStatistiques());
-        return "rh/conges/liste";
-    }
-
-    @GetMapping("/conges/en-attente")
-    public String getCongesEnAttente(Model model,
+    public String getConges(Model model,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Long departementId,
             @RequestParam(required = false, defaultValue = "date") String sort) {
+
         List<Conge> conges = congeService.getCongesEnAttenteRH();
 
         // Filtering
@@ -138,7 +220,7 @@ public class RhController {
 
         // Sorting
         if ("priorite".equals(sort)) {
-            conges.sort((c1, c2) -> c1.getPriorite().compareTo(c2.getPriorite())); // Urgent first usually
+            conges.sort((c1, c2) -> c1.getPriorite().compareTo(c2.getPriorite()));
         } else if ("departement".equals(sort)) {
             conges.sort((c1, c2) -> {
                 String d1 = c1.getEmploye().getDepartement() != null ? c1.getEmploye().getDepartement().getNom() : "";
@@ -146,14 +228,18 @@ public class RhController {
                 return d1.compareTo(d2);
             });
         } else {
-            // Default by date debut
             conges.sort((c1, c2) -> c1.getDateDebut().compareTo(c2.getDateDebut()));
         }
 
-        model.addAttribute("conges", conges);
+        model.addAttribute("congesEnAttente", conges);
         model.addAttribute("stats", congeService.getStatistiques());
         model.addAttribute("departements", departementService.getAllDepartements());
-        return "rh/conges/validation";
+        return "rh/conges/liste";
+    }
+
+    @GetMapping("/conges/en-attente")
+    public String getCongesEnAttente() {
+        return "redirect:/rh/conges";
     }
 
     @GetMapping("/conges/historique")
@@ -189,12 +275,6 @@ public class RhController {
             Conge conge = congeService.validerCongeRH(id, rhId, true,
                     commentaire != null ? commentaire : "Validé par RH");
 
-            emailService.envoyerNotificationConge(
-                    conge.getEmploye(),
-                    "Votre demande de congé a été approuvée",
-                    "Votre demande de congé du " + conge.getDateDebut() + " au " + conge.getDateFin()
-                            + " a été approuvée.");
-
             redirectAttributes.addFlashAttribute("success", "Congé validé avec succès");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());
@@ -212,17 +292,11 @@ public class RhController {
             Conge conge = congeService.validerCongeRH(id, rhId, false,
                     motifRefus != null ? motifRefus : "Refusé par RH");
 
-            emailService.envoyerNotificationConge(
-                    conge.getEmploye(),
-                    "Votre demande de congé a été refusée",
-                    "Votre demande de congé a été refusée. Motif: "
-                            + (motifRefus != null ? motifRefus : "Non spécifié"));
-
             redirectAttributes.addFlashAttribute("success", "Congé refusé");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());
         }
-        return "redirect:/rh/conges/en-attente";
+        return "redirect:/rh/conges";
     }
 
     @PostMapping("/conges/{id}/attente")
@@ -237,7 +311,7 @@ public class RhController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());
         }
-        return "redirect:/rh/conges/en-attente";
+        return "redirect:/rh/conges";
     }
 
     @PostMapping("/conges/{id}/renvoyer")
@@ -252,7 +326,7 @@ public class RhController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());
         }
-        return "redirect:/rh/conges/en-attente";
+        return "redirect:/rh/conges";
     }
 
     private Long getCurrentUserId(Authentication auth) {
@@ -269,12 +343,7 @@ public class RhController {
 
     @GetMapping("/evaluations")
     public String getEvaluations() {
-        return "rh/evaluations/liste";
-    }
-
-    @GetMapping("/salaires")
-    public String getSalaires() {
-        return "rh/salaires/liste";
+        return "redirect:/rh/evaluations/campagnes";
     }
 
     @GetMapping("/statistiques")
@@ -335,4 +404,62 @@ public class RhController {
         }
         return "redirect:/rh/conges";
     }
+    // ==================== CONTRATS ====================
+
+    // private final com.example.gestion_rh.service.ContratService contratService;
+
+    // @GetMapping("/contrats")
+    // public String getContrats(Model model) {
+    // // For simplicity, listing all employees to generate contracts
+    // // In real app, list existing contracts
+    // model.addAttribute("employes", employeService.getAllEmployes());
+    // return "rh/contrats/liste";
+    // }
+
+    // @GetMapping("/contrats/generer/{employeId}")
+    // public String showGenererContratForm(@PathVariable Long employeId, Model
+    // model) {
+    // Employe employe = employeService.getEmployeById(employeId)
+    // .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
+    // model.addAttribute("employe", employe);
+    // return "rh/contrats/generer";
+    // }
+
+    // @PostMapping("/contrats/generer")
+    // public String genererContrat(@RequestParam Long employeId,
+    // @RequestParam String typeContrat,
+    // @RequestParam Double salaire,
+    // @RequestParam String dateDebut,
+    // RedirectAttributes redirectAttributes) {
+    // try {
+    // Employe employe = employeService.getEmployeById(employeId)
+    // .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
+
+    // Map<String, Object> params = Map.of(
+    // "typeContrat", typeContrat,
+    // "salaire", salaire,
+    // "dateDebut", LocalDate.parse(dateDebut));
+
+    // com.example.gestion_rh.entity.Contrat contrat =
+    // contratService.genererContrat(employe, params);
+    // redirectAttributes.addFlashAttribute("success", "Contrat généré avec succès.
+    // ID: " + contrat.getId());
+    // return "redirect:/rh/contrats";
+    // } catch (Exception e) {
+    // redirectAttributes.addFlashAttribute("error", "Erreur lors de la génération:
+    // " + e.getMessage());
+    // return "redirect:/rh/contrats";
+    // }
+    // }
+
+    // @GetMapping("/contrats/{id}/pdf")
+    // public ResponseEntity<byte[]> downloadContratPdf(@PathVariable Long id) {
+    // byte[] pdfContent = contratService.genererContratPDF(id);
+
+    // return ResponseEntity.ok()
+    // .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+    // "attachment; filename=contrat_" + id + ".pdf")
+    // .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+    // .body(pdfContent);
+    // }
 }

@@ -16,9 +16,15 @@ public class Contrat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    private String referenceContrat;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TypeContrat typeContrat;
+    private TypeContrat typeContrat; // Correspond à "typeTravail" demandé, maintenu en Enum pour la sécurité
+
+    @Column(nullable = false)
+    private String poste;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -34,37 +40,62 @@ public class Contrat {
 
     private Double heuresHebdomadaires;
 
-    // Période d'essai
-    private Integer periodeEssaiMois;
+    private Integer dureeEssai; // En jours
+
+    private LocalDate dateSignature;
     private LocalDate dateFinPeriodeEssai;
 
-    // Autres infos
     @Column(columnDefinition = "TEXT")
     private String avantages;
 
-    private String convention;
+    @Column(columnDefinition = "TEXT")
+    private String contentHtml;
 
-    private String fichierContrat;
-
-    // Validation & Signature
-    @Column(unique = true)
-    private String referenceContrat;
-
+    private String cheminFichierPDF;
     private String signatureToken;
-    private LocalDate dateEnvoiSignature;
-    private LocalDate dateLimiteSignature;
-    private boolean estSigne;
 
-    // Use ManyToOne to allow history
+    @Column(name = "est_signe", nullable = false)
+    @Builder.Default
+    private Boolean estSigne = false;
+
+    // Relations
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employe_id", nullable = false)
     private Employe employe;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "createur_rh_id")
+    private Employe createurRH;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "signataire_id")
+    private Employe signataire;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "template_id")
+    private ContratTemplate template;
+
+    // Méthodes utilitaires
+    public boolean isExpire() {
+        return dateFin != null && LocalDate.now().isAfter(dateFin);
+    }
+
+    public boolean isSigne() {
+        return StatutContrat.SIGNE.equals(this.statut);
+    }
+
+    public long getDureeContrat() {
+        if (dateDebut == null || dateFin == null) {
+            return 0;
+        }
+        return java.time.temporal.ChronoUnit.MONTHS.between(dateDebut, dateFin);
+    }
 
     public enum TypeContrat {
         CDI, CDD, STAGE, ALTERNANCE, FREELANCE
     }
 
     public enum StatutContrat {
-        ACTIF, BROUILLON, TERMINE, ARCHIVE
+        BROUILLON, EN_ATTENTE_SIGNATURE, SIGNE, EXPIRE, RESILIE, ACTIF, ARCHIVE
     }
 }

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="rh/layouts/header :: head">
+    <title>Gestion des Modèles de Contrats</title>
+</head>
+
+<head>
+    <style>
+        .template-card {
+            transition: transform 0.2s, shadow 0.2s;
+            border: none;
+            border-radius: 15px;
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .badge-default {
+            background-color: #2ecc71;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+
+        .btn-action {
+            width: 35px;
+            height: 35px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="rh/layouts/menu :: sidebar"></div>
+
+    <main class="main-content">
+        <div class="container py-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark"><i class="fas fa-file-invoice me-3 text-primary"></i>Modèles de
+                        Contrats</h2>
+                    <p class="text-muted">Gérez vos modèles HTML et définissez les structures par défaut.</p>
+                </div>
+                <a th:href="@{/rh/contrats/templates/nouveau}" class="btn btn-primary px-4 py-2 shadow-sm">
+                    <i class="fas fa-plus me-2"></i>Nouveau Modèle
+                </a>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-4" th:each="template : ${templates}">
+                    <div class="card h-100 shadow-sm template-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="p-3 bg-light rounded-3 text-primary">
+                                    <i class="fas fa-file-alt fa-2x"></i>
+                                </div>
+                                <span th:if="${template.default}" class="badge-default shadow-sm">
+                                    <i class="fas fa-check-circle me-1"></i>Défaut
+                                </span>
+                            </div>
+
+                            <h5 class="fw-bold mb-2" th:text="${template.nom}">Modèle Standard</h5>
+                            <p class="text-muted small mb-3" style="min-height: 40px;"
+                                th:text="${template.description}">
+                                Description du modèle et de son utilisation...
+                            </p>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="badge bg-soft-info text-info me-2"
+                                    th:text="${template.typeContrat}">CDI</span>
+                                <span class="text-muted small"><i class="far fa-clock me-1"></i>Mis à jour
+                                    récemment</span>
+                            </div>
+
+                            <div class="border-top pt-3 d-flex justify-content-between">
+                                <div>
+                                    <a th:href="@{/rh/contrats/templates/modifier/{id}(id=${template.id})}"
+                                        class="btn btn-outline-primary btn-action me-1" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form th:if="${!template.default}"
+                                        th:action="@{/rh/contrats/templates/set-default/{id}(id=${template.id})}"
+                                        method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-success btn-action me-1"
+                                            title="Définir par défaut">
+                                            <i class="fas fa-star"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <form th:action="@{/rh/contrats/templates/supprimer/{id}(id=${template.id})}"
+                                    method="post" class="d-inline"
+                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce modèle ?');">
+                                    <button type="submit" class="btn btn-outline-danger btn-action" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="col-12 text-center py-5" th:if="${#lists.isEmpty(templates)}">
+                    <div class="mb-3">
+                        <i class="fas fa-folder-open fa-4x text-light"></i>
+                    </div>
+                    <h4 class="text-muted">Aucun modèle de contrat n'a été créé.</h4>
+                    <p class="text-muted mb-4">Commencez par créer votre premier modèle HTML pour automatiser vos
+                        contrats.
+                    </p>
+                    <a th:href="@{/rh/contrats/templates/nouveau}" class="btn btn-primary px-4">
+                        Créer mon premier modèle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -32,21 +32,17 @@
                     <i class="fas fa-calendar-check me-2"></i> Congés
                 </a>
             </li>
-            <li class="nav-item mb-1">
-                <a th:href="@{/rh/contrats}" class="nav-link text-white"
-                    th:classappend="${#request.requestURI.startsWith('/rh/contrats') ? 'active bg-white bg-opacity-25' : ''}">
-                    <i class="fas fa-file-contract me-2"></i> Contrats
-                </a>
-            <li class="nav-item mb-1">
-                <a th:href="@{/rh/contrats/templates/selection}" class="nav-link text-white"
-                    th:classappend="${#request.requestURI.startsWith('/rh/contrats/templates') ? 'active bg-white bg-opacity-25' : ''}">
-                    <i class="fas fa-file-signature me-2"></i> Générateur
-                </a>
-            </li>
+
             <li class="nav-item mb-1">
                 <a th:href="@{/rh/evaluations}" class="nav-link text-white"
                     th:classappend="${#request.requestURI.startsWith('/rh/evaluations') ? 'active bg-white bg-opacity-25' : ''}">
                     <i class="fas fa-chart-line me-2"></i> Évaluations
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a th:href="@{/rh/salaires}" class="nav-link text-white"
+                    th:classappend="${#request.requestURI.startsWith('/rh/salaires') ? 'active bg-white bg-opacity-25' : ''}">
+                    <i class="fas fa-money-bill-wave me-2"></i> Salaires
                 </a>
             </li>
             <li class="nav-item mb-1">

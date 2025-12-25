@@ -1,124 +1,250 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<head th:replace="rh/layouts/header :: head">
     <title>Gestion des Contrats</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .sidebar {
-            width: 280px;
-            height: 100vh;
-            position: fixed;
-            background: linear-gradient(180deg, #2980b9 0%, #3498db 100%);
-        }
-
-        .main-content {
-            margin-left: 280px;
-            padding: 20px;
-            background: #f8f9fa;
-            min-height: 100vh;
-        }
-    </style>
 </head>
 
 <body>
-    <!-- Sidebar (Simplified copy from liste.html to maintain consistency) -->
-    <div class="d-flex flex-column flex-shrink-0 p-3 text-white sidebar">
-        <a href="/rh/dashboard" class="d-flex align-items-center mb-3 text-white text-decoration-none">
-            <i class="fas fa-user-tie fa-2x me-2"></i><span class="fs-4 fw-bold">HR Manager</span>
-        </a>
-        <hr class="opacity-50">
-        <ul class="nav nav-pills flex-column mb-auto">
-            <li><a href="/rh/dashboard" class="nav-link text-white"><i class="fas fa-tachometer-alt me-2"></i>Tableau de
-                    bord</a></li>
-            <li><a href="/rh/employes" class="nav-link text-white"><i class="fas fa-users me-2"></i>Employés</a></li>
-            <li><a href="/rh/conges" class="nav-link text-white"><i class="fas fa-calendar-check me-2"></i>Congés</a>
-            </li>
-            <li><a href="/rh/contrats" class="nav-link text-white active bg-white bg-opacity-25"><i
-                        class="fas fa-file-contract me-2"></i>Contrats</a></li>
-            <li><a href="/rh/evaluations" class="nav-link text-white"><i
-                        class="fas fa-chart-line me-2"></i>Évaluations</a></li>
-            <li><a href="/rh/salaires" class="nav-link text-white"><i
-                        class="fas fa-money-bill-wave me-2"></i>Salaires</a></li>
-            <li><a href="/rh/statistiques" class="nav-link text-white"><i
-                        class="fas fa-chart-pie me-2"></i>Statistiques</a></li>
-        </ul>
-    </div>
+    <div th:replace="rh/layouts/menu :: sidebar"></div>
 
     <main class="main-content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 text-primary"><i class="fas fa-file-contract me-2"></i>Contrats de Travail</h1>
-            <a href="/rh/contrats/nouveau" class="btn btn-success"><i class="fas fa-plus me-2"></i>Nouveau Contrat</a>
+        <!-- Header -->
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Gestion des Contrats</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a href="/rh/contrats/creer" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nouveau Contrat
+                </a>
+            </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3" th:each="stat : ${stats}">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <h4 class="mb-0 text-primary" th:text="${stat.value}">0</h4>
-                        <small class="text-muted" th:text="${stat.key}">Type</small>
+        <!-- Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- 4. Statistiques Rapides -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0">Total Contrats</h6>
+                                <h2 class="mt-2 mb-0" th:text="${stats['total']}">0</h2>
+                            </div>
+                            <i class="fas fa-file-contract fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0">Contrats Signés</h6>
+                                <h2 class="mt-2 mb-0" th:text="${stats['actif']}">0</h2>
+                            </div>
+                            <i class="fas fa-signature fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0">Expirant Bientôt</h6>
+                                <h2 class="mt-2 mb-0" th:text="${stats['expirant']}">0</h2>
+                            </div>
+                            <i class="fas fa-clock fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0">En Attente</h6>
+                                <h2 class="mt-2 mb-0" th:text="${stats['en_attente']}">0</h2>
+                            </div>
+                            <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Contracts List -->
-        <div class="card border-0 shadow-sm">
+        <!-- 2. Filtres de recherche -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body bg-light">
+                <form action="/rh/contrats" method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="typeContrat" class="form-label">Type de Contrat</label>
+                        <select class="form-select" id="typeContrat" name="type">
+                            <option value="" th:selected="${selectedType == ''}">Tous</option>
+                            <option value="CDI" th:selected="${selectedType == 'CDI'}">CDI</option>
+                            <option value="CDD" th:selected="${selectedType == 'CDD'}">CDD</option>
+                            <option value="STAGE" th:selected="${selectedType == 'STAGE'}">Stage</option>
+                            <option value="ALTERNANCE" th:selected="${selectedType == 'ALTERNANCE'}">Alternance</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="statut" class="form-label">Statut</label>
+                        <select class="form-select" id="statut" name="statut">
+                            <option value="" th:selected="${selectedStatut == ''}">Tous</option>
+                            <option value="BROUILLON" th:selected="${selectedStatut == 'BROUILLON'}">Brouillon</option>
+                            <option value="EN_ATTENTE_SIGNATURE"
+                                th:selected="${selectedStatut == 'EN_ATTENTE_SIGNATURE'}">En attente</option>
+                            <option value="SIGNE" th:selected="${selectedStatut == 'SIGNE'}">Signé</option>
+                            <option value="EXPIRE" th:selected="${selectedStatut == 'EXPIRE'}">Expiré</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="departement" class="form-label">Département</label>
+                        <select class="form-select" id="departement" name="dept">
+                            <option value="" th:selected="${selectedDept == ''}">Tous</option>
+                            <!-- Ideal way is iterating over departments passed in model, sticking to simple for now if unsupported -->
+                            <option value="IT" th:selected="${selectedDept == 'IT'}">IT</option>
+                            <option value="RH" th:selected="${selectedDept == 'RH'}">RH</option>
+                            <option value="FINANCE" th:selected="${selectedDept == 'FINANCE'}">Finance</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>Filtrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. Tableau des contrats -->
+        <div class="card shadow-sm border-0">
             <div class="card-body p-0">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Employé</th>
-                            <th>Type</th>
-                            <th>Date Début</th>
-                            <th>Fin</th>
-                            <th>Salaire (MAD)</th>
-                            <th>Statut</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="contrat : ${contrats}">
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
-                                        style="width: 35px; height: 35px;">
-                                        <i class="fas fa-user"></i>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Référence</th>
+                                <th>Employé</th>
+                                <th>Type / Durée</th>
+                                <th>Période</th>
+                                <th>Statut</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(contrats)}">
+                                <td colspan="6" class="text-center py-4 text-muted">Aucun contrat trouvé</td>
+                            </tr>
+                            <tr th:each="contrat : ${contrats}">
+                                <td class="fw-bold text-primary" th:text="${contrat.referenceContrat}">REF-001</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-secondary text-white me-2">
+                                            <span
+                                                th:text="${#strings.substring(contrat.employe.prenom,0,1) + #strings.substring(contrat.employe.nom,0,1)}">JD</span>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold"
+                                                th:text="${contrat.employe.nom + ' ' + contrat.employe.prenom}">John Doe
+                                            </div>
+                                            <small class="text-muted"
+                                                th:text="${contrat.employe.matricule}">EMP001</small>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div class="fw-bold"
-                                            th:text="${contrat.employe.nom + ' ' + contrat.employe.prenom}">Nom</div>
-                                        <small class="text-muted"
-                                            th:text="${contrat.employe.departement?.nom}">Dept</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold" th:text="${contrat.typeContrat}">CDI</div>
+                                    <small class="text-muted"
+                                        th:text="${contrat.dureeEssai != null ? contrat.dureeEssai + ' jours d essai' : '-'}">90
+                                        jours</small>
+                                </td>
+                                <td>
+                                    <div th:if="${contrat.dateDebut != null}"
+                                        th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}">01/01/2024</div>
+                                    <div th:if="${contrat.dateDebut == null}" class="text-danger">Date manquante</div>
+
+                                    <small class="text-muted" th:if="${contrat.dateFin != null}"
+                                        th:text="'au ' + ${#temporals.format(contrat.dateFin, 'dd/MM/yyyy')}">au
+                                        31/12/2024</small>
+                                    <small class="text-success" th:if="${contrat.dateFin == null}">Indéterminée</small>
+                                </td>
+                                <td>
+                                    <th:block th:if="${contrat.statut != null}">
+                                        <span th:if="${contrat.statut.name() == 'BROUILLON'}"
+                                            class="badge bg-secondary">Brouillon</span>
+                                        <span th:if="${contrat.statut.name() == 'EN_ATTENTE_SIGNATURE'}"
+                                            class="badge bg-warning text-dark">En attente</span>
+                                        <span th:if="${contrat.statut.name() == 'SIGNE'}"
+                                            class="badge bg-success">Signé</span>
+                                        <span th:if="${contrat.statut.name() == 'EXPIRE'}"
+                                            class="badge bg-danger">Expiré</span>
+                                        <span th:if="${contrat.statut.name() == 'RESILIE'}"
+                                            class="badge bg-dark">Résilié</span>
+                                        <span th:if="${contrat.statut.name() == 'ACTIF'}"
+                                            class="badge bg-success">Actif</span>
+                                        <span th:if="${contrat.statut.name() == 'ARCHIVE'}"
+                                            class="badge bg-secondary">Archivé</span>
+                                    </th:block>
+                                    <span th:if="${contrat.statut == null}" class="badge bg-danger">Inconnu</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <a th:href="@{/rh/contrats/{id}(id=${contrat.id})}"
+                                            class="btn btn-sm btn-outline-secondary" title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a th:href="@{/rh/contrats/{id}/pdf(id=${contrat.id})}"
+                                            class="btn btn-sm btn-outline-danger" title="PDF" target="_blank">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                        <form th:action="@{/rh/contrats/{id}/envoyer(id=${contrat.id})}" method="post"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Envoyer le contrat par email ?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary"
+                                                title="Envoyer">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </form>
+                                        <th:block th:if="${contrat.statut != null}">
+                                            <form th:action="@{/rh/contrats/{id}/signer(id=${contrat.id})}"
+                                                method="post" class="d-inline"
+                                                th:if="${contrat.statut.name() == 'EN_ATTENTE_SIGNATURE' or contrat.statut.name() == 'BROUILLON'}"
+                                                onsubmit="return confirm('Marquer comme signé ?')">
+                                                <button type="submit" class="btn btn-sm btn-outline-success"
+                                                    title="Signer">
+                                                    <i class="fas fa-file-signature"></i>
+                                                </button>
+                                            </form>
+                                        </th:block>
                                     </div>
-                                </div>
-                            </td>
-                            <td><span class="badge bg-info" th:text="${contrat.typeContrat}">CDI</span></td>
-                            <td th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}">01/01/2024</td>
-                            <td
-                                th:text="${contrat.dateFin != null ? #temporals.format(contrat.dateFin, 'dd/MM/yyyy') : '-'}">
-                                -</td>
-                            <td th:text="${contrat.salaireBase}">10000</td>
-                            <td><span class="badge bg-success" th:text="${contrat.statut}">ACTIF</span></td>
-                            <td class="text-end">
-                                <a th:href="@{/rh/contrats/{id}(id=${contrat.id})}"
-                                    class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
-                                <form th:action="@{/rh/contrats/{id}/archiver(id=${contrat.id})}" method="post"
-                                    class="d-inline" onsubmit="return confirm('Archiver ce contrat ?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i
-                                            class="fas fa-archive"></i></button>
-                                </form>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Pagination could go here -->
+            <div class="card-footer bg-white text-center py-3">
+                <small class="text-muted">Affichage des derniers contrats</small>
             </div>
         </div>
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

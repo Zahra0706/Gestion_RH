@@ -1,6 +1,5 @@
 package com.example.gestion_rh.controller;
 
-
 import com.example.gestion_rh.entity.Conge;
 import com.example.gestion_rh.entity.Employe;
 import com.example.gestion_rh.service.CongeService;
@@ -35,8 +34,7 @@ public class EmployeController {
         // Calculer les jours restants
         double joursRestants = congeService.calculerJoursCongesRestants(
                 employe.getId(),
-                LocalDate.now().getYear()
-        );
+                LocalDate.now().getYear());
         model.addAttribute("joursRestants", joursRestants);
 
         return "employe/dashboard";
@@ -59,7 +57,7 @@ public class EmployeController {
 
     @PostMapping("/conges/demander")
     public String demanderConge(@ModelAttribute Conge conge,
-                                HttpSession session) {
+            HttpSession session) {
         Employe employe = (Employe) session.getAttribute("employe");
         conge.setEmploye(employe);
         conge.setStatut(Conge.StatutConge.EN_ATTENTE_MANAGER);
@@ -84,10 +82,69 @@ public class EmployeController {
 
     @PostMapping("/profil/update")
     public String updateProfil(@ModelAttribute Employe employeForm,
-                               HttpSession session) {
+            HttpSession session) {
         Employe sessionEmploye = (Employe) session.getAttribute("employe");
         Employe updated = employeService.updateEmploye(sessionEmploye.getId(), employeForm);
         session.setAttribute("employe", updated);
         return "redirect:/employe/profil";
+    }
+
+    // ==================== CONTRATS ====================
+
+    private final com.example.gestion_rh.service.ContratService contratService;
+    private final com.example.gestion_rh.service.PdfContratService pdfContratService;
+
+    @GetMapping("/contrats")
+    public String mesContrats(HttpSession session, Model model) {
+        Employe employe = (Employe) session.getAttribute("employe");
+
+        // Récupérer tous les contrats de l'employé connecté
+        java.util.List<com.example.gestion_rh.entity.Contrat> contrats = contratService.getAllContrats().stream()
+                .filter(c -> c.getEmploye() != null && c.getEmploye().getId().equals(employe.getId()))
+                .collect(java.util.stream.Collectors.toList());
+
+        model.addAttribute("contrats", contrats);
+        model.addAttribute("employe", employe);
+        return "employe/contrats";
+    }
+
+    @GetMapping("/contrats/{id}")
+    public String voirContrat(@PathVariable Long id, HttpSession session, Model model) {
+        Employe employe = (Employe) session.getAttribute("employe");
+
+        com.example.gestion_rh.entity.Contrat contrat = contratService.getContratById(id)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+        // SÉCURITÉ: Vérifier que le contrat appartient bien à l'employé connecté
+        if (!contrat.getEmploye().getId().equals(employe.getId())) {
+            throw new RuntimeException("Accès non autorisé à ce contrat");
+        }
+
+        model.addAttribute("contrat", contrat);
+        model.addAttribute("employe", employe);
+        return "employe/contrat-detail";
+    }
+
+    @GetMapping("/contrats/{id}/pdf")
+    public org.springframework.http.ResponseEntity<byte[]> telechargerContratPdf(
+            @PathVariable Long id,
+            HttpSession session) {
+        Employe employe = (Employe) session.getAttribute("employe");
+
+        com.example.gestion_rh.entity.Contrat contrat = contratService.getContratById(id)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+        // SÉCURITÉ: Vérifier que le contrat appartient bien à l'employé connecté
+        if (!contrat.getEmploye().getId().equals(employe.getId())) {
+            throw new RuntimeException("Accès non autorisé à ce contrat");
+        }
+
+        byte[] pdfContent = pdfContratService.genererContratPDF(contrat, employe);
+
+        return org.springframework.http.ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=contrat_" + contrat.getReferenceContrat().replace("/", "_") + ".pdf")
+                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .body(pdfContent);
     }
 }

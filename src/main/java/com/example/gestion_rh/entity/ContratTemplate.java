@@ -21,4 +21,6 @@ public class ContratTemplate {
 
     @Enumerated(EnumType.STRING)
     private Contrat.TypeContrat typeContrat;
+
+    private boolean isDefault = false;
 }

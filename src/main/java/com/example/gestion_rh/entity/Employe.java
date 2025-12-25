@@ -51,18 +51,24 @@ public class Employe {
 
     @Column(name = "is_compte_actif", nullable = false)
     @Builder.Default
-    private Boolean isCompteActif = true;  // Par défaut le compte est actif
+    private Boolean isCompteActif = true; // Par défaut le compte est actif
 
     @Column(name = "premiere_connexion", nullable = false)
     @Builder.Default
-    private Boolean premiereConnexion = true;  // Pour forcer le changement de mot de passe
+    private Boolean premiereConnexion = true; // Pour forcer le changement de mot de passe
 
     @ManyToOne
     @JoinColumn(name = "departement_id")
     private Departement departement;
 
-    @OneToOne(mappedBy = "employe", cascade = CascadeType.ALL)
-    private Contrat contrat;
+    @OneToMany(mappedBy = "employe", cascade = CascadeType.ALL)
+    private List<Contrat> contrats;
+
+    @OneToMany(mappedBy = "createurRH")
+    private List<Contrat> contratsCrees;
+
+    @OneToMany(mappedBy = "signataire")
+    private List<Contrat> contratsSignes;
 
     @OneToMany(mappedBy = "employe", cascade = CascadeType.ALL)
     private List<Conge> conges;
