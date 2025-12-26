@@ -43,10 +43,12 @@ public class EvaluationCampagneController {
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
-            // Get RH ID from authentication - simplified, adjust based on your User model
-            Long rhId = 1L; // TODO: Extract from authentication
+            // Get RH from authentication
+            String email = authentication.getName();
+            Employe rh = employeRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé: " + email));
 
-            evaluationService.creerCampagne(campagne, rhId);
+            evaluationService.creerCampagne(campagne, rh.getId());
             redirectAttributes.addFlashAttribute("success", "Campagne créée avec succès");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());

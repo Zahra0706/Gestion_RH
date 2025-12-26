@@ -67,6 +67,12 @@ public class EvaluationServiceImpl implements EvaluationService {
                 evaluation.setStatut(StatutEvaluation.EN_ATTENTE);
                 evaluation.setBesoinFormation(false);
 
+                // Initialize scores to 0.0 to satisfy DB constraints
+                evaluation.setScorePerformance(0.0);
+                evaluation.setScoreCompetences(0.0);
+                evaluation.setScoreObjectifs(0.0);
+                evaluation.setScoreGlobal(0.0);
+
                 evaluations.add(evaluationRepository.save(evaluation));
                 System.out.println("Évaluation créée pour: " + employe.getNom() + " " + employe.getPrenom());
             } else {
@@ -321,6 +327,12 @@ public class EvaluationServiceImpl implements EvaluationService {
                 evaluation.setCreateurRH(campagne.getCreateurRH());
                 evaluation.setDateCreation(LocalDate.now());
                 evaluation.setStatut(StatutEvaluation.EN_ATTENTE);
+
+                // Initialize scores to 0.0 to satisfy DB constraints
+                evaluation.setScorePerformance(0.0);
+                evaluation.setScoreCompetences(0.0);
+                evaluation.setScoreObjectifs(0.0);
+                evaluation.setScoreGlobal(0.0);
                 results.add(evaluationRepository.save(evaluation));
             } else {
                 Evaluation eval = existing.get();
