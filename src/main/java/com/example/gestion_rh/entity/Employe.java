@@ -35,6 +35,7 @@ public class Employe {
 
     private LocalDate dateNaissance;
 
+
     @Column(nullable = false)
     private LocalDate dateEmbauche;
 

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="employe/header :: head">
+    <title>Nouvelle Demande de Congé</title>
+</head>
+<body>
+<div th:replace="employe/menu :: sidebar"></div>
+
+<main class="main-content">
+    <div th:replace="employe/header :: employe-header" th:with="pageTitle='Demande de congé'"></div>
+
+    <div class="container-fluid">
+
+        <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+        <div class="mb-3">
+            <span class="badge bg-info">
+                Jours restants: <span th:text="${joursRestants}">0</span>
+            </span>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <strong>Formulaire</strong>
+            </div>
+
+            <div class="card-body">
+                <form th:action="@{/employe/conges}" th:object="${congeForm}" method="post">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Date début</label>
+                            <input type="date" class="form-control" th:field="*{dateDebut}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('dateDebut')}"
+                                 th:errors="*{dateDebut}"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Date fin</label>
+                            <input type="date" class="form-control" th:field="*{dateFin}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('dateFin')}"
+                                 th:errors="*{dateFin}"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Type de congé</label>
+                            <select class="form-select" th:field="*{typeConge}">
+                                <option value="" disabled selected>-- Choisir --</option>
+                                <option th:each="t : ${typesConge}" th:value="${t}" th:text="${t}"></option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('typeConge')}"
+                                 th:errors="*{typeConge}"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Motif (optionnel)</label>
+                            <textarea class="form-control" rows="3" th:field="*{motif}"></textarea>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('motif')}"
+                                 th:errors="*{motif}"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a class="btn btn-outline-secondary" th:href="@{/employe/conges}">
+                            Annuler
+                        </a>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-paper-plane me-1"></i> Envoyer
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+</body>
+</html>
