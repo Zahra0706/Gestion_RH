@@ -6,10 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
 public interface CongeRepository extends JpaRepository<Conge, Long> {
+    // Méthodes communes aux deux fichiers
     List<Conge> findByEmployeId(Long employeId);
     List<Conge> findByStatut(Conge.StatutConge statut);
     List<Conge> findByManagerValidateurId(Long managerId);
@@ -23,4 +25,45 @@ public interface CongeRepository extends JpaRepository<Conge, Long> {
     long countCongeByEmployeAndAnnee(@Param("employeId") Long employeId, @Param("annee") int annee);
 
     long count();
+
+    // Méthodes supplémentaires du premier fichier uniquement
+    long countByStatut(Conge.StatutConge statut);
+
+    long countByTypeConge(Conge.TypeConge typeConge);
+
+    List<Conge> findByEmployeIdOrderByDateDebutDesc(Long employeId);
+
+    boolean existsByEmployeAndDateDebut(com.example.gestion_rh.entity.Employe employe, LocalDate dateDebut);
+
+    @Query("SELECT COUNT(c) FROM Conge c WHERE c.statut = 'VALIDE_RH' AND MONTH(c.dateTraitement) = :mois AND YEAR(c.dateTraitement) = :annee")
+    long countApprouvesMois(@Param("mois") int mois, @Param("annee") int annee);
+
+    @Query("SELECT COUNT(c) FROM Conge c WHERE c.statut = 'VALIDE_RH' AND YEAR(c.dateTraitement) = :annee")
+    long countApprouvesAnnee(@Param("annee") int annee);
+
+    @Query("SELECT COUNT(c) FROM Conge c WHERE c.statut = 'REFUSE_RH' AND MONTH(c.dateTraitement) = :mois AND YEAR(c.dateTraitement) = :annee")
+    long countRefusesMois(@Param("mois") int mois, @Param("annee") int annee);
+
+    @Query("SELECT AVG(DATEDIFF(c.dateFin, c.dateDebut) + 1) FROM Conge c WHERE c.statut = 'VALIDE_RH'")
+    Double avgDureeConges();
+
+    @Query("SELECT COALESCE(SUM(DATEDIFF(c.dateFin, c.dateDebut) + 1), 0) FROM Conge c WHERE c.employe.id = :employeId AND c.statut = 'VALIDE_RH' AND YEAR(c.dateDebut) = :annee")
+    int sumJoursUtilises(@Param("employeId") Long employeId, @Param("annee") int annee);
+
+    @Query("SELECT c FROM Conge c WHERE c.employe.departement.id = :departementId AND c.statut IN ('VALIDE_MANAGER', 'VALIDE_RH') AND c.dateDebut <= :dateFin AND c.dateFin >= :dateDebut")
+    List<Conge> findAbsencesEquipe(@Param("departementId") Long departementId,
+                                   @Param("dateDebut") LocalDate dateDebut,
+                                   @Param("dateFin") LocalDate dateFin);
+
+    @Query("SELECT COUNT(c) > 0 FROM Conge c WHERE c.employe.id = :employeId AND c.statut NOT IN ('REFUSE_MANAGER', 'REFUSE_RH', 'ANNULE') AND c.dateDebut <= :dateFin AND c.dateFin >= :dateDebut AND c.id != :excludeId")
+    boolean existsChevauchement(@Param("employeId") Long employeId,
+                                @Param("dateDebut") LocalDate dateDebut,
+                                @Param("dateFin") LocalDate dateFin,
+                                @Param("excludeId") Long excludeId);
+
+    @Query("SELECT c FROM Conge c WHERE c.statut IN ('VALIDE_MANAGER', 'EN_ATTENTE_RH') ORDER BY c.priorite DESC, c.createdAt ASC")
+    List<Conge> findCongesEnAttenteRH();
+
+    @Query("SELECT c.employe.id, c.employe.nom, c.employe.prenom, SUM(DATEDIFF(c.dateFin, c.dateDebut) + 1) as totalJours FROM Conge c WHERE c.statut = 'VALIDE_RH' AND YEAR(c.dateDebut) = :annee GROUP BY c.employe.id, c.employe.nom, c.employe.prenom ORDER BY totalJours DESC")
+    List<Object[]> findTopEmployesByConges(@Param("annee") int annee);
 }

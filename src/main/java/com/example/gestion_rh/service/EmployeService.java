@@ -1,8 +1,10 @@
 package com.example.gestion_rh.service;
 
+import com.example.gestion_rh.entity.Conge;
 import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.entity.Employe;
 
+import com.example.gestion_rh.entity.Salaire;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
@@ -51,4 +53,32 @@ public interface EmployeService {
     Employe updateProfil(Long id, String nom, String prenom, String telephone,
             String adresse, LocalDate dateNaissance, Employe.Poste poste,
             Departement departement);
+
+    void envoyerNotificationCongeManager(Conge conge);
+
+    void envoyerNotificationCongeRH(Conge conge);
+
+    void envoyerNotificationRefusConge(Conge conge, String source);
+
+    void envoyerNotificationConge(Employe employe, String sujet, String message);
+
+    void envoyerIdentifiantsEmploye(Employe employe, String password);
+
+    void envoyerNotificationCompteDesactive(Employe employe);
+
+    void envoyerNotificationCompteActive(Employe employe);
+
+    void envoyerContratParEmail(String destinataire, String sujet, String contenu,
+                                byte[] pdfAttachment, String nomFichier);
+
+    void envoyerEmail(String destinataire, String sujet, String contenu);
+
+    void envoyerRapport(String destinataire, String sujet, String contenu, byte[] attachment,
+                        String nomFichier);
+
+    void envoyerFicheDePaie(Salaire salaire, Employe employe);
+
+    void envoyerRappelSalaireNonValide(Employe rh, List<Salaire> salairesEnAttente);
+
+    void envoyerConfirmationPaiement(Salaire salaire);
 }

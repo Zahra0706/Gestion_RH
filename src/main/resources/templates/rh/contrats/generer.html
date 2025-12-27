@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="rh/layouts/header :: head">
+    <title>Générer un Contrat</title>
+</head>
+
+<body>
+    <div th:replace="rh/layouts/menu :: sidebar"></div>
+
+    <main class="main-content">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Générer un Contrat</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a href="/rh/contrats" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Retour
+                </a>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-file-contract me-2"></i>Nouveau Contrat pour <span
+                                th:text="${employe.nom + ' ' + employe.prenom}">Employé</span></h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form th:action="@{/rh/contrats/generer}" method="post">
+                            <input type="hidden" name="employeId" th:value="${employe.id}" />
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Type de Contrat</label>
+                                    <select name="typeContrat" class="form-select" required>
+                                        <option value="CDI">CDI</option>
+                                        <option value="CDD">CDD</option>
+                                        <option value="STAGE">Stage</option>
+                                        <option value="ALTERNANCE">Alternance</option>
+                                        <option value="FREELANCE">Freelance</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Salaire Mensuel Brut (DH)</label>
+                                    <input type="number" step="0.01" name="salaire" class="form-control" required
+                                        placeholder="Ex: 5000.00">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Date de Début</label>
+                                    <input type="date" name="dateDebut" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-check me-2"></i>Générer et Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+
+<body>
+    <!-- Sidebar Menu Fragment -->
+    <div th:fragment="sidebar">
+        <div class="d-flex flex-column flex-shrink-0 p-3 text-white sidebar">
+            <a href="/rh/dashboard" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+                <i class="fas fa-user-tie fa-2x me-2"></i><span class="fs-4 fw-bold">HR Manager</span>
+            </a>
+            <hr class="opacity-50">
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="/rh/dashboard" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI == '/rh/dashboard' ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Tableau de bord
+                    </a>
+                </li>
+                <li>
+                    <a href="/rh/employes" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/employes') ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-users me-2"></i>
+                        Employés
+                    </a>
+                </li>
+                <li>
+                    <a href="/rh/contrats" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI == '/rh/contrats' ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-file-contract me-2"></i>
+                        Contrats
+                    </a>
+                </li>
+                <li>
+                    <a href="/rh/contrats/templates/liste" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/contrats/templates') ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-file-invoice me-2"></i>
+                        Modèles
+                    </a>
+                </li>
+                <li>
+                    <a href="/rh/conges" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/conges') ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Congés
+                    </a>
+                </li>
+                <li>
+                    <a href="/rh/disponibilites" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/disponibilites') ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-clock me-2"></i>
+                        Présences
+                    </a>
+                </li>
+                <li>
+                    <a href="/rh/evaluations/campagnes" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/evaluations') ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Évaluations
+                    </a>
+                </li>
+                <li>
+                    <a href="/rh/salaires" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/salaires') ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-money-bill-wave me-2"></i>
+                        Salaires
+                    </a>
+                </li>
+
+
+                <li>
+                    <a href="/rh/statistiques" class="nav-link text-white"
+                        th:classappend="${requestURI != null && requestURI.startsWith('/rh/statistiques') ? 'active bg-white bg-opacity-25' : ''}">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Statistiques
+                    </a>
+                </li>
+
+                <!-- Logout -->
+                <li class="mt-4 border-top pt-3 border-white border-opacity-25">
+                    <form th:action="@{/auth/logout}" method="post" class="w-100">
+                        <button type="submit" class="nav-link text-white w-100 text-start bg-transparent border-0 px-3">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            Déconnexion
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>

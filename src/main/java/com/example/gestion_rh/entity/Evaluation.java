@@ -10,31 +10,31 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
+@Getter
 public class Evaluation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private int annee;
+    private Integer annee;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private StatutEvaluation statut;
 
-    private double scorePerformance;
+    private Double scorePerformance;
 
-    private double scoreCompetences;
+    private Double scoreCompetences;
 
-    private double scoreGlobal;
+    private Double scoreGlobal;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String commentairesManager;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String commentairesRH;
 
-    @Column(nullable = false)
     private LocalDate dateCreation;
 
     private LocalDate dateCompletion;
@@ -50,6 +50,29 @@ public class Evaluation {
     @ManyToOne
     @JoinColumn(name = "rh_id")
     private Employe rh;
+
+    @ManyToOne
+    @JoinColumn(name = "createur_rh_id")
+    private Employe createurRH;
+
+    @ManyToOne
+    @JoinColumn(name = "campagne_id")
+    private EvaluationCampagne campagne;
+
+    private LocalDate dateEvaluation;
+
+    private Double scoreObjectifs;
+
+    @Column(columnDefinition = "TEXT")
+    private String pointsForts;
+
+    @Column(columnDefinition = "TEXT")
+    private String axesAmelioration;
+
+    @Column(columnDefinition = "TEXT")
+    private String planAction;
+
+    private Boolean besoinFormation;
 
     public enum StatutEvaluation {
         EN_ATTENTE, EN_COURS, COMPLETEE, ARCHIVEE

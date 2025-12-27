@@ -2,19 +2,22 @@ package com.example.gestion_rh.service.impl;
 
 import com.example.gestion_rh.entity.Departement;
 import com.example.gestion_rh.entity.Employe;
+import com.example.gestion_rh.entity.Conge;
+import com.example.gestion_rh.entity.Salaire;
 import com.example.gestion_rh.repository.EmployeRepository;
 import com.example.gestion_rh.repository.DepartementRepository;
+import com.example.gestion_rh.repository.spec.EmployeSpecification;
 import com.example.gestion_rh.service.EmployeService;
 import com.example.gestion_rh.service.EmailService;
 import com.example.gestion_rh.service.PasswordGeneratorService;
 import lombok.RequiredArgsConstructor;
-import com.example.gestion_rh.repository.spec.EmployeSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +60,7 @@ public class EmployeServiceImpl implements EmployeService {
 
     @Override
     public Page<Employe> getEmployes(String keyword, Long departementId, Employe.Role role, Boolean isActif,
-            Pageable pageable) {
+                                     Pageable pageable) {
         Specification<Employe> spec = EmployeSpecification.getSpec(keyword, departementId, role, isActif);
         return employeRepository.findAll(spec, pageable);
     }
@@ -232,8 +235,8 @@ public class EmployeServiceImpl implements EmployeService {
 
     @Override
     public Employe updateProfil(Long id, String nom, String prenom, String telephone,
-            String adresse, LocalDate dateNaissance, Employe.Poste poste,
-            Departement departement) {
+                                String adresse, LocalDate dateNaissance, Employe.Poste poste,
+                                Departement departement) {
         Employe existingEmploye = employeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
 
@@ -251,6 +254,75 @@ public class EmployeServiceImpl implements EmployeService {
         }
 
         return employeRepository.save(existingEmploye);
+    }
+
+    // ===== Ajout des méthodes liées aux notifications et gestion des congés/salaires =====
+
+    @Override
+    public void envoyerNotificationCongeManager(Conge conge) {
+        emailService.envoyerNotificationCongeManager(conge);
+    }
+
+    @Override
+    public void envoyerNotificationCongeRH(Conge conge) {
+        emailService.envoyerNotificationCongeRH(conge);
+    }
+
+    @Override
+    public void envoyerNotificationRefusConge(Conge conge, String source) {
+        emailService.envoyerNotificationRefusConge(conge, source);
+    }
+
+    @Override
+    public void envoyerNotificationConge(Employe employe, String sujet, String message) {
+        emailService.envoyerNotificationConge(employe, sujet, message);
+    }
+
+    @Override
+    public void envoyerIdentifiantsEmploye(Employe employe, String password) {
+        emailService.envoyerIdentifiantsEmploye(employe, password);
+    }
+
+    @Override
+    public void envoyerNotificationCompteDesactive(Employe employe) {
+        emailService.envoyerNotificationCompteDesactive(employe);
+    }
+
+    @Override
+    public void envoyerNotificationCompteActive(Employe employe) {
+        emailService.envoyerNotificationCompteActive(employe);
+    }
+
+    @Override
+    public void envoyerContratParEmail(String destinataire, String sujet, String contenu,
+                                       byte[] pdfAttachment, String nomFichier) {
+        emailService.envoyerContratParEmail(destinataire, sujet, contenu, pdfAttachment, nomFichier);
+    }
+
+    @Override
+    public void envoyerEmail(String destinataire, String sujet, String contenu) {
+        emailService.envoyerEmail(destinataire, sujet, contenu);
+    }
+
+    @Override
+    public void envoyerRapport(String destinataire, String sujet, String contenu, byte[] attachment,
+                               String nomFichier) {
+        emailService.envoyerRapport(destinataire, sujet, contenu, attachment, nomFichier);
+    }
+
+    @Override
+    public void envoyerFicheDePaie(Salaire salaire, Employe employe) {
+        emailService.envoyerFicheDePaie(salaire, employe);
+    }
+
+    @Override
+    public void envoyerRappelSalaireNonValide(Employe rh, List<Salaire> salairesEnAttente) {
+        emailService.envoyerRappelSalaireNonValide(rh, salairesEnAttente);
+    }
+
+    @Override
+    public void envoyerConfirmationPaiement(Salaire salaire) {
+        emailService.envoyerConfirmationPaiement(salaire);
     }
 
 }

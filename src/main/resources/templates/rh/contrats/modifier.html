@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="rh/layouts/header :: head">
+    <title>Modifier le Contrat</title>
+</head>
+
+<body>
+    <div th:replace="rh/layouts/menu :: sidebar"></div>
+
+    <main class="main-content">
+        <div class="container py-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Modifier le Contrat - <span th:text="${contrat.referenceContrat}">REF-2024-001</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Messages d'erreur/succès -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span th:text="${success}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <!-- Formulaire de modification -->
+                    <form th:action="@{/rh/contrats/{id}/modifier(id=${contrat.id})}" method="post"
+                        th:object="${contrat}">
+
+                        <!-- Section 1: Informations de base -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informations de Base</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <!-- Employé (lecture seule) -->
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Employé</label>
+                                        <input type="text" class="form-control" readonly
+                                            th:value="${contrat.employe != null ? contrat.employe.prenom + ' ' + contrat.employe.nom : 'Non assigné'}">
+                                        <small class="text-muted">
+                                            <i class="fas fa-lock me-1"></i>Non modifiable
+                                        </small>
+                                    </div>
+
+                                    <!-- Type de contrat -->
+                                    <div class="col-md-6">
+                                        <label for="typeContrat" class="form-label fw-bold">
+                                            Type de Contrat <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="typeContrat" name="typeContrat" class="form-select" required
+                                            th:field="*{typeContrat}">
+                                            <option value="">-- Sélectionner --</option>
+                                            <option value="CDI">CDI - Contrat à Durée Indéterminée</option>
+                                            <option value="CDD">CDD - Contrat à Durée Déterminée</option>
+                                            <option value="STAGE">Stage</option>
+                                            <option value="ALTERNANCE">Alternance</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Poste -->
+                                    <div class="col-md-6">
+                                        <label for="poste" class="form-label fw-bold">
+                                            Poste <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" id="poste" name="poste" class="form-control"
+                                            th:field="*{poste}" required placeholder="Ex: Développeur Senior">
+                                    </div>
+
+                                    <!-- Modèle de Contrat -->
+                                    <div class="col-md-6">
+                                        <label for="template" class="form-label fw-bold">Modèle de Contrat</label>
+                                        <select id="template" name="template.id"
+                                            class="form-select shadow-sm border-primary">
+                                            <option value="">-- Utiliser le modèle par défaut --</option>
+                                            <option th:each="tpl : ${templates}" th:value="${tpl.id}"
+                                                th:text="${tpl.nom}"
+                                                th:selected="${contrat.template != null and contrat.template.id == tpl.id}">
+                                                Modèle
+                                            </option>
+                                        </select>
+                                        <small class="text-muted">Détermine la structure HTML et les articles du
+                                            contrat.</small>
+                                    </div>
+
+                                    <!-- Référence (lecture seule) -->
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Référence Contrat</label>
+                                        <input type="text" class="form-control" readonly
+                                            th:value="${contrat.referenceContrat}">
+                                        <small class="text-muted">
+                                            <i class="fas fa-lock me-1"></i>Générée automatiquement
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Dates et Durée -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Dates et Durée</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <!-- Date de début -->
+                                    <div class="col-md-4">
+                                        <label for="dateDebut" class="form-label fw-bold">
+                                            Date de Début <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date" id="dateDebut" name="dateDebut" class="form-control"
+                                            th:field="*{dateDebut}" required>
+                                    </div>
+
+                                    <!-- Date de fin -->
+                                    <div class="col-md-4">
+                                        <label for="dateFin" class="form-label fw-bold">
+                                            Date de Fin
+                                        </label>
+                                        <input type="date" id="dateFin" name="dateFin" class="form-control"
+                                            th:field="*{dateFin}">
+                                        <small class="text-muted">Vide pour les CDI</small>
+                                    </div>
+
+                                    <!-- Durée d'essai -->
+                                    <div class="col-md-4">
+                                        <label for="dureeEssai" class="form-label fw-bold">
+                                            Période d'Essai (jours)
+                                        </label>
+                                        <input type="number" id="dureeEssai" name="dureeEssai" class="form-control"
+                                            th:field="*{dureeEssai}" min="0" max="365" placeholder="Ex: 90">
+                                        <small class="text-muted">Généralement 90 jours</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Rémunération -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Rémunération</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <!-- Salaire de base -->
+                                    <div class="col-md-6">
+                                        <label for="salaireBase" class="form-label fw-bold">
+                                            Salaire Brut Mensuel (MAD) <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="number" id="salaireBase" name="salaireBase"
+                                                class="form-control" th:field="*{salaireBase}" min="0" step="0.01"
+                                                required placeholder="Ex: 15000.00">
+                                            <span class="input-group-text">MAD</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Heures hebdomadaires -->
+                                    <div class="col-md-6">
+                                        <label for="heuresHebdomadaires" class="form-label fw-bold">
+                                            Heures par Semaine
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="number" id="heuresHebdomadaires" name="heuresHebdomadaires"
+                                                class="form-control" th:field="*{heuresHebdomadaires}" min="1" max="60"
+                                                placeholder="Ex: 40">
+                                            <span class="input-group-text">h/sem</span>
+                                        </div>
+                                        <small class="text-muted">Généralement 40h ou 44h</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Avantages (optionnel) -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-gift me-2"></i>Avantages (Optionnel)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label for="avantages" class="form-label fw-bold">
+                                            Liste des Avantages
+                                        </label>
+                                        <textarea id="avantages" name="avantages" class="form-control" rows="3"
+                                            th:field="*{avantages}"
+                                            placeholder="Ex: Voiture de fonction, tickets restaurant, assurance santé..."></textarea>
+                                        <small class="text-muted">Optionnel - Avantages en nature ou autres</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statut actuel (info) -->
+                        <div class="alert alert-info">
+                            <strong>Statut actuel:</strong>
+                            <span class="badge bg-primary ms-2" th:text="${contrat.statut}">BROUILLON</span>
+                            <p class="mb-0 mt-2 small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Le statut du contrat ne peut pas être modifié via ce formulaire.
+                                Utilisez les boutons "Valider" ou "Envoyer" sur la page de détails.
+                            </p>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a th:href="@{/rh/contrats/{id}(id=${contrat.id})}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Enregistrer les Modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-clear date de fin si CDI
+        document.getElementById('typeContrat').addEventListener('change', function () {
+            if (this.value === 'CDI') {
+                document.getElementById('dateFin').value = '';
+            }
+        });
+    </script>
+</body>
+
+</html>

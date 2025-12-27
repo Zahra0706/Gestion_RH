@@ -32,4 +32,7 @@ public interface EmployeRepository extends JpaRepository<Employe, Long>, JpaSpec
     List<Employe> findByIsCompteActifFalse();
 
     List<Employe> findByDepartementIdAndIsCompteActifTrue(Long id);
+
+    @Query("SELECT e FROM Employe e WHERE e.departement.manager.id = :managerId AND e.isCompteActif = true")
+    List<Employe> findByDepartementManagerIdAndIsCompteActifTrue(@Param("managerId") Long managerId);
 }

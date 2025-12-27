@@ -1,0 +1,219 @@
+dropdown/* RH Theme - Dark Blue & Modern */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary-blue: #2c3e50;
+    --secondary-blue: #3498db;
+    --light-blue: #ecf0f1;
+    --accent-blue: #2980b9;
+    --text-dark: #2c3e50;
+    --text-muted: #7f8c8d;
+    --bg-light: #f8f9fa;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: var(--text-dark);
+    background-color: #f3f4f6;
+}
+
+/* --- Layout --- */
+.main-content {
+    margin-left: 280px;
+    padding: 2rem;
+    min-height: 100vh;
+    background-color: #f3f4f6;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+/* --- Components: Cards --- */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    background: white;
+    margin-bottom: 1.5rem;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 1.25rem;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.card-header.bg-transparent {
+    background-color: transparent;
+    border-bottom: none;
+}
+
+/* --- Typography --- */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.text-primary-blue { color: var(--primary-blue) !important; }
+.text-secondary-blue { color: var(--secondary-blue) !important; }
+
+/* --- Tables --- */
+.table-hover tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.table td {
+    vertical-align: middle;
+    border-bottom: 1px solid #f3f4f6;
+    padding: 1rem 0.75rem;
+}
+
+/* --- Badges --- */
+.badge {
+    padding: 0.5em 0.8em;
+    font-weight: 500;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+}
+
+.badge-soft-primary {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--secondary-blue);
+    border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.badge-soft-success {
+    background-color: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(39, 174, 96, 0.2);
+}
+
+.badge-soft-danger {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.badge-soft-warning {
+    background-color: rgba(243, 156, 18, 0.1);
+    color: #f39c12;
+    border: 1px solid rgba(243, 156, 18, 0.2);
+}
+
+/* --- Buttons --- */
+.btn {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--secondary-blue);
+    border-color: var(--secondary-blue);
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+/* --- Forms --- */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    padding: 0.625rem 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--secondary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* --- Header / Dashboard Specifics --- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.stat-card-rich {
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.stat-card-rich .card-body {
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card-rich::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    z-index: 1;
+}
+
+.stat-card-icon {
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    font-size: 5rem;
+    opacity: 0.2;
+    transform: rotate(-15deg);
+    z-index: 0;
+}
+
+/* Gradients for rich cards */
+.bg-gradient-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+.bg-gradient-green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+.bg-gradient-orange { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+.bg-gradient-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+.bg-gradient-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+
+/* --- Sidebar Overlay Fix (from menu.html) --- */
+/* Ensure this doesn't conflict with fragment styles but reinforces them */
+.sidebar-brand small {
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+}
