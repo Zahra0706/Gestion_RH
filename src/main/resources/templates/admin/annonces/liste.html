@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+    lang="fr">
+
+<head th:replace="admin/header :: head">
+    <title>Liste des Annonces - Administration</title>
+    <style>
+        .badge {
+            font-size: 0.8em;
+            padding: 0.4em 0.8em;
+        }
+
+        .selected-filter {
+            background-color: #e7f3ff !important;
+            border-left: 4px solid #0d6efd !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar Menu -->
+    <div th:replace="admin/menu :: sidebar"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <div th:replace="admin/header :: admin-header" th:with="pageTitle='Gestion des Annonces'"></div>
+
+        <!-- Alert Messages -->
+        <div class="container-fluid mt-3">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Actions Bar -->
+        <div class="container-fluid mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-bullhorn me-2"></i>Gestion des Annonces
+                    </h5>
+                    <p class="text-muted mb-0">Publiez et gérez les annonces de l'entreprise</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin/annonces/creer}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Nouvelle Annonce
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filtres actifs -->
+            <div th:if="${selectedType != null or selectedDepartement != null}" class="mb-3">
+                <div class="alert alert-info d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-filter me-2"></i>
+                        <strong>Filtres actifs :</strong>
+                        <span th:if="${selectedType != null}" class="badge bg-primary ms-2">
+                            Type: <span th:text="${selectedType}"></span>
+                        </span>
+                        <span th:if="${selectedDepartement != null}" class="badge bg-secondary ms-2">
+                            Département: <span th:text="${selectedDepartement.nom}"></span>
+                        </span>
+                    </div>
+                    <a th:href="@{/admin/annonces}" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-times me-1"></i>Effacer les filtres
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter Options -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form th:action="@{/admin/annonces}" method="get" id="filterForm">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Type d'annonce</label>
+                                    <select class="form-select" name="type" onchange="this.form.submit()">
+                                        <option value="">Tous les types</option>
+                                        <option
+                                            th:each="type : ${typesAnnonce != null ? typesAnnonce : T(com.example.gestion_rh.entity.Annonce.TypeAnnonce).values()}"
+                                            th:value="${type}" th:text="${type}"
+                                            th:selected="${selectedType != null and selectedType == type.name()}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Département</label>
+                                    <select class="form-select" name="departementId" onchange="this.form.submit()">
+                                        <option value="">Tous les départements</option>
+                                        <option th:each="dept : ${departements}" th:value="${dept.id}"
+                                            th:text="${dept.nom}"
+                                            th:selected="${departementId != null and departementId == dept.id}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Recherche</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="keyword" th:value="${keyword}"
+                                            placeholder="Rechercher par titre, contenu...">
+                                        <button class="btn btn-outline-secondary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                        <a th:if="${keyword != null && keyword != ''}" th:href="@{/admin/annonces}"
+                                            class="btn btn-outline-danger" title="Effacer la recherche">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Hidden inputs for pagination -->
+                        <input type="hidden" name="size" th:value="${annoncesPage.size}" />
+                        <input type="hidden" name="sortField" th:value="${sortField}" />
+                        <input type="hidden" name="sortDir" th:value="${sortDir}" />
+                    </form>
+                </div>
+            </div>
+
+            <!-- Annonces Table -->
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Liste des Annonces
+                            <small class="text-muted ms-2">
+                                (<span th:text="${totalItems}">0</span> total)
+                            </small>
+                        </h6>
+
+                        <!-- Size Selector -->
+                        <form th:action="@{/admin/annonces}" method="get" class="d-inline-block">
+                            <input type="hidden" name="keyword" th:value="${keyword}" />
+                            <input type="hidden" name="departementId" th:value="${departementId}" />
+                            <input type="hidden" name="type" th:value="${selectedType}" />
+                            <input type="hidden" name="sortField" th:value="${sortField}" />
+                            <input type="hidden" name="sortDir" th:value="${sortDir}" />
+
+                            <select name="size" class="form-select form-select-sm d-inline-block w-auto"
+                                onchange="this.form.submit()">
+                                <option value="5" th:selected="${annoncesPage.size == 5}">5 / page</option>
+                                <option value="10" th:selected="${annoncesPage.size == 10}">10 / page</option>
+                                <option value="25" th:selected="${annoncesPage.size == 25}">25 / page</option>
+                                <option value="50" th:selected="${annoncesPage.size == 50}">50 / page</option>
+                                <option value="100" th:selected="${annoncesPage.size == 100}">100 / page</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="annoncesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>
+                                        <a th:href="@{/admin/annonces(page=${currentPage}, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField='titre', sortDir=${reverseSortDir})}"
+                                            class="text-decoration-none text-dark">
+                                            Titre <i class="fas"
+                                                th:classappend="${sortField == 'titre'} ? (${sortDir == 'asc'} ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'"></i>
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a th:href="@{/admin/annonces(page=${currentPage}, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField='type', sortDir=${reverseSortDir})}"
+                                            class="text-decoration-none text-dark">
+                                            Type <i class="fas"
+                                                th:classappend="${sortField == 'type'} ? (${sortDir == 'asc'} ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'"></i>
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a th:href="@{/admin/annonces(page=${currentPage}, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField='departement', sortDir=${reverseSortDir})}"
+                                            class="text-decoration-none text-dark">
+                                            Département <i class="fas"
+                                                th:classappend="${sortField == 'departement'} ? (${sortDir == 'asc'} ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'"></i>
+                                        </a>
+                                    </th>
+                                    <th>Créateur</th>
+                                    <th>
+                                        <a th:href="@{/admin/annonces(page=${currentPage}, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField='datePublication', sortDir=${reverseSortDir})}"
+                                            class="text-decoration-none text-dark">
+                                            Date <i class="fas"
+                                                th:classappend="${sortField == 'datePublication'} ? (${sortDir == 'asc'} ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'"></i>
+                                        </a>
+                                    </th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="annonce : ${annonces}">
+                                    <td>
+                                        <strong th:text="${annonce.titre}"></strong>
+                                        <br>
+                                        <small class="text-muted"
+                                            th:text="${annonce.contenu.length() > 100 ? annonce.contenu.substring(0, 100) + '...' : annonce.contenu}">
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span th:switch="${annonce.type.name()}" class="badge">
+                                            <span th:case="'IMPORTANTE'" class="badge bg-danger">IMPORTANTE</span>
+                                            <span th:case="'GENERALE'" class="badge bg-primary">GÉNÉRALE</span>
+                                            <span th:case="'DEPARTEMENT'" class="badge bg-success">DÉPARTEMENT</span>
+                                            <span th:case="'INFORMATION'" class="badge bg-info">INFORMATION</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${annonce.departement != null}" class="badge bg-secondary"
+                                            th:text="${annonce.departement.nom}">
+                                        </span>
+                                        <span th:unless="${annonce.departement != null}" class="text-muted">Tous</span>
+                                    </td>
+                                    <td th:text="${annonce.createur.prenom + ' ' + annonce.createur.nom}"></td>
+                                    <td>
+                                        <small
+                                            th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy HH:mm')}"></small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a th:href="@{/admin/annonces/{id}/modifier(id=${annonce.id})}"
+                                                class="btn btn-outline-primary" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+
+                                            <button type="button" class="btn btn-outline-danger delete-btn"
+                                                title="Supprimer" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                th:data-annonce-id="${annonce.id}"
+                                                th:data-annonce-title="${annonce.titre}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${annoncesPage.empty}">
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fas fa-bullhorn fa-2x mb-3"></i>
+                                        <h5>Aucune annonce trouvée</h5>
+                                        <p class="mb-0">
+                                            <span
+                                                th:if="${selectedType != null or departementId != null or (keyword != null and keyword != '')}">
+                                                Aucune annonce ne correspond aux filtres sélectionnés.
+                                                <a th:href="@{/admin/annonces}" class="text-decoration-none">
+                                                    Afficher toutes les annonces
+                                                </a>
+                                            </span>
+                                            <span
+                                                th:unless="${selectedType != null or departementId != null or (keyword != null and keyword != '')}">
+                                                Commencez par créer une nouvelle annonce
+                                            </span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav th:if="${totalPages > 1}" aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <!-- First Page -->
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link"
+                                    th:href="@{/admin/annonces(page=0, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField=${sortField}, sortDir=${sortDir})}"
+                                    aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+
+                            <!-- Previous Page -->
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link"
+                                    th:href="@{/admin/annonces(page=${currentPage - 1}, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField=${sortField}, sortDir=${sortDir})}"
+                                    aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            <!-- Page Numbers -->
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:if="${i >= currentPage - 2 && i <= currentPage + 2}"
+                                th:classappend="${currentPage == i} ? 'active'">
+                                <a class="page-link"
+                                    th:href="@{/admin/annonces(page=${i}, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField=${sortField}, sortDir=${sortDir})}"
+                                    th:text="${i + 1}">1</a>
+                            </li>
+
+                            <!-- Next Page -->
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                <a class="page-link"
+                                    th:href="@{/admin/annonces(page=${currentPage + 1}, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField=${sortField}, sortDir=${sortDir})}"
+                                    aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+
+                            <!-- Last Page -->
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                <a class="page-link"
+                                    th:href="@{/admin/annonces(page=${totalPages - 1}, size=${annoncesPage.size}, keyword=${keyword}, departementId=${departementId}, type=${selectedType}, sortField=${sortField}, sortDir=${sortDir})}"
+                                    aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="text-center text-muted small mt-2">
+                            Page <span th:text="${currentPage + 1}">1</span> sur <span th:text="${totalPages}">1</span>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Stats Summary - Version simplifiée -->
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Total Annonces</h6>
+                                    <h3 class="mb-0" th:text="${totalAnnonces}">0</h3>
+                                </div>
+                                <i class="fas fa-bullhorn fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Importantes</h6>
+                                    <h3 class="mb-0" th:text="${importantesCount}">0</h3>
+                                </div>
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Département</h6>
+                                    <h3 class="mb-0" th:text="${departementCount}">0</h3>
+                                </div>
+                                <i class="fas fa-building fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Générales</h6>
+                                    <h3 class="mb-0" th:text="${generalesCount}">0</h3>
+                                </div>
+                                <i class="fas fa-bullhorn fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div th:replace="admin/footer :: admin-footer"></div>
+    </main>
+
+    <!-- Delete Modal - SIMPLIFIÉ sans CSRF dans le template -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer l'annonce "<span id="annonceTitle"></span>" ?</p>
+                    <p class="text-danger"><small>Cette action est irréversible.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form id="deleteForm" method="post">
+                        <!-- CSRF token sera ajouté automatiquement par Spring Security si configuré correctement -->
+                        <input type="hidden" name="_method" value="DELETE" />
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <div th:replace="admin/footer :: scripts"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Page annonces chargée');
+
+            // 1. Gestion de la recherche
+            const searchInput = document.getElementById('searchInput');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+            const annoncesTable = document.getElementById('annoncesTable');
+
+            if (searchInput && annoncesTable) {
+                function filterTable() {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const rows = annoncesTable.querySelectorAll('tbody tr');
+
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        if (searchTerm === '' || text.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                }
+
+                searchInput.addEventListener('keyup', filterTable);
+                filterTable();
+
+                if (clearSearchBtn) {
+                    clearSearchBtn.addEventListener('click', function () {
+                        searchInput.value = '';
+                        filterTable();
+
+                        const url = window.location.href;
+                        if (!url.includes('/type/') && !url.includes('/departement/')) {
+                            window.location.href = '/admin/annonces';
+                        }
+                    });
+                }
+            }
+
+            // 2. Gestion du modal de suppression
+            const deleteModal = document.getElementById('deleteModal');
+            if (deleteModal) {
+                // Écouter l'ouverture du modal
+                deleteModal.addEventListener('show.bs.modal', function (event) {
+                    console.log('Modal suppression ouvert');
+                    const button = event.relatedTarget;
+                    const annonceId = button.getAttribute('data-annonce-id');
+                    const annonceTitle = button.getAttribute('data-annonce-title');
+
+                    console.log('ID annonce:', annonceId, 'Titre:', annonceTitle);
+
+                    // Mettre à jour le titre dans le modal
+                    const modalTitle = deleteModal.querySelector('#annonceTitle');
+                    if (modalTitle) {
+                        modalTitle.textContent = annonceTitle;
+                    }
+
+                    // Mettre à jour l'action du formulaire
+                    const form = deleteModal.querySelector('#deleteForm');
+                    if (form && annonceId) {
+                        form.action = '/admin/annonces/' + annonceId + '/supprimer';
+                        console.log('Form action mise à jour:', form.action);
+                    }
+                });
+            }
+
+            // 3. Ajouter des écouteurs aux boutons de suppression
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    console.log('Bouton suppression cliqué:', this.getAttribute('data-annonce-title'));
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

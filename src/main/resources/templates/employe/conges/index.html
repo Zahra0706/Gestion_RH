@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="employe/header :: head">
+    <title>Mes Congés</title>
+</head>
+<body>
+<div th:replace="employe/menu :: sidebar"></div>
+
+<main class="main-content">
+    <div th:replace="employe/header :: employe-header" th:with="pageTitle='Mes Congés'"></div>
+
+    <div class="container-fluid">
+
+        <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+        <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="badge bg-info">
+                    Jours restants: <span th:text="${joursRestants}">0</span>
+                </span>
+            </div>
+            <a class="btn btn-primary" th:href="@{/employe/conges/nouveau}">
+                <i class="fas fa-plus me-1"></i> Nouvelle demande
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <strong>Historique</strong>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0">
+                    <thead>
+                    <tr>
+                        <th>Du</th>
+                        <th>Au</th>
+                        <th>Type</th>
+                        <th>Statut</th>
+                        <th>Motif</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(conges)}">
+                        <td colspan="5" class="text-center text-muted p-4">Aucune demande pour le moment.</td>
+                    </tr>
+
+                    <tr th:each="c : ${conges}">
+                        <td th:text="${c.dateDebut}"></td>
+                        <td th:text="${c.dateFin}"></td>
+                        <td th:text="${c.typeConge}"></td>
+                        <td>
+                            <span class="badge bg-secondary" th:text="${c.statut}"></span>
+                        </td>
+                        <td th:text="${c.motif}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+</body>
+</html>

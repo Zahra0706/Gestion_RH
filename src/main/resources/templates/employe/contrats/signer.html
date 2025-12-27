@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Signer le contrat</title>
+
+    <!-- Bootstrap (si déjà dans ton projet via fragments, tu peux le supprimer ici) -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <div class="text-center mb-4">
+                <h3 class="mb-1">Signature du contrat</h3>
+                <p class="text-muted mb-0">Télécharge ta signature (image ou PDF) pour valider le contrat.</p>
+            </div>
+
+            <!-- Flash messages -->
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                    <!-- Contrat introuvable / token invalide -->
+                    <div th:if="${contrat == null}" class="alert alert-warning mb-0">
+                        Lien invalide ou contrat introuvable.
+                    </div>
+
+                    <!-- Contrat trouvé -->
+                    <div th:if="${contrat != null}">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="text-muted small">Référence</div>
+                                    <div class="fw-bold"
+                                         th:text="${contrat.reference != null ? contrat.reference : ('CTR-' + contrat.id)}">
+                                        CTR-1
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-muted small">Type</div>
+                                    <div class="fw-bold" th:text="${contrat.typeContrat != null ? contrat.typeContrat : '—'}">
+                                        CDI
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" th:if="${contrat.fichierPdfPath != null}">
+                            <a class="btn btn-outline-primary w-100"
+                               th:href="@{/employe/contrats/{id}/pdf(id=${contrat.id})}">
+                                <i class="fas fa-download me-1"></i> Télécharger le contrat (PDF)
+                            </a>
+                        </div>
+
+                        <div th:if="${contrat.estSigne}" class="alert alert-success">
+                            Ce contrat est déjà signé.
+                        </div>
+
+                        <!-- Form signature -->
+                        <form th:if="${!contrat.estSigne}"
+                              th:action="@{/employe/contrats/signer}"
+                              method="post"
+                              enctype="multipart/form-data">
+
+                            <input type="hidden" name="token" th:value="${token}"/>
+
+                            <div class="mb-3">
+                                <label class="form-label">Fichier de signature</label>
+                                <input class="form-control" type="file" name="signatureFile"
+                                       accept="image/*,application/pdf" required>
+                                <div class="form-text">
+                                    Formats acceptés : image (PNG/JPG/WEBP) ou PDF.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Commentaire (optionnel)</label>
+                                <textarea class="form-control" name="commentaire" rows="2"
+                                          placeholder="Ajouter un commentaire..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-paper-plane me-1"></i> Signer et envoyer au RH
+                            </button>
+
+                            <p class="text-muted small mt-3 mb-0">
+                                En cliquant sur “Signer”, votre signature sera enregistrée et transmise au service RH.
+                            </p>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="text-center text-muted small mt-3">
+                Si tu as un problème avec le lien, contacte le service RH.
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- FontAwesome (si ton projet l’a déjà globalement, tu peux supprimer) -->
+<script th:src="@{/js/fontawesome-all.min.js}"></script>
+</body>
+</html>

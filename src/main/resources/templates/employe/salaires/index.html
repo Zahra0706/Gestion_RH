@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="employe/header :: head">
+    <title>Mes Fiches de Paie</title>
+</head>
+<body>
+<div th:replace="employe/menu :: sidebar"></div>
+
+<main class="main-content">
+    <div th:replace="employe/header :: employe-header" th:with="pageTitle='Mes fiches de paie'"></div>
+
+    <div class="container-fluid">
+
+        <!-- (Optionnel) Messages flash -->
+        <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+        <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <strong class="text-white">Historique des fiches de paie</strong>
+
+                <small th:if="${salaires != null}" class="text-white">
+                    Total : <span th:text="${#lists.size(salaires)}">0</span>
+                </small>
+            </div>
+
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead>
+                        <tr>
+                            <th>Mois/Année</th>
+                            <th class="text-end">Brut</th>
+                            <th class="text-end">Primes</th>
+                            <th class="text-end">Retenues</th>
+                            <th class="text-end">Net</th>
+                            <th>Date Paiement</th>
+                            <th>PDF</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:if="${salaires == null || #lists.isEmpty(salaires)}">
+                            <td colspan="7" class="text-center text-muted p-4">
+                                Aucune fiche de paie disponible pour le moment.
+                            </td>
+                        </tr>
+
+                        <tr th:each="s : ${salaires}">
+                            <td th:text="${s.moisAnnee}">2025-12</td>
+
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(s.salaireBrut, 1, 'COMMA', 2, 'POINT')}">
+                                0.00
+                            </td>
+
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(s.primes, 1, 'COMMA', 2, 'POINT')}">
+                                0.00
+                            </td>
+
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(s.retenues, 1, 'COMMA', 2, 'POINT')}">
+                                0.00
+                            </td>
+
+                            <td class="text-end">
+                                <span class="badge bg-success"
+                                      th:text="${#numbers.formatDecimal(s.salaireNet, 1, 'COMMA', 2, 'POINT')}">
+                                    0.00
+                                </span>
+                            </td>
+
+                            <td th:text="${s.datePaiement}">2025-12-20</td>
+
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   th:if="${s.id != null}"
+                                   th:href="@{/employe/salaires/{id}/pdf(id=${s.id})}">
+                                    <i class="fas fa-file-pdf me-1"></i> Télécharger
+                                </a>
+
+                                <button class="btn btn-sm btn-outline-secondary" disabled
+                                        th:if="${s.id == null}">
+                                    <i class="fas fa-file-pdf me-1"></i> PDF indisponible
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mon Profil - HR Manager</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Profil Personnalisé -->
+    <link th:href="@{/css/profil.css}" rel="stylesheet">
+
+    <!-- Custom Admin CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
+
+    <style>
+        /* Styles inline pour compléter */
+        .main-content {
+            background: linear-gradient(135deg, #f6f9fc 0%, #f1f5f9 100%);
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="admin/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="admin/header :: admin-header" th:with="pageTitle='Mon Profil'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Profile Container -->
+    <div class="profile-full-container">
+        <div class="profile-card">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-container">
+                        <div class="profile-avatar-large">
+                            <span class="avatar-initials"
+                                  th:text="${#strings.substring(user.nom, 0, 1) + #strings.substring(user.prenom, 0, 1)}">
+                                UI
+                            </span>
+                        </div>
+                        <div class="profile-info-header">
+                            <h1 th:text="${user.prenom + ' ' + user.nom}">User </h1>
+                            <div class="profile-meta">
+                                <span class="role-badge" th:text="${user.role}">ADMIN</span>
+                                <span class="info-badge success" th:if="${user.isCompteActif}">
+                                    <i class="fas fa-check-circle me-1"></i> Compte Actif
+                                </span>
+                                <span class="info-badge warning" th:unless="${user.isCompteActif}">
+                                    <i class="fas fa-exclamation-circle me-1"></i> Compte Inactif
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Content Grid -->
+            <div class="profile-content-grid">
+                <!-- Colonne Principale -->
+                <div class="main-column">
+                    <!-- Section Informations Personnelles -->
+                    <div class="profile-section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <h3>Informations Personnelles</h3>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Matricule</span>
+                                <span class="info-value" th:text="${user.matricule}">M00000</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Email</span>
+                                <span class="info-value" th:text="${user.email}">gmail@example.com</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Téléphone</span>
+                                <span class="info-value" th:text="${user.telephone ?: 'Non renseigné'}">
+                                    +212 6 00 00 00 00
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Adresse</span>
+                                <span class="info-value" th:text="${user.adresse ?: 'Non renseignée'}">
+                                    Maroc
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Poste</span>
+                                <span class="info-value" th:text="${user.poste}">Développeur</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Département</span>
+                                <span class="info-value" th:text="${user.departement?.nom ?: 'Non assigné'}">
+                                    Informatique
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Informations Professionnelles -->
+                    <div class="profile-section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h3>Informations Professionnelles</h3>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Date d'Embauche</span>
+                                <span class="info-value">
+                                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                                    <span th:if="${user.dateEmbauche}"
+                                          th:text="${#temporals.format(user.dateEmbauche, 'dd MMMM yyyy')}">
+                                        15 janvier 2023
+                                    </span>
+                                    <span th:unless="${user.dateEmbauche}">Non définie</span>
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Date de Naissance</span>
+                                <span class="info-value">
+                                    <i class="fas fa-birthday-cake me-2 text-primary"></i>
+                                    <span th:if="${user.dateNaissance}"
+                                          th:text="${#temporals.format(user.dateNaissance, 'dd MMMM yyyy')}">
+                                        15 mai 1990
+                                    </span>
+                                    <span th:unless="${user.dateNaissance}">Non définie</span>
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Ancienneté</span>
+                                <span class="info-value">
+                                    <i class="fas fa-clock me-2 text-primary"></i>
+                                    <span th:if="${user.dateEmbauche}">
+                                        <span th:text="${#temporals.year(#temporals.createNow()) - #temporals.year(user.dateEmbauche)}"></span> ans
+                                    </span>
+                                    <span th:unless="${user.dateEmbauche}">Non définie</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Actions -->
+                <div class="sidebar-column">
+                    <!-- Actions Rapides -->
+                    <div class="profile-section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h3>Actions Rapides</h3>
+                        </div>
+                        <div class="quick-actions-grid">
+                            <a th:href="@{/admin/profil/changer-mot-de-passe}" class="action-btn">
+                                <i class="fas fa-key"></i>
+                                <span>Changer mot de passe</span>
+                            </a>
+                            <a th:href="@{/admin/profil/modifier}" class="action-btn">
+                                <i class="fas fa-edit"></i>
+                                <span>Modifier profil</span>
+                            </a>
+                            <a th:href="@{/admin/dashboard}" class="action-btn">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Tableau de bord</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer du Profil -->
+            <div class="profile-footer">
+                <div class="footer-content">
+                    <div class="footer-info">
+                        <div class="footer-info-item">
+                            <i class="fas fa-calendar-plus"></i>
+                            <span>
+                                Compte créé le
+                                <strong th:text="${user.dateEmbauche != null ? #temporals.format(user.dateEmbauche, 'dd/MM/yyyy') : 'Date inconnue'}">
+                                    15/01/2023
+                                </strong>
+                            </span>
+                        </div>
+                        <div class="footer-info-item">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Accès : <strong sec:authentication="principal.authorities"></strong></span>
+                        </div>
+                    </div>
+                    <div class="footer-updated">
+                        <small class="text-muted">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Dernière mise à jour :
+                            <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy HH:mm')}">
+                                12/12/2025 10:25
+                            </span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="admin/footer :: scripts"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page profil chargée');
+
+        // Animation d'apparition progressive
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observer les sections
+        document.querySelectorAll('.profile-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Effet de hover sur les boutons d'action
+        const actionButtons = document.querySelectorAll('.action-btn');
+        actionButtons.forEach(btn => {
+            btn.addEventListener('mouseenter', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                this.style.setProperty('--mouse-x', `${x}px`);
+                this.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Affichage dynamique des informations
+        const userInfo = {
+            nom: document.querySelector('.profile-info-header h1').textContent,
+            role: document.querySelector('.role-badge').textContent,
+            statut: document.querySelector('.info-badge').textContent
+        };
+
+        console.log('Profil chargé:', userInfo);
+
+        // Ajouter des attributs de data pour le suivi
+        document.body.setAttribute('data-profile-loaded', 'true');
+        document.body.setAttribute('data-user-role', userInfo.role.toLowerCase());
+    });
+</script>
+</body>
+</html>

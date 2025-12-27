@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="employe/header :: head">
+    <title>Mes Réunions</title>
+</head>
+<body>
+<div th:replace="employe/menu :: sidebar"></div>
+
+<main class="main-content">
+    <div th:replace="employe/header :: employe-header" th:with="pageTitle='Mes Réunions'"></div>
+
+    <div class="container-fluid">
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted">À venir</div>
+                                <div class="h3 mb-0" th:text="${reunionsAVenir}">0</div>
+                            </div>
+                            <i class="fas fa-calendar-check fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted">Passées</div>
+                                <div class="h3 mb-0" th:text="${reunionsPassees}">0</div>
+                            </div>
+                            <i class="fas fa-history fa-2x text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted">Total</div>
+                                <div class="h3 mb-0" th:text="${totalReunions}">0</div>
+                            </div>
+                            <i class="fas fa-users fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <strong>Liste des réunions</strong>
+                <div class="text-muted" style="font-size: 0.9rem;">Réunions de ton département, réunions générales et réunions où tu es participant.</div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0">
+                    <thead>
+                    <tr>
+                        <th>Titre</th>
+                        <th>Début</th>
+                        <th>Fin</th>
+                        <th>Lieu</th>
+                        <th>Département</th>
+                        <th>Créée par</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(reunions)}">
+                        <td colspan="6" class="text-center text-muted p-4">Aucune réunion programmée pour le moment.</td>
+                    </tr>
+
+                    <tr th:each="r : ${reunions}">
+                        <td>
+                            <div class="fw-bold" th:text="${r.titre}">Réunion</div>
+                            <div class="text-muted" th:if="${r.description != null && !#strings.isEmpty(r.description)}" th:text="${r.description}"></div>
+                        </td>
+                        <td th:text="${r.dateHeureDebut != null ? #temporals.format(r.dateHeureDebut, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                        <td th:text="${r.dateHeureFin != null ? #temporals.format(r.dateHeureFin, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                        <td th:text="${r.lieu != null ? r.lieu : '-'}">-</td>
+                        <td>
+                            <span class="badge bg-info" th:if="${r.departement != null}" th:text="${r.departement.nom}">Dept</span>
+                            <span class="badge bg-secondary" th:if="${r.departement == null}">Générale</span>
+                        </td>
+                        <td th:text="${r.createur != null ? (r.createur.nom + ' ' + r.createur.prenom) : '-'}">-</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

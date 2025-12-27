@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="~{admin/header :: head}">
+    <title>Détails de l'Employé - Administration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Style minimal pour la page de détails */
+        .avatar-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        /* Style spécifique pour l'avatar large dans l'en-tête */
+        .avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-item-detailed {
+            border-left: 4px solid #3498db;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .action-card {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+            display: block;
+            color: #495057;
+        }
+
+        .action-card:hover {
+            border-color: #3498db;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            color: #3498db;
+        }
+
+        .contract-info {
+            background: linear-gradient(135deg, #fef3c7, #ffedd5);
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        /* Pour les h5 dans les en-têtes bg-light */
+        .card-header.bg-light h5.text-white {
+            color: white !important;
+        }
+
+        .card-header.bg-light h5.text-white i {
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="~{admin/menu :: sidebar}"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="~{admin/header :: admin-header}" th:with="pageTitle='Détails de l\'Employé'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Employee Detail Container -->
+    <div class="container-fluid mt-3">
+        <div class="card shadow-lg">
+            <!-- Detail Header -->
+            <div class="card-header text-white py-4">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="avatar-large d-flex align-items-center justify-content-center">
+                            <span th:text="${#strings.substring(employe.nom, 0, 1) + #strings.substring(employe.prenom, 0, 1)}"></span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <h1 class="h2 mb-2" th:text="${employe.prenom + ' ' + employe.nom}"></h1>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="badge bg-light text-dark" th:text="${employe.matricule}"></span>
+                            <span th:switch="${employe.role.name()}">
+                                <span th:case="'SUPER_ADMIN'" class="badge bg-danger">SUPER_ADMIN</span>
+                                <span th:case="'ADMIN'" class="badge bg-warning text-dark">ADMIN</span>
+                                <span th:case="'RH'" class="badge bg-success">RH</span>
+                                <span th:case="'MANAGER'" class="badge" style="background-color: #6f42c1; color: white">MANAGER</span>
+                                <span th:case="'EMPLOYE'" class="badge bg-secondary">EMPLOYE</span>
+                            </span>
+                            <span th:if="${employe.isCompteActif}" class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Actif
+                            </span>
+                            <span th:unless="${employe.isCompteActif}" class="badge bg-danger">
+                                <i class="fas fa-times-circle me-1"></i>Inactif
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="detail-grid">
+                    <!-- Left Column - Informations -->
+                    <div>
+                        <!-- Informations Personnelles -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0 text-white"><i class="fas fa-id-card me-2"></i>Informations Personnelles</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                    <tr>
+                                        <th width="40%"><i class="fas fa-envelope me-2"></i>Email :</th>
+                                        <td><strong th:text="${employe.email}"></strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-phone me-2"></i>Téléphone :</th>
+                                        <td th:text="${employe.telephone ?: 'Non renseigné'}"></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-map-marker-alt me-2"></i>Adresse :</th>
+                                        <td th:text="${employe.adresse}"></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-birthday-cake me-2"></i>Date de Naissance :</th>
+                                        <td>
+                                            <span th:if="${employe.dateNaissance}"
+                                                  th:text="${#temporals.format(employe.dateNaissance, 'dd/MM/yyyy')}">
+                                            </span>
+                                            <span th:unless="${employe.dateNaissance}" class="text-muted fst-italic">Non renseignée</span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Informations Professionnelles -->
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0 text-white"><i class="fas fa-briefcase me-2"></i>Informations Professionnelles</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                    <tr>
+                                        <th width="40%"><i class="fas fa-user-tie me-2"></i>Poste :</th>
+                                        <td><strong th:text="${employe.poste}"></strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-building me-2"></i>Département :</th>
+                                        <td>
+                                            <span th:if="${employe.departement}">
+                                                <span th:text="${employe.departement.nom}"></span>
+                                                <span class="badge bg-secondary ms-2" th:text="${employe.departement.code}"></span>
+                                            </span>
+                                            <span th:unless="${employe.departement}" class="text-muted fst-italic">Non assigné</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-calendar-plus me-2"></i>Date d'Embauche :</th>
+                                        <td>
+                                            <span th:text="${#temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></span>
+                                            <span class="badge bg-info ms-2">
+                                                <span th:text="${#temporals.year(#temporals.createNow()) - #temporals.year(employe.dateEmbauche)}"></span> ans
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <div th:if="${employe.contrat != null}" class="contract-info mt-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-contract text-warning me-2"></i>
+                                        <div>
+                                            <strong>Contrat: </strong>
+                                            <span th:text="${employe.contrat.type}"></span>
+                                            <span class="ms-2">| Durée: </span>
+                                            <span th:text="${employe.contrat.duree + ' mois'}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Actions & Statut -->
+                    <div>
+                        <!-- Actions Rapides -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0 text-white"><i class="fas fa-bolt me-2"></i>Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <a th:href="@{'/admin/employes/' + ${employe.id} + '/modifier'}"
+                                           class="action-card text-black text-decoration-none">
+                                            <i class="fas fa-edit fa-2x mb-2"></i>
+                                            <div>Modifier</div>
+                                        </a>
+                                    </div>
+
+                                    <div class="col-4">
+                                        <th:block th:if="${employe.isCompteActif}">
+                                            <form th:action="@{'/admin/employes/' + ${employe.id} + '/desactiver'}"
+                                                  method="post"
+                                                  class="d-inline h-100"
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir désactiver ce compte ?')">
+                                                <button type="submit" class="action-card w-100 h-100 border-0 bg-transparent">
+                                                    <i class="fas fa-user-slash fa-2x mb-2"></i>
+                                                    <div>Désactiver</div>
+                                                </button>
+                                            </form>
+                                        </th:block>
+                                        <th:block th:unless="${employe.isCompteActif}">
+                                            <form th:action="@{'/admin/employes/' + ${employe.id} + '/activer'}"
+                                                  method="post"
+                                                  class="d-inline h-100"
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir activer ce compte ?')">
+                                                <button type="submit" class="action-card w-100 h-100 border-0 bg-transparent">
+                                                    <i class="fas fa-user-check fa-2x mb-2"></i>
+                                                    <div>Activer</div>
+                                                </button>
+                                            </form>
+                                        </th:block>
+                                    </div>
+
+                                    <div class="col-4">
+                                        <form th:action="@{'/admin/employes/' + ${employe.id} + '/reinitialiser-mot-de-passe'}"
+                                              method="post"
+                                              class="d-inline h-100"
+                                              th:attr="onsubmit='return confirm(\'Êtes-vous sûr de vouloir réinitialiser le mot de passe ? Un email sera envoyé à l\'employé.\')'">
+                                            <button type="submit" class="action-card w-100 h-100 border-0 bg-transparent">
+                                                <i class="fas fa-key fa-2x mb-2"></i>
+                                                <div>Réinitialiser MDP</div>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statut du Compte -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0 text-white"><i class="fas fa-user-shield me-2"></i>Statut du Compte</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                    <tr>
+                                        <th width="50%"><i class="fas fa-sign-in-alt me-2"></i>Dernière connexion :</th>
+                                        <td><span class="text-muted fst-italic">Non disponible</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-exclamation-circle me-2"></i>Première connexion :</th>
+                                        <td>
+                        <span th:if="${employe.premiereConnexion}" class="badge bg-warning text-dark">
+                            <i class="fas fa-exclamation-circle me-1"></i>En attente
+                        </span>
+                                            <span th:unless="${employe.premiereConnexion}" class="badge bg-success text-white">
+                            <i class="fas fa-check-circle me-1"></i>Effectuée
+                        </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-calendar-check me-2"></i>Compte créé le :</th>
+                                        <td><strong th:text="${#temporals.format(employe.dateEmbauche, 'dd/MM/yyyy')}"></strong></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Retour à la liste -->
+                        <div class="d-grid">
+                            <a th:href="@{/admin/employes}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="~{admin/footer :: admin-footer}"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="~{admin/footer :: scripts}"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page détails employé chargée');
+
+        // Confirmation pour les actions sensibles
+        const actionForms = document.querySelectorAll('form[onsubmit]');
+        actionForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const button = this.querySelector('button');
+                const action = button.querySelector('div').textContent;
+                if (!confirm(`Êtes-vous sûr de vouloir ${action.toLowerCase()} ce compte ?`)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

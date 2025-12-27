@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<body>
+
+<div th:fragment="sidebar">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h3><i class="fas fa-users me-2"></i>HR<span>Manager</span></h3>
+            <small class="text-muted">Panel d'Employé</small>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a th:href="@{/employe/dashboard}" class="menu-item"
+               th:classappend="${requestURI != null && requestURI == '/employe/dashboard' ? 'active' : ''}">
+                <i class="fas fa-tachometer-alt"></i>
+                <span class="menu-text">Tableau de Bord</span>
+            </a>
+
+            <a th:href="@{/employe/conges}" class="menu-item"
+               th:classappend="${requestURI != null && requestURI.startsWith('/employe/conges') ? 'active' : ''}">
+                <i class="fas fa-calendar-alt"></i>
+                <span class="menu-text">Mes Congés</span>
+            </a>
+
+            <a th:href="@{/employe/salaires}" class="menu-item"
+               th:classappend="${requestURI != null && requestURI.startsWith('/employe/salaires') ? 'active' : ''}">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span class="menu-text">Mes Fiches de Paie</span>
+            </a>
+
+            <a th:href="@{/employe/contrats}" class="menu-item"
+               th:classappend="${requestURI != null && requestURI.startsWith('/employe/contrats') ? 'active' : ''}">
+                <i class="fas fa-file-contract"></i>
+                <span class="menu-text">Mes Contrats</span>
+            </a>
+
+
+            <!-- Réunions -->
+            <a class="menu-item" th:href="@{/employe/reunions}">
+                <i class="fas fa-calendar-alt"></i>
+                <span class="menu-text">Mes Réunions</span>
+            </a>
+
+            <a th:href="@{/employe/annonces}" class="menu-item"
+               th:classappend="${requestURI != null && requestURI.startsWith('/employe/annonces') ? 'active' : ''}">
+                <i class="fas fa-user"></i>
+                <span class="menu-text">Mes Annonces</span>
+            </a>
+
+            <a th:href="@{/employe/profil}" class="menu-item"
+               th:classappend="${requestURI != null && requestURI.startsWith('/employe/profil') ? 'active' : ''}">
+                <i class="fas fa-user"></i>
+                <span class="menu-text">Mon Profil</span>
+            </a>
+
+            <div class="menu-group mt-5">
+                <form th:action="@{/auth/logout}" method="post" class="menu-item logout-form">
+                    <button type="submit" class="btn p-0 m-0 border-0 text-white">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="menu-text">Déconnexion</span>
+                    </button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="text-center text-muted py-1">
+                <small>© 2025 HR Manager</small><br>
+                <small>v1.0.0</small>
+            </div>
+        </div>
+    </aside>
+</div>
+
+</body>
+</html>

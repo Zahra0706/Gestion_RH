@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+
+<head th:replace="employe/header :: head">
+    <title>Tableau de Bord - Employé</title>
+</head>
+
+<body>
+<div th:replace="employe/menu :: sidebar"></div>
+
+<main class="main-content">
+    <div th:replace="employe/header :: employe-header" th:with="pageTitle='Tableau de bord'"></div>
+
+    <div class="d-flex justify-content-end mb-3" th:if="${employe != null && employe.departement != null}">
+        <span class="badge bg-primary" th:text="${employe.departement.nom}">Département</span>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card conges h-100">
+                <div class="stat-icon conges"><i class="fas fa-sun"></i></div>
+                <div class="stat-number" th:text="${#numbers.formatDecimal(joursRestants, 1, 0)}">0</div>
+                <div class="stat-text">Jours de congés restants (année en cours)</div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card departements h-100">
+                <div class="stat-icon departements"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-number" th:text="${congesValides}">0</div>
+                <div class="stat-text">Congés approuvés</div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card conges h-100">
+                <div class="stat-icon conges"><i class="fas fa-clock"></i></div>
+                <div class="stat-number" th:text="${congesEnAttente}">0</div>
+                <div class="stat-text">Congés en attente</div>
+                <div class="mt-3"><small class="text-muted">(Manager ou RH)</small></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card employes h-100">
+                <div class="stat-icon employes"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div class="stat-number" th:text="${salairesCount}">0</div>
+                <div class="stat-text">Fiches de paie disponibles</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h6 class="chart-title">Actions Rapides</h6>
+        <div class="quick-actions">
+            <a th:href="@{/employe/conges/nouveau}" class="action-btn">
+                <i class="fas fa-plus"></i>
+                <span>Demander un congé</span>
+            </a>
+            <a th:href="@{/employe/conges}" class="action-btn">
+                <i class="fas fa-calendar-alt"></i><span>Mes congés</span>
+            </a>
+            <a th:href="@{/employe/salaires}" class="action-btn">
+                <i class="fas fa-file-pdf"></i><span>Mes fiches de paie</span>
+            </a>
+            <a th:href="@{/employe/profil}" class="action-btn">
+                <i class="fas fa-user-edit"></i><span>Modifier mon profil</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <h6 class="chart-title">Mes Dernières Demandes de Congé</h6>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>Date Début</th>
+                            <th>Date Fin</th>
+                            <th>Type</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="conge : ${dernieresDemandes}">
+                            <td th:text="${#temporals.format(conge.dateDebut, 'dd/MM/yyyy')}"></td>
+                            <td th:text="${#temporals.format(conge.dateFin, 'dd/MM/yyyy')}"></td>
+
+                            <!-- ✅ TYPE -->
+                            <td>
+                                <span th:switch="${conge.typeConge}">
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.TypeConge).PAYE}"
+                                          class="badge bg-success">PAYE</span>
+
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.TypeConge).MALADIE}"
+                                          class="badge bg-danger">MALADIE</span>
+
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.TypeConge).SANS_SOLDE}"
+                                          class="badge bg-secondary">SANS_SOLDE</span>
+
+                                    <span th:case="*" class="badge bg-info"
+                                          th:text="${conge.typeConge}">TYPE</span>
+                                </span>
+                            </td>
+
+                            <!-- ✅ STATUT -->
+                            <td>
+                                <span th:switch="${conge.statut}">
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.StatutConge).EN_ATTENTE_MANAGER}"
+                                          class="badge bg-warning text-dark">En attente Manager</span>
+
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.StatutConge).VALIDE_MANAGER}"
+                                          class="badge bg-info text-dark">Validé Manager (Attente RH)</span>
+
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.StatutConge).EN_ATTENTE_RH}"
+                                          class="badge bg-info text-dark">En attente RH</span>
+
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.StatutConge).VALIDE_RH}"
+                                          class="badge bg-success">Validé RH</span>
+
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.StatutConge).REFUSE_MANAGER}"
+                                          class="badge bg-danger">Refusé Manager</span>
+
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.StatutConge).REFUSE_RH}"
+                                          class="badge bg-danger">Refusé RH</span>
+
+                                    <span th:case="${T(com.example.gestion_rh.entity.Conge.StatutConge).ANNULE}"
+                                          class="badge bg-secondary">Annulé</span>
+
+                                    <span th:case="*" class="badge bg-secondary"
+                                          th:text="${conge.statut}">STATUT</span>
+                                </span>
+                            </td>
+
+                            <!-- ✅ ACTIONS -->
+                            <td class="text-end">
+                                <a th:href="@{/employe/conges}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-list"></i>
+                                </a>
+
+                                <!-- ✅ Annuler en POST (évite le 404 + plus sécurisé) -->
+                                <form th:if="${conge.statut == T(com.example.gestion_rh.entity.Conge.StatutConge).EN_ATTENTE_MANAGER}"
+                                      th:action="@{/employe/conges/{id}/annuler(id=${conge.id})}"
+                                      method="post"
+                                      style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(dernieresDemandes)}">
+                            <td colspan="5" class="text-center text-muted">Aucune demande de congé trouvée</td>
+                        </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="employe/footer :: employe-footer"></div>
+</main>
+
+<div th:replace="employe/footer :: scripts"></div>
+</body>
+</html>
