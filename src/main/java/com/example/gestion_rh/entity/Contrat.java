@@ -37,11 +37,20 @@ public class Contrat {
 
     // Fusion des deux approches pour typeContrat
     @Column(nullable = false)
-    private String typeContrat;  // Version String du premier fichier
+    private String typeContrat;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TypeContrat typeContratEnum;  // Version Enum du deuxième fichier
+    private TypeContrat typeContratEnum;
+
+    public void setTypeContrat(String typeContrat) {
+        this.typeContrat = typeContrat;
+        try {
+            this.typeContratEnum = TypeContrat.valueOf(typeContrat);
+        } catch (IllegalArgumentException e) {
+            this.typeContratEnum = TypeContrat.CDI;
+        }
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -124,6 +133,12 @@ public class Contrat {
     @Transient
     public void setTypeContratEnumMethod(TypeContrat t) {
         this.typeContrat = (t == null) ? null : t.name();
+    }
+
+
+    public void setTypeContratEnum(TypeContrat typeContratEnum) {
+        this.typeContratEnum = typeContratEnum;
+        this.typeContrat = typeContratEnum != null ? typeContratEnum.name() : null;
     }
 
     @Transient
