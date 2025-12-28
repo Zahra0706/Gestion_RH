@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="~{rh/layouts/header :: head}">
+    <title>Campagnes d'Évaluation</title>
+</head>
+
+<body>
+    <div th:replace="~{rh/layouts/menu :: sidebar}"></div>
+
+    <main class="main-content">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Campagnes d'Évaluation</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#creerCampagneModal">
+                    <i class="fas fa-plus me-2"></i>Nouvelle Campagne
+                </a>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Campagnes List -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Campagne</th>
+                                <th>Année</th>
+                                <th>Période</th>
+                                <th>Deadline Manager</th>
+                                <th>Statut</th>
+                                <th>Évaluations</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="campagne : ${campagnes}">
+                                <td>
+                                    <strong th:text="${campagne.nomCampagne}">Évaluation 2024</strong>
+                                </td>
+                                <td th:text="${campagne.annee}">2024</td>
+                                <td>
+                                    <small th:text="${#temporals.format(campagne.dateDebut, 'dd/MM/yyyy')} + ' - ' + 
+                                                    ${#temporals.format(campagne.dateFin, 'dd/MM/yyyy')}">
+                                        01/01/2024 - 31/12/2024
+                                    </small>
+                                </td>
+                                <td th:text="${#temporals.format(campagne.dateLimiteManager, 'dd/MM/yyyy')}">15/12/2024
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${campagne.statut == 'PLANIFIEE' ? 'bg-secondary' : 
+                                                          (campagne.statut == 'EN_COURS' ? 'bg-primary' : 
+                                                          (campagne.statut == 'TERMINEE' ? 'bg-success' : 'bg-dark'))}"
+                                        th:text="${campagne.statut}">EN_COURS</span>
+                                </td>
+                                <td>
+                                    <span
+                                        th:text="${campagne.evaluations != null ? campagne.evaluations.size() : 0}">0</span>
+                                    évaluations
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:href="@{/rh/evaluations/campagnes/{id}(id=${campagne.id})}"
+                                            class="btn btn-outline-primary" title="Détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(campagnes)}">
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    Aucune campagne d'évaluation
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Créer Campagne -->
+    <div class="modal fade" id="creerCampagneModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/rh/evaluations/campagnes}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nouvelle Campagne d'Évaluation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nom de la campagne</label>
+                            <input type="text" name="nomCampagne" class="form-control" required
+                                placeholder="Ex: Évaluation Annuelle 2024">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Année</label>
+                            <input type="number" name="annee" class="form-control" required
+                                th:value="${#temporals.year(#temporals.createNow())}">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Date de début</label>
+                                <input type="date" name="dateDebut" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Date de fin</label>
+                                <input type="date" name="dateFin" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Deadline pour les managers</label>
+                            <input type="date" name="dateLimiteManager" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Créer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="rh/layouts/footer :: footer"></div>
+</body>
+
+</html>

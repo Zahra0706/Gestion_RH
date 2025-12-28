@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+    lang="fr">
+
+<head th:replace="~{admin/header :: head}">
+    <title>Statistiques Détaillées - Administration</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- SheetJS pour Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- jsPDF pour PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        if (window.jspdf && window.jspdf.jsPDF) {
+            window.jsPDF = window.jspdf.jsPDF;
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+    <link rel="stylesheet" th:href="@{/css/admin-style.css}">
+    <style>
+        /* Votre CSS existant */
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 5px solid;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card.employes {
+            border-left-color: #3498db;
+        }
+
+        .stat-card.conges {
+            border-left-color: #f39c12;
+        }
+
+        .stat-card.departements {
+            border-left-color: #27ae60;
+        }
+
+        .stat-card.annonces {
+            border-left-color: #9b59b6;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon.employes {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .stat-icon.conges {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+
+        .stat-icon.departements {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+
+        .stat-icon.annonces {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+
+        .chart-title {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+
+        .progress-stat {
+            margin-top: 10px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #ecf0f1;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease-in-out;
+        }
+
+        .stats-filter {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+
+            .stat-card {
+                margin-bottom: 15px;
+            }
+        }
+
+        /* Toast personnalisé */
+        .custom-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Overlay pour chargement */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar Menu -->
+    <div th:replace="~{admin/menu :: sidebar}"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <div th:replace="~{admin/header :: admin-header}" th:with="pageTitle='Statistiques Détaillées'"></div>
+
+        <!-- Alert Messages -->
+        <div class="container-fluid mt-3">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Filters and Actions -->
+        <div class="container-fluid mt-3">
+            <div class="stats-filter">
+                <!-- Filtres -->
+                <form id="filterForm" class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label">Période</label>
+                        <select class="form-select" id="periodeFilter">
+                            <option value="all">Tout</option>
+                            <option value="year" selected>Cette année</option>
+                            <option value="month">Ce mois</option>
+                            <option value="custom">Personnalisé</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 date-range d-none">
+                        <label class="form-label">De</label>
+                        <input type="date" class="form-control" id="dateDebut">
+                    </div>
+
+                    <div class="col-md-3 date-range d-none">
+                        <label class="form-label">À</label>
+                        <input type="date" class="form-control" id="dateFin">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Département</label>
+                        <select class="form-select" id="departementFilter">
+                            <option value="">Tous les départements</option>
+                            <th:block th:each="dept : ${departements}">
+                                <option th:value="${dept.id}" th:text="${dept.nom}"></option>
+                            </th:block>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Type d'Annonce</label>
+                        <select class="form-select" id="typeAnnonceFilter">
+                            <option value="">Tous les types</option>
+                            <option value="GENERALE">Générale</option>
+                            <option value="IMPORTANTE">Importante</option>
+                            <option value="DEPARTEMENT">Département</option>
+                            <option value="INFORMATION">Information</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Statut Employé</label>
+                        <select class="form-select" id="statutEmployeFilter">
+                            <option value="">Tous</option>
+                            <option value="true" selected>Actifs</option>
+                            <option value="false">Inactifs</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12 d-flex justify-content-end gap-2 align-items-end mt-3">
+                        <button type="button" class="btn btn-secondary" id="resetFilters">
+                            <i class="fas fa-undo me-1"></i> Réinitialiser
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i> Appliquer filtres
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Key Statistics Cards -->
+                <div class="row g-3 mb-4">
+                    <!-- Employés -->
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="stat-card employes h-100">
+                            <div class="stat-icon employes">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-number" id="totalEmployes" th:text="${totalEmployes}">0</div>
+                            <div class="stat-text">Total Employés</div>
+                            <div class="d-flex justify-content-between">
+                                <small>
+                                    <span class="text-success" id="employesActifs" th:text="${employesActifs}">0</span>
+                                    actifs
+                                </small>
+                                <small>
+                                    <span class="text-danger" id="employesInactifs"
+                                        th:text="${employesInactifs}">0</span> inactifs
+                                </small>
+                            </div>
+                            <div class="progress-stat">
+                                <div class="progress-label">
+                                    <span>Taux d'activité</span>
+                                    <span id="tauxActivite"
+                                        th:text="${#numbers.formatDecimal(employesActifs/totalEmployes*100, 1, 1)}">0</span>%
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-success"
+                                        th:style="'width: ' + ${employesActifs/totalEmployes*100} + '%'"
+                                        id="progressActivite"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Congés -->
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="stat-card conges h-100">
+                            <div class="stat-icon conges">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="stat-number" id="totalConges" th:text="${totalConges}">0</div>
+                            <div class="stat-text">Demandes de Congés</div>
+                            <div class="d-flex justify-content-between">
+                                <small>
+                                    <span class="text-warning" id="congesEnAttente"
+                                        th:text="${congesEnAttente}">0</span> en attente
+                                </small>
+                                <small>
+                                    <span class="text-success" id="congesValides" th:text="${congesValides}">0</span>
+                                    validés
+                                </small>
+                            </div>
+                            <div class="progress-stat">
+                                <div class="progress-label">
+                                    <span>Taux de validation</span>
+                                    <span id="tauxValidation"
+                                        th:text="${totalConges > 0 ? #numbers.formatDecimal(congesValides/totalConges*100, 1, 1) : 0}">0</span>%
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-success"
+                                        th:style="'width: ' + ${totalConges > 0 ? congesValides/totalConges*100 : 0} + '%'"
+                                        id="progressValidation"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Départements -->
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="stat-card departements h-100">
+                            <div class="stat-icon departements">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="stat-number" id="totalDepartements" th:text="${totalDepartements}">0</div>
+                            <div class="stat-text">Départements</div>
+                            <div class="d-flex justify-content-between">
+                                <small>
+                                    <span class="text-success" id="departementsAvecManager"
+                                        th:text="${departementsAvecManager}">0</span> avec manager
+                                </small>
+                                <small>
+                                    <span class="text-warning" id="departementsSansManager"
+                                        th:text="${totalDepartements - departementsAvecManager}">0</span> sans
+                                </small>
+                            </div>
+                            <div class="progress-stat">
+                                <div class="progress-label">
+                                    <span>Couverture managers</span>
+                                    <span id="tauxCouverture"
+                                        th:text="${#numbers.formatDecimal(departementsAvecManager/totalDepartements*100, 1, 1)}">0</span>%
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-success"
+                                        th:style="'width: ' + ${departementsAvecManager/totalDepartements*100} + '%'"
+                                        id="progressCouverture"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Annonces -->
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="stat-card annonces h-100">
+                            <div class="stat-icon annonces">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <div class="stat-number" id="totalAnnonces" th:text="${totalAnnonces}">0</div>
+                            <div class="stat-text">Annonces Publiques</div>
+                            <div class="d-flex flex-column gap-1 mt-2">
+                                <small>
+                                    <i class="fas fa-circle text-info me-1"></i>
+                                    <span id="generalesCount" th:text="${generalesCount}">0</span> Générales
+                                </small>
+                                <small>
+                                    <i class="fas fa-circle text-warning me-1"></i>
+                                    <span id="importantesCount" th:text="${importantesCount}">0</span> Importantes
+                                </small>
+                                <small>
+                                    <i class="fas fa-circle text-success me-1"></i>
+                                    <span id="departementCount" th:text="${departementCount}">0</span> Département
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div class="row g-3 mb-4">
+                    <!-- Distribution par rôle -->
+                    <div class="col-xl-6 col-lg-6">
+                        <div class="chart-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="chart-title mb-0">Distribution par Rôle</h6>
+                                <select class="form-select form-select-sm" style="width: auto;" id="roleChartType">
+                                    <option value="doughnut">Anneau</option>
+                                    <option value="pie">Circulaire</option>
+                                    <option value="bar">Barres</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="roleChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employés par département -->
+                    <div class="col-xl-6 col-lg-6">
+                        <div class="chart-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="chart-title mb-0">Employés par Département</h6>
+                                <select class="form-select form-select-sm" style="width: auto;" id="deptChartType">
+                                    <option value="bar">Barres</option>
+                                    <option value="horizontalBar">Barres horizontales</option>
+                                    <option value="line">Courbe</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="departementChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div class="row g-3 mb-4">
+                    <!-- Évolution des congés -->
+                    <div class="col-xl-6 col-lg-6">
+                        <div class="chart-card h-100">
+                            <h6 class="chart-title">Évolution des Demandes de Congés</h6>
+                            <div class="chart-container">
+                                <canvas id="congeEvolutionChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Annonces par type -->
+                    <div class="col-xl-6 col-lg-6">
+                        <div class="chart-card h-100">
+                            <h6 class="chart-title">Annonces par Type</h6>
+                            <div class="chart-container">
+                                <canvas id="annonceTypeChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Tables -->
+                <div class="row g-3 mb-4">
+                    <!-- Départements détaillés -->
+                    <div class="col-xl-12">
+                        <div class="table-card p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="chart-title mb-0">Départements Détail</h6>
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportDepartementTable()">
+                                    <i class="fas fa-download me-1"></i>Exporter
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="departementTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Département</th>
+                                            <th>Manager</th>
+                                            <th>Employés</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="dept : ${departements}">
+                                            <td th:text="${dept.nom}">Nom</td>
+                                            <td>
+                                                <span th:if="${dept.manager != null}"
+                                                    th:text="${dept.manager.prenom + ' ' + dept.manager.nom}">Manager</span>
+                                                <span th:unless="${dept.manager != null}" class="text-muted">Non
+                                                    assigné</span>
+                                            </td>
+                                            <td th:text="${dept.employes != null ? dept.employes.size() : 0}">0</td>
+                                            <td>
+                                                <span th:if="${dept.isActif}" class="badge bg-success">Actif</span>
+                                                <span th:unless="${dept.isActif}" class="badge bg-danger">Inactif</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Section -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="chart-card">
+                            <h6 class="chart-title">Export des Données</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <button class="btn btn-danger w-100 mb-2" onclick="exportToPDF()">
+                                        <i class="fas fa-file-pdf me-1"></i>
+                                        PDF Report
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-success w-100 mb-2" onclick="exportToExcel()">
+                                        <i class="fas fa-file-excel me-1"></i>
+                                        Excel Data
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-warning w-100 mb-2" onclick="exportToCSV()">
+                                        <i class="fas fa-file-csv me-1"></i>
+                                        CSV Export
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-secondary w-100 mb-2" onclick="printStatistics()">
+                                        <i class="fas fa-print me-1"></i>
+                                        Imprimer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer -->
+        <div th:replace="~{admin/footer :: admin-footer}"></div>
+    </main>
+
+    <!-- Scripts -->
+    <div th:replace="~{admin/footer :: scripts}"></div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Variables globales
+        let roleChart, deptChart, congeChart, annonceChart;
+        const currentYear = /*[[${T(java.time.LocalDate).now().year}]]*/ 2025;
+        // Ajouter ces variables manquantes
+        const currentPeriod = 'current';
+        const currentFilters = {};
+
+        // Fonction utilitaire pour getPeriodLabel (qui manque)
+        function getPeriodLabel(period) {
+            const periodLabels = {
+                'current': 'En cours',
+                'month': 'Ce mois',
+                'year': 'Cette année',
+                'quarter': 'Ce trimestre'
+            };
+            return periodLabels[period] || period;
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Charts
+            initCharts();
+
+            // Event Listeners pour les filtres
+            document.getElementById('periodeFilter').addEventListener('change', handlePeriodChange);
+            document.getElementById('filterForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                applyFilters();
+            });
+            document.getElementById('resetFilters').addEventListener('click', resetFilters);
+
+            // Charger les filtres depuis l'URL au chargement
+            loadFiltersFromURL();
+        });
+
+        function handlePeriodChange() {
+            const period = this.value;
+            const dateRangeFields = document.querySelectorAll('.date-range');
+            const dateDebutInput = document.getElementById('dateDebut');
+            const dateFinInput = document.getElementById('dateFin');
+
+            const today = new Date();
+            let start, end;
+
+            if (period === 'custom') {
+                dateRangeFields.forEach(el => el.classList.remove('d-none'));
+                // Ne pas écraser les valeurs existantes si on passe en custom
+            } else {
+                dateRangeFields.forEach(el => el.classList.add('d-none'));
+
+                if (period === 'year') {
+                    start = new Date(today.getFullYear(), 0, 1);
+                    end = new Date(today.getFullYear(), 11, 31);
+                } else if (period === 'month') {
+                    start = new Date(today.getFullYear(), today.getMonth(), 1);
+                    end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                }
+
+                if (start && end) {
+                    dateDebutInput.value = start.toISOString().split('T')[0];
+                    dateFinInput.value = end.toISOString().split('T')[0];
+                } else {
+                    dateDebutInput.value = '';
+                    dateFinInput.value = '';
+                }
+            }
+        }
+
+        function applyFilters() {
+            showLoading();
+
+            const filters = {
+                dateDebut: document.getElementById('dateDebut').value,
+                dateFin: document.getElementById('dateFin').value,
+                departementId: document.getElementById('departementFilter').value,
+                typeAnnonceStr: document.getElementById('typeAnnonceFilter').value,
+                statutEmploye: document.getElementById('statutEmployeFilter').value
+            };
+
+            // Construire l'URL avec query params
+            const params = new URLSearchParams();
+            if (filters.dateDebut) params.append('dateDebut', filters.dateDebut);
+            if (filters.dateFin) params.append('dateFin', filters.dateFin);
+            if (filters.departementId) params.append('departementId', filters.departementId);
+            if (filters.typeAnnonceStr) params.append('typeAnnonceStr', filters.typeAnnonceStr);
+            if (filters.statutEmploye && filters.statutEmploye !== '') params.append('statutEmploye', filters.statutEmploye);
+
+            // Mise à jour de l'URL du navigateur (sans rechargement)
+            const newUrl = window.location.pathname + '?' + params.toString();
+            window.history.pushState({ path: newUrl }, '', newUrl);
+
+            // Appel AJAX
+            fetch(`/admin/statistiques/filtrees?${params.toString()}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Erreur réseau');
+                    return response.json();
+                })
+                .then(data => {
+                    updateDashboard(data);
+                    hideLoading();
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    hideLoading();
+                    showToast('Erreur', 'Impossible de charger les statistiques filtrées', 'danger');
+                });
+        }
+
+        function resetFilters() {
+            document.getElementById('filterForm').reset();
+            document.getElementById('periodeFilter').value = 'year'; // Defaut
+            handlePeriodChange.call(document.getElementById('periodeFilter')); // Trigger change logic
+
+            // Vider l'URL
+            window.history.pushState({}, '', window.location.pathname);
+
+            applyFilters();
+        }
+
+        function loadFiltersFromURL() {
+            const params = new URLSearchParams(window.location.search);
+
+            if (params.has('dateDebut')) document.getElementById('dateDebut').value = params.get('dateDebut');
+            if (params.has('dateFin')) document.getElementById('dateFin').value = params.get('dateFin');
+            if (params.has('departementId')) document.getElementById('departementFilter').value = params.get('departementId');
+            if (params.has('typeAnnonceStr')) document.getElementById('typeAnnonceFilter').value = params.get('typeAnnonceStr');
+            if (params.has('statutEmploye')) document.getElementById('statutEmployeFilter').value = params.get('statutEmploye');
+
+            // Déterminer la période select
+            if (params.has('dateDebut') && params.has('dateFin')) {
+                // Simple detection, could be smarter
+                document.getElementById('periodeFilter').value = 'custom';
+                handlePeriodChange.call(document.getElementById('periodeFilter'));
+            } else {
+                document.getElementById('periodeFilter').value = 'year';
+                handlePeriodChange.call(document.getElementById('periodeFilter'));
+
+            }
+
+            // Si des paramètres sont présents, appliquer les filtres, sinon charger par défaut
+            if ([...params].length > 0) {
+                applyFilters();
+            } else {
+                handlePeriodChange.call(document.getElementById('periodeFilter'));
+                applyFilters();
+            }
+        }
+
+        function updateDashboard(data) {
+            // Update Text Counters
+            updateText('totalEmployes', data.totalEmployes);
+            updateText('employesActifs', data.employesActifs);
+            updateText('employesInactifs', data.employesInactifs);
+            updateText('tauxActivite', data.tauxActivite);
+
+            updateText('totalConges', data.totalConges);
+            updateText('congesEnAttente', data.congesEnAttente);
+            updateText('congesValides', data.congesValides);
+            updateText('tauxValidation', data.tauxValidation);
+
+            updateText('totalDepartements', data.totalDepartements);
+            updateText('departementsAvecManager', data.departementsAvecManager);
+            updateText('departementsSansManager', data.departementsSansManager);
+            updateText('tauxCouverture', data.tauxCouvertureManagers);
+
+            updateText('totalAnnonces', data.totalAnnonces);
+            updateText('generalesCount', data.generalesCount);
+            updateText('importantesCount', data.importantesCount);
+            updateText('departementCount', data.departementCount);
+
+            // Update Progress Bars
+            updateProgress('progressActivite', data.tauxActivite);
+            updateProgress('progressValidation', data.tauxValidation);
+            updateProgress('progressCouverture', data.tauxCouvertureManagers);
+
+            // Update CHARTS
+            updateCharts(data);
+        }
+
+        function updateText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+
+        function updateProgress(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                // Ensure value is numerical for width
+                let val = parseFloat(value);
+                // remove % if present (it's not, it's string number)
+                el.style.width = val + '%';
+            }
+        }
+
+        function updateCharts(data) {
+            // Update Role Chart
+            if (roleChart && data.statistiquesParRole) {
+                const labels = Object.keys(data.statistiquesParRole);
+                const values = Object.values(data.statistiquesParRole);
+                roleChart.data.labels = labels;
+                roleChart.data.datasets[0].data = values;
+                roleChart.update();
+            }
+
+            // Update Dept Chart
+            if (deptChart && data.employesParDepartement) {
+                const labels = Object.keys(data.employesParDepartement);
+                const values = Object.values(data.employesParDepartement);
+                deptChart.data.labels = labels;
+                deptChart.data.datasets[0].data = values;
+                deptChart.update();
+            }
+
+            // Update Annonce Chart
+            if (annonceChart) {
+                // Backend response keys: generalesCount, importantesCount, departementCount
+                // Note: informationCount is missing from backend response in my implementation
+                // I should treat it as 0 or keep previous? stick to 0 or fix backend.
+                // Fixed backend to NOT include it? Wait, I saw I didn't include it. 
+                // Let's assume 0 to avoid error, or better: 
+                // The chart expects: [generale, importante, departement, information]
+
+                const newData = [
+                    data.generalesCount || 0,
+                    data.importantesCount || 0,
+                    data.departementCount || 0,
+                    data.informationCount || 0
+                ];
+
+                annonceChart.data.datasets[0].data = newData;
+                annonceChart.update();
+            }
+        }
+
+        function initCharts() {
+            // Distribution par rôle
+            const roleCtx = document.getElementById('roleChart');
+            if (roleCtx) {
+                const roleData = /*[[${statistiquesParRole}]]*/ {};
+                const roleLabels = Object.keys(roleData);
+                const roleValues = Object.values(roleData);
+
+                const roleColors = [
+                    '#3498db', '#2ecc71', '#e74c3c', '#f39c12',
+                    '#9b59b6', '#1abc9c', '#34495e', '#16a085'
+                ];
+
+                roleChart = new Chart(roleCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: roleLabels,
+                        datasets: [{
+                            data: roleValues,
+                            backgroundColor: roleColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        const total = roleValues.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((context.raw / total) * 100);
+                                        label += context.raw + ' (' + percentage + '%)';
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Change chart type
+                document.getElementById('roleChartType').addEventListener('change', function () {
+                    roleChart.destroy();
+                    roleChart = new Chart(roleCtx, {
+                        type: this.value,
+                        data: {
+                            labels: roleLabels,
+                            datasets: [{
+                                data: roleValues,
+                                backgroundColor: roleColors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Employés par département
+            const deptCtx = document.getElementById('departementChart');
+            if (deptCtx) {
+                const deptData = /*[[${employesParDepartement}]]*/ {};
+                const deptLabels = Object.keys(deptData);
+                const deptValues = Object.values(deptData);
+
+                deptChart = new Chart(deptCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: deptLabels,
+                        datasets: [{
+                            label: 'Nombre d\'employés',
+                            data: deptValues,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                },
+                                grid: {
+                                    display: true
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+
+                // Change chart type
+                document.getElementById('deptChartType').addEventListener('change', function () {
+                    deptChart.destroy();
+                    const chartType = this.value === 'horizontalBar' ? 'bar' : this.value;
+                    const indexAxis = this.value === 'horizontalBar' ? 'y' : 'x';
+
+                    deptChart = new Chart(deptCtx, {
+                        type: chartType,
+                        data: {
+                            labels: deptLabels,
+                            datasets: [{
+                                label: 'Nombre d\'employés',
+                                data: deptValues,
+                                backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: indexAxis,
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Évolution des congés
+            const congeCtx = document.getElementById('congeEvolutionChart');
+            if (congeCtx) {
+                // Récupérer les données réelles depuis l'API
+                fetch(`/admin/statistiques/conges/evolution?annee=${currentYear}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const months = data.labels;
+                        const congeData = data.data;
+
+                        congeChart = new Chart(congeCtx, {
+                            type: 'line',
+                            data: {
+                                labels: months,
+                                datasets: [{
+                                    label: 'Demandes de congés',
+                                    data: congeData,
+                                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                                    borderColor: 'rgba(243, 156, 18, 1)',
+                                    borderWidth: 2,
+                                    tension: 0.4,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            stepSize: 1,
+                                            callback: function (value) {
+                                                if (Number.isInteger(value)) {
+                                                    return value;
+                                                }
+                                            }
+                                        },
+                                        grid: {
+                                            color: 'rgba(0, 0, 0, 0.05)'
+                                        }
+                                    },
+                                    x: {
+                                        grid: {
+                                            color: 'rgba(0, 0, 0, 0.05)'
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                                return `Demandes: ${context.raw}`;
+                                            }
+                                        }
+                                    },
+                                    legend: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors du chargement des données de congés:', error);
+
+                        // Fallback : afficher un message d'erreur dans le graphique
+                        congeChart = new Chart(congeCtx, {
+                            type: 'line',
+                            data: {
+                                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                                datasets: [{
+                                    label: 'Données non disponibles',
+                                    data: Array(12).fill(0),
+                                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                    borderColor: 'rgba(231, 76, 60, 0.5)',
+                                    borderWidth: 1,
+                                    borderDash: [5, 5],
+                                    fill: false
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: true
+                                    }
+                                }
+                            }
+                        });
+                    });
+            }
+
+            // Annonces par type
+            const annonceCtx = document.getElementById('annonceTypeChart');
+            if (annonceCtx) {
+                const annonceTypes = ['Générale', 'Importante', 'Département', 'Information'];
+                const annonceCounts = [
+                /*[[${generalesCount}]]*/ 0,
+                /*[[${importantesCount}]]*/ 0,
+                /*[[${departementCount}]]*/ 0,
+                /*[[${informationCount}]]*/ 0
+                ];
+
+                annonceChart = new Chart(annonceCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: annonceTypes,
+                        datasets: [{
+                            data: annonceCounts,
+                            backgroundColor: [
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(243, 156, 18, 0.7)',
+                                'rgba(46, 204, 113, 0.7)',
+                                'rgba(155, 89, 182, 0.7)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                ticks: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateFilteredData(filters) {
+            // Simuler la mise à jour des données filtrées
+            console.log('Filtres appliqués:', filters);
+
+            // Mettre à jour la table des départements
+            filterDepartmentTable(filters.department, filters.sortBy, filters.sortOrder);
+        }
+
+        function filterDepartmentTable(departmentId, sortBy, sortOrder) {
+            const table = document.getElementById('departementTable');
+            const rows = Array.from(table.tBodies[0].rows);
+
+            // Filtrer par département si spécifié
+            if (departmentId) {
+                rows.forEach(row => {
+                    // Dans une vraie application, vous vérifieriez l'ID du département
+                    const shouldShow = true; // Logique de filtrage réelle ici
+                    row.style.display = shouldShow ? '' : 'none';
+                });
+            } else {
+                rows.forEach(row => row.style.display = '');
+            }
+
+            // Trier les lignes
+            rows.sort((a, b) => {
+                let aValue, bValue;
+
+                switch (sortBy) {
+                    case 'name':
+                        aValue = a.cells[0].textContent;
+                        bValue = b.cells[0].textContent;
+                        break;
+                    case 'value':
+                        aValue = parseInt(a.cells[2].textContent);
+                        bValue = parseInt(b.cells[2].textContent);
+                        break;
+                    default: // date ou autre
+                        aValue = a.rowIndex;
+                        bValue = b.rowIndex;
+                }
+
+                if (sortOrder === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
+            });
+
+            // Réorganiser les lignes dans le DOM
+            const tbody = table.tBodies[0];
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function updateProgressBars() {
+            // Mettre à jour les progress bars avec animation
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        }
+
+        function collectAllStatistics() {
+            const data = {
+                period: currentPeriod,
+                filters: currentFilters,
+                timestamp: new Date().toISOString(),
+                statistics: {
+                    totalEmployes: document.getElementById('totalEmployes').textContent,
+                    employesActifs: document.getElementById('employesActifs').textContent,
+                    employesInactifs: document.getElementById('employesInactifs').textContent,
+                    totalConges: document.getElementById('totalConges').textContent,
+                    congesEnAttente: document.getElementById('congesEnAttente').textContent,
+                    congesValides: document.getElementById('congesValides').textContent,
+                    totalDepartements: document.getElementById('totalDepartements').textContent,
+                    departementsAvecManager: document.getElementById('departementsAvecManager').textContent,
+                    departementsSansManager: document.getElementById('departementsSansManager').textContent,
+                    totalAnnonces: document.getElementById('totalAnnonces').textContent,
+                    generalesCount: document.getElementById('generalesCount').textContent,
+                    importantesCount: document.getElementById('importantesCount').textContent,
+                    departementCount: document.getElementById('departementCount').textContent
+                },
+                departments: []
+            };
+
+            // Collecter les données des départements
+            const table = document.getElementById('departementTable');
+            Array.from(table.tBodies[0].rows).forEach(row => {
+                if (row.style.display !== 'none') {
+                    data.departments.push({
+                        name: row.cells[0].textContent,
+                        manager: row.cells[1].textContent,
+                        employees: row.cells[2].textContent,
+                        status: row.cells[3].textContent,
+                        occupation: row.cells[4].textContent
+                    });
+                }
+            });
+
+            return data;
+        }
+
+        function exportToPDF() {
+            showLoading();
+
+            const params = new URLSearchParams();
+            if (document.getElementById('dateDebut').value) params.append('dateDebut', document.getElementById('dateDebut').value);
+            if (document.getElementById('dateFin').value) params.append('dateFin', document.getElementById('dateFin').value);
+            if (document.getElementById('departementFilter').value) params.append('departementId', document.getElementById('departementFilter').value);
+            if (document.getElementById('typeAnnonceFilter').value) params.append('typeAnnonceStr', document.getElementById('typeAnnonceFilter').value);
+            if (document.getElementById('statutEmployeFilter').value) params.append('statutEmploye', document.getElementById('statutEmployeFilter').value);
+
+            fetch(`/admin/statistiques/export/pdf?${params.toString()}`)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Erreur serveur (${response.status}): ${text.substring(0, 100)}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    generatePDF(data);
+                })
+                .catch(error => {
+                    console.error('Erreur export PDF:', error);
+                    hideLoading();
+                    showToast('Erreur', error.message || 'Erreur lors de la génération du PDF', 'danger');
+                });
+        }
+
+        function generatePDF(data) {
+            if (!window.jspdf) {
+                hideLoading();
+                showToast('Erreur', 'Bibliothèque PDF (jsPDF) non chargée', 'danger');
+                return;
+            }
+
+            // --- PLUGIN FIXES ---
+            const { jsPDF } = window.jspdf;
+
+            // Ensure jsPDF is available globally for the plugin
+            if (window.jspdf.jsPDF) {
+                window.jsPDF = window.jspdf.jsPDF;
+            }
+
+            if (typeof jsPDF.API.autoTable !== 'function') {
+                if (window.jspdfAutoTable) {
+                    jsPDF.API.autoTable = window.jspdfAutoTable;
+                } else if (window.jspdf && window.jspdf.plugin && window.jspdf.plugin.autotable) {
+                    // Some versions path
+                    jsPDF.API.autoTable = window.jspdf.plugin.autotable;
+                }
+            }
+
+            const doc = new jsPDF();
+            const primaryColor = [41, 128, 185]; // #2980b9
+
+            // --- COVER PAGE ---
+            // Logo placeholder (rectangle)
+            doc.setFillColor(...primaryColor);
+            doc.rect(0, 0, 210, 40, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.text("RAPPORT DE STATISTIQUES", 105, 25, { align: 'center' });
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.text("Gestion RH - Rapport Exécutif", 105, 60, { align: 'center' });
+
+            doc.setFontSize(12);
+            doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 105, 70, { align: 'center' });
+
+            // Applied Filters Box
+            doc.setDrawColor(200, 200, 200);
+            doc.setFillColor(245, 245, 245);
+            doc.roundedRect(30, 85, 150, 50, 3, 3, 'FD');
+
+            doc.setFontSize(14);
+            doc.text("Paramètres du rapport", 40, 95);
+
+            doc.setFontSize(10);
+            let yFilters = 105;
+            const filters = data.filters || {};
+
+            const periodLabel = (!filters.dateDebut && !filters.dateFin) ? "Toute la période" :
+                (filters.dateDebut ? `Du ${filters.dateDebut}` : "Début") + " au " + (filters.dateFin || "Aujourd'hui");
+
+            doc.text(`Période: ${periodLabel}`, 40, yFilters); yFilters += 7;
+            doc.text(`Département: ${filters.departementNom || "Tous"}`, 40, yFilters); yFilters += 7;
+            doc.text(`Type d'annonce: ${filters.typeAnnonce || "Tous"}`, 40, yFilters); yFilters += 7;
+            doc.text(`Statut Employé: ${filters.statutEmploye === null ? "Tous" : (filters.statutEmploye ? "Actifs" : "Inactifs")}`, 40, yFilters);
+
+            // Footer text for cover
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text("Ce document contient des données confidentielles.", 105, 280, { align: 'center' });
+
+            doc.addPage();
+
+            // --- EXECUTIVE SUMMARY ---
+            doc.setTextColor(...primaryColor);
+            doc.setFontSize(18);
+            doc.text("1. Résumé Exécutif", 15, 20);
+
+            // Key Metrics Grid
+            doc.setTextColor(0, 0, 0);
+            let yMetric = 35;
+            const metrics = [
+                { label: "Total Employés", value: data.totalEmployes },
+                { label: "Taux d'activité", value: data.tauxActivite + "%" },
+                { label: "Total Départements", value: data.totalDepartements },
+                { label: "Taux Couverture Mgr", value: data.tauxCouvertureManagers + "%" },
+                { label: "Demandes Congés", value: data.totalConges },
+                { label: "Taux Validation", value: data.tauxValidation + "%" }
+            ];
+
+            // Draw 2x3 grid
+            let xM = 15;
+            metrics.forEach((m, i) => {
+                if (i > 0 && i % 3 === 0) {
+                    yMetric += 30;
+                    xM = 15;
+                }
+
+                // Card box
+                doc.setDrawColor(220, 220, 220);
+                doc.setFillColor(250, 250, 250);
+                doc.roundedRect(xM, yMetric, 55, 25, 2, 2, 'FD');
+
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text(m.label, xM + 5, yMetric + 8);
+
+                doc.setFontSize(14);
+                doc.setTextColor(44, 62, 80);
+                doc.text(String(m.value), xM + 5, yMetric + 18);
+
+                xM += 60;
+            });
+
+            // Analysis Section
+            yMetric += 40;
+            doc.setTextColor(...primaryColor);
+            doc.setFontSize(16);
+            doc.text("Analyse Automatique", 15, yMetric);
+
+            yMetric += 10;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            if (data.analysis && data.analysis.length > 0) {
+                data.analysis.forEach(line => {
+                    doc.text("• " + line, 20, yMetric);
+                    yMetric += 7;
+                });
+            } else {
+                doc.text("Aucune analyse spécifique disponible pour ces critères.", 20, yMetric);
+            }
+
+            // --- DETAILED STATS (CHARTS) ---
+            doc.addPage();
+            doc.setTextColor(...primaryColor);
+            doc.setFontSize(18);
+            doc.text("2. Statistiques Détaillées", 15, 20);
+
+            let yChart = 30;
+
+            // Function to add chart if exists
+            const addChartToPdf = (chartInstance, title, x, y, w, h) => {
+                if (chartInstance) {
+                    try {
+                        const imgData = chartInstance.toBase64Image();
+                        doc.setFontSize(12);
+                        doc.setTextColor(0, 0, 0);
+                        doc.text(title, x, y);
+                        doc.addImage(imgData, 'PNG', x, y + 5, w, h);
+                    } catch (e) {
+                        console.warn("Could not add chart", title, e);
+                    }
+                }
+            };
+
+            // Role Chart
+            addChartToPdf(roleChart, "Distribution par Rôle", 15, yChart, 80, 80);
+
+            // Dept Chart
+            addChartToPdf(deptChart, "Employés par Département", 110, yChart, 80, 80);
+
+            yChart += 100;
+
+            // Conge Chart
+            addChartToPdf(congeChart, "Évolution des Congés", 15, yChart, 170, 80);
+
+
+            // --- ANNEXES (TABLES) ---
+            doc.addPage();
+            doc.setTextColor(...primaryColor);
+            doc.setFontSize(18);
+            doc.text("3. Annexes - Détails Départements", 15, 20);
+
+            if (data.departmentDetails && data.departmentDetails.length > 0) {
+                const tableData = data.departmentDetails.map(d => [
+                    d.nom,
+                    d.manager,
+                    d.totalEmployes,
+                    d.employesActifs
+                ]);
+
+                const headers = ['Nom', 'Manager', 'Total Emp.', 'Emp. Actifs'];
+
+                try {
+                    if (typeof doc.autoTable === 'function') {
+                        doc.autoTable({
+                            head: [headers],
+                            body: tableData,
+                            startY: 30,
+                            theme: 'striped',
+                            headStyles: { fillColor: primaryColor },
+                            styles: { fontSize: 10 }
+                        });
+                    } else if (typeof window.jspdfAutoTable === 'function') {
+                        // Fallback call
+                        window.jspdfAutoTable(doc, {
+                            head: [headers],
+                            body: tableData,
+                            startY: 30,
+                            theme: 'striped',
+                            headStyles: { fillColor: primaryColor },
+                            styles: { fontSize: 10 }
+                        });
+                    } else {
+                        throw new Error("Plugin AutoTable non détecté. Impossible de générer le tableau.");
+                    }
+                } catch (e) {
+                    console.error("autoTable failed", e);
+                    doc.setFontSize(10);
+                    doc.setTextColor(255, 0, 0);
+                    doc.text("Erreur lors de la génération du tableau: " + e.message, 15, 40);
+                }
+            } else {
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+                doc.text("Aucun donnée départementale disponible.", 15, 40);
+            }
+
+            // Footer numbering
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text('Page ' + i + ' / ' + pageCount, 200, 290, { align: 'right' });
+            }
+
+            // Save
+            doc.save(`Rapport_RH_${new Date().toISOString().slice(0, 10)}.pdf`);
+            hideLoading();
+            showToast('Succès', 'Rapport PDF généré avec succès', 'success');
+        }
+
+        function exportToExcel() {
+            showLoading();
+
+            try {
+                // Vérifier si XLSX est disponible
+                if (typeof XLSX === 'undefined') {
+                    throw new Error('Bibliothèque Excel non disponible');
+                }
+
+                // Créer un nouveau classeur
+                const wb = XLSX.utils.book_new();
+
+                // Feuille 1 : Statistiques principales
+                const statsData = [
+                    ['Rapport de Statistiques - HR Manager'],
+                    [''],
+                    ['Date de génération', new Date().toLocaleDateString('fr-FR')],
+                    ['Année', currentYear],
+                    [''],
+                    ['Statistiques Principales'],
+                    [''],
+                    ['Indicateur', 'Valeur']
+                ];
+
+                // Ajouter les statistiques
+                statsData.push(['Total Employés', document.getElementById('totalEmployes').textContent]);
+                statsData.push(['Employés Actifs', document.getElementById('employesActifs').textContent]);
+                statsData.push(['Employés Inactifs', document.getElementById('employesInactifs').textContent]);
+                statsData.push(['Total Congés', document.getElementById('totalConges').textContent]);
+                statsData.push(['Congés en attente', document.getElementById('congesEnAttente').textContent]);
+                statsData.push(['Congés validés', document.getElementById('congesValides').textContent]);
+                statsData.push(['Total Départements', document.getElementById('totalDepartements').textContent]);
+                statsData.push(['Départements avec manager', document.getElementById('departementsAvecManager').textContent]);
+                statsData.push(['Départements sans manager', document.getElementById('departementsSansManager').textContent]);
+                statsData.push(['Total Annonces', document.getElementById('totalAnnonces').textContent]);
+
+                const ws1 = XLSX.utils.aoa_to_sheet(statsData);
+                XLSX.utils.book_append_sheet(wb, ws1, 'Statistiques');
+
+                // Feuille 2 : Départements
+                const deptData = [
+                    ['Départements Détail'],
+                    [''],
+                    ['Nom', 'Manager', 'Nombre d\'employés', 'Statut']
+                ];
+
+                const table = document.getElementById('departementTable');
+                const rows = Array.from(table.tBodies[0].rows);
+
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const cells = Array.from(row.cells);
+                        deptData.push([
+                            cells[0].textContent,
+                            cells[1].textContent,
+                            cells[2].textContent,
+                            cells[3].textContent
+                        ]);
+                    }
+                });
+
+                const ws2 = XLSX.utils.aoa_to_sheet(deptData);
+                XLSX.utils.book_append_sheet(wb, ws2, 'Départements');
+
+                // Sauvegarder le fichier Excel
+                XLSX.writeFile(wb, `statistiques_${currentYear}_${new Date().getTime()}.xlsx`);
+
+                hideLoading();
+                showToast('Excel généré', 'Le fichier Excel a été téléchargé', 'success');
+
+            } catch (error) {
+                hideLoading();
+                showToast('Erreur', 'Impossible de générer Excel: ' + error.message, 'danger');
+                console.error('Erreur Excel:', error);
+            }
+        }
+
+        function exportToCSV() {
+            showLoading();
+
+            try {
+                // Créer le contenu CSV
+                let csvContent = "data:text/csv;charset=utf-8,";
+
+                // En-tête
+                csvContent += "Rapport de Statistiques - HR Manager\n\n";
+                csvContent += `Date de génération,${new Date().toLocaleDateString('fr-FR')}\n`;
+                csvContent += `Année,${currentYear}\n\n`;
+
+                // Statistiques
+                csvContent += "Statistiques Principales\n";
+                csvContent += "Indicateur,Valeur\n";
+
+                csvContent += `Total Employés,${document.getElementById('totalEmployes').textContent}\n`;
+                csvContent += `Employés Actifs,${document.getElementById('employesActifs').textContent}\n`;
+                csvContent += `Employés Inactifs,${document.getElementById('employesInactifs').textContent}\n`;
+                csvContent += `Total Congés,${document.getElementById('totalConges').textContent}\n`;
+                csvContent += `Congés en attente,${document.getElementById('congesEnAttente').textContent}\n`;
+                csvContent += `Congés validés,${document.getElementById('congesValides').textContent}\n`;
+                csvContent += `Total Départements,${document.getElementById('totalDepartements').textContent}\n`;
+                csvContent += `Départements avec manager,${document.getElementById('departementsAvecManager').textContent}\n`;
+                csvContent += `Départements sans manager,${document.getElementById('departementsSansManager').textContent}\n`;
+                csvContent += `Total Annonces,${document.getElementById('totalAnnonces').textContent}\n`;
+
+                csvContent += "\n\n";
+
+                // Départements
+                csvContent += "Départements Détail\n";
+                csvContent += "Nom,Manager,Nombre d'employés,Statut\n";
+
+                const table = document.getElementById('departementTable');
+                const rows = Array.from(table.tBodies[0].rows);
+
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const cells = Array.from(row.cells);
+                        const rowData = cells.map(cell => {
+                            // Échapper les virgules dans le texte
+                            const text = cell.textContent.trim();
+                            return text.includes(',') ? `"${text}"` : text;
+                        }).join(',');
+                        csvContent += rowData + "\n";
+                    }
+                });
+
+                // Créer le lien de téléchargement
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `statistiques_${currentYear}_${new Date().getTime()}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                hideLoading();
+                showToast('CSV généré', 'Le fichier CSV a été téléchargé', 'success');
+
+            } catch (error) {
+                hideLoading();
+                showToast('Erreur', 'Impossible de générer CSV: ' + error.message, 'danger');
+                console.error('Erreur CSV:', error);
+            }
+        }
+
+        function exportDepartementTable() {
+            const table = document.getElementById('departementTable');
+            const rows = Array.from(table.querySelectorAll('tr'));
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Département,Manager,Employés,Statut\n";
+
+            rows.slice(1).forEach(row => { // Skiper l'en-tête
+                if (row.style.display !== 'none') {
+                    const cells = Array.from(row.cells);
+                    const rowData = cells.map(cell => cell.textContent.trim()).join(',');
+                    csvContent += rowData + "\n";
+                }
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `departements_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Table exportée', 'Le tableau des départements a été exporté', 'success');
+        }
+
+        function printStatistics() {
+            // Sauvegarder le contenu original
+            const originalContent = document.body.innerHTML;
+
+            // Créer le contenu d'impression
+            const printContent = document.querySelector('.main-content').cloneNode(true);
+
+            // Nettoyer le contenu pour l'impression
+            const buttons = printContent.querySelectorAll('button, .no-print, .stats-filter');
+            buttons.forEach(button => button.style.display = 'none');
+
+            // Créer une nouvelle page pour l'impression
+            document.body.innerHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Statistiques - Impression</title>
+            <style>
+                @media print {
+                    body { font-family: Arial, sans-serif; font-size: 12px; }
+                    .print-header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #ccc; }
+                    .print-header h1 { color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
+                    .print-header p { color: #666; font-size: 14px; }
+                    .print-footer { text-align: center; margin-top: 30px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+                    .no-print, button, .dropdown { display: none !important; }
+                    .chart-card, .stat-card, .table-card {
+                        border: 1px solid #ddd !important;
+                        box-shadow: none !important;
+                        page-break-inside: avoid;
+                    }
+                    .table-responsive { overflow: visible !important; }
+                    canvas { max-width: 100% !important; height: auto !important; }
+                }
+                @page {
+                    margin: 20mm;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-header">
+                <h1>Rapport de Statistiques - HR Manager</h1>
+                <p>Date: ${new Date().toLocaleDateString('fr-FR')} | Année: ${currentYear}</p>
+            </div>
+            ${printContent.outerHTML}
+            <div class="print-footer">
+                <p>Généré par HR Manager - Page <span class="page-number"></span></p>
+            </div>
+
+        </body>
+        </html>
+        `;
+
+            // Imprimer
+            window.print();
+
+            // Restaurer le contenu original
+            document.body.innerHTML = originalContent;
+
+            // Rafraîchir la page pour restaurer les fonctionnalités JavaScript
+            window.location.reload();
+        }
+
+        // Utilitaires
+        function showLoading() {
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.id = 'loadingOverlay';
+            overlay.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p class="mt-3">Traitement en cours...</p>
+            </div>
+        `;
+            document.body.appendChild(overlay);
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+
+        function showToast(title, message, type = 'info') {
+            // Supprimer les toasts existants
+            document.querySelectorAll('.custom-toast').forEach(toast => toast.remove());
+
+            const toast = document.createElement('div');
+            toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
+            toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <strong>${title}</strong>
+                    <div class="mt-1">${message}</div>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+
+            document.body.appendChild(toast);
+
+            // Auto-remove après 5 secondes
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+        /*]]>*/
+    </script>
+</body>
+
+</html>

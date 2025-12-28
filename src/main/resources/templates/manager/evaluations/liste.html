@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="rh/layouts/header :: head">
+    <title>Mes Évaluations</title>
+</head>
+
+<body>
+    <div th:replace="rh/layouts/menu :: sidebar"></div>
+
+    <main class="main-content">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Mes Évaluations à Compléter</h1>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- En Attente Tab -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>À Compléter
+                    <span class="badge bg-white text-warning ms-2"
+                        th:text="${#lists.size(evaluationsEnAttente)}">0</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Employé</th>
+                                <th>Campagne</th>
+                                <th>Statut</th>
+                                <th>Deadline</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="evaluation : ${evaluationsEnAttente}">
+                                <td>
+                                    <strong th:text="${evaluation.employe.nom} + ' ' + ${evaluation.employe.prenom}">Nom
+                                        Prénom</strong>
+                                    <br><small class="text-muted" th:text="${evaluation.employe.poste}">Poste</small>
+                                </td>
+                                <td th:text="${evaluation.campagne.nomCampagne}">Évaluation 2024</td>
+                                <td>
+                                    <span class="badge bg-secondary"
+                                        th:if="${evaluation.statut.name() == 'EN_ATTENTE'}">En Attente</span>
+                                    <span class="badge bg-warning" th:if="${evaluation.statut.name() == 'EN_COURS'}">En
+                                        Cours</span>
+                                    <span class="badge bg-danger" th:if="${evaluation.statut.name() == 'RETARD'}">En
+                                        Retard</span>
+                                </td>
+                                <td>
+                                    <span
+                                        th:text="${#temporals.format(evaluation.campagne.dateLimiteManager, 'dd/MM/yyyy')}">31/12/2024</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/manager/evaluations/{id}(id=${evaluation.id})}"
+                                        class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit me-1"></i>Évaluer
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(evaluationsEnAttente)}">
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="fas fa-check-circle fa-3x mb-2"></i>
+                                    <p>Aucune évaluation en attente</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Complétées Tab -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-check me-2"></i>Complétées
+                    <span class="badge bg-white text-success ms-2"
+                        th:text="${#lists.size(evaluationsCompletees)}">0</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Employé</th>
+                                <th>Campagne</th>
+                                <th>Score Global</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="evaluation : ${evaluationsCompletees}">
+                                <td th:text="${evaluation.employe.nom} + ' ' + ${evaluation.employe.prenom}">Nom</td>
+                                <td th:text="${evaluation.campagne.nomCampagne}">Campagne</td>
+                                <td>
+                                    <strong class="text-primary"
+                                        th:text="${#numbers.formatDecimal(evaluation.scoreGlobal, 1, 2)} + ' / 5.0'">4.5
+                                        / 5.0</strong>
+                                </td>
+                                <td th:text="${#temporals.format(evaluation.dateCompletion, 'dd/MM/yyyy')}">25/12/2024
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="rh/layouts/footer :: footer"></div>
+</body>
+
+</html>

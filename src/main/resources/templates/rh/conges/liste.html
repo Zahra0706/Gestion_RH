@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="rh/layouts/header :: head">
+    <title>Gestion des Congés - RH</title>
+</head>
+
+<body>
+    <div th:replace="rh/layouts/menu :: sidebar"></div>
+
+    <main class="main-content">
+        <div th:replace="rh/layouts/header :: rh-header" th:with="pageTitle='Gestion des Congés'"></div>
+
+        <!-- Header with navigation buttons -->
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+            <h1 class="h2" style="color: #3498db; font-weight: 700;">Liste des Demandes</h1>
+            <div class="btn-group">
+                <a href="/rh/conges/historique" class="btn btn-secondary shadow-sm">
+                    <i class="fas fa-history me-2"></i>Historique
+                </a>
+
+                <div class="btn-group" role="group">
+                    <button id="btnGroupDrop1" type="button" class="btn btn-outline-info dropdown-toggle"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-export me-2"></i>Export
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                        <li><a class="dropdown-item" href="/rh/conges/export/excel"><i
+                                    class="fas fa-file-excel me-2 text-success"></i>Excel</a></li>
+                        <li><a class="dropdown-item" href="/rh/conges/export/pdf"><i
+                                    class="fas fa-file-pdf me-2 text-danger"></i>PDF</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-3">
+                <form action="/rh/conges" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Type de congé</label>
+                        <select name="type" class="form-select form-select-sm">
+                            <option value="">Tous les types</option>
+                            <option value="PAYE" th:selected="${param.type != null && param.type[0] == 'PAYE'}">Congé
+                                Payé</option>
+                            <option value="MALADIE" th:selected="${param.type != null && param.type[0] == 'MALADIE'}">
+                                Maladie</option>
+                            <option value="SANS_SOLDE"
+                                th:selected="${param.type != null && param.type[0] == 'SANS_SOLDE'}">Sans Solde</option>
+                            <option value="MATERNITE"
+                                th:selected="${param.type != null && param.type[0] == 'MATERNITE'}">Maternité</option>
+                            <option value="PATERNITE"
+                                th:selected="${param.type != null && param.type[0] == 'PATERNITE'}">Paternité</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Département</label>
+                        <select name="departementId" class="form-select form-select-sm">
+                            <option value="">Tous les départements</option>
+                            <option th:each="dept : ${departements}" th:value="${dept.id}" th:text="${dept.nom}"
+                                th:selected="${param.departementId != null && param.departementId[0] == #strings.toString(dept.id)}">
+                                Dept</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Trier par</label>
+                        <select name="sort" class="form-select form-select-sm">
+                            <option value="date" th:selected="${param.sort == null || param.sort[0] == 'date'}">Date de
+                                début</option>
+                            <option value="priorite" th:selected="${param.sort != null && param.sort[0] == 'priorite'}">
+                                Priorité (Urgent premier)</option>
+                            <option value="departement"
+                                th:selected="${param.sort != null && param.sort[0] == 'departement'}">Département
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary btn-sm w-100 shadow-sm">
+                            <i class="fas fa-filter me-2"></i>Filtrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm">
+            <i class="fas fa-check-circle me-2"></i><span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm">
+            <i class="fas fa-exclamation-circle me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-list me-2 text-primary"></i>Demandes en Attente
+                    (<span th:text="${#lists.size(congesEnAttente)}">0</span>)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Employé</th>
+                                <th>Type</th>
+                                <th>Dates</th>
+                                <th>Durée</th>
+                                <th>Priorité</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="conge : ${congesEnAttente}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                            style="width: 38px; height: 38px; font-weight: 600;">
+                                            <span
+                                                th:text="${#strings.substring(conge.employe.prenom, 0, 1) + #strings.substring(conge.employe.nom, 0, 1)}">XX</span>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold d-block text-dark"
+                                                th:text="${conge.employe.nom + ' ' + conge.employe.prenom}">Nom</span>
+                                            <small class="text-muted"
+                                                th:text="${conge.employe.departement?.nom ?: 'N/A'}">Dept</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-info bg-opacity-10 text-info px-3"
+                                        th:text="${conge.typeConge}">Type</span></td>
+                                <td>
+                                    <div class="small fw-bold">
+                                        <span th:text="${#temporals.format(conge.dateDebut, 'dd/MM/yyyy')}">...</span>
+                                        <i class="fas fa-arrow-right mx-1 text-muted small"></i>
+                                        <span th:text="${#temporals.format(conge.dateFin, 'dd/MM/yyyy')}">...</span>
+                                    </div>
+                                </td>
+                                <td><span class="fw-bold" th:text="${conge.nombreJours} + ' j'">5</span></td>
+                                <td>
+                                    <span th:if="${conge.priorite?.name() == 'URGENT'}"
+                                        class="badge bg-danger rounded-pill">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Urgent
+                                    </span>
+                                    <span th:unless="${conge.priorite?.name() == 'URGENT'}"
+                                        class="badge bg-secondary rounded-pill">Normal</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:href="@{/rh/conges/{id}(id=${conge.id})}" class="btn btn-outline-primary"
+                                            title="Détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <!-- Open Valider Modal -->
+                                        <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                            th:data-bs-target="'#validerModal' + ${conge.id}" title="Valider">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <!-- Open Refuser Modal -->
+                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                            th:data-bs-target="'#refusModal' + ${conge.id}" title="Refuser">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(congesEnAttente)}">
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                                    <h5>Aucune demande en attente</h5>
+                                    <p>Toutes les demandes ont été traitées</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals moved outside table for better performance -->
+        <th:block th:each="conge : ${congesEnAttente}">
+            <!-- Valider Modal -->
+            <div class="modal fade" th:id="'validerModal' + ${conge.id}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <form th:action="@{/rh/conges/{id}/valider(id=${conge.id})}" method="post">
+                            <div class="modal-header bg-success text-white">
+                                <h5 class="modal-title"><i class="fas fa-check-circle me-2"></i>Approuver la demande
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="text-center mb-4">
+                                    <div class="avatar avatar-lg bg-success bg-opacity-10 text-success rounded-circle inline-flex align-items-center justify-content-center mb-2 mx-auto"
+                                        style="width:60px; height:60px;">
+                                        <i class="fas fa-clipboard-check fa-2x"></i>
+                                    </div>
+                                    <h5 class="text-dark mb-1"
+                                        th:text="${conge.employe.nom + ' ' + conge.employe.prenom}">
+                                        Nom</h5>
+                                    <p class="text-muted mb-0"
+                                        th:text="${#temporals.format(conge.dateDebut, 'dd/MM/yyyy')} + ' au ' + ${#temporals.format(conge.dateFin, 'dd/MM/yyyy')}">
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Commentaire
+                                        d'approbation</label>
+                                    <textarea name="commentaire" class="form-control" rows="3"
+                                        placeholder="Ajouter un commentaire pour l'employé..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light p-3">
+                                <button type="button" class="btn btn-link text-muted"
+                                    data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-success px-4">Confirmer
+                                    l'approbation</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Refus Modal -->
+            <div class="modal fade" th:id="'refusModal' + ${conge.id}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <form th:action="@{/rh/conges/{id}/refuser(id=${conge.id})}" method="post">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Refuser la demande
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="text-center mb-4">
+                                    <div class="avatar avatar-lg bg-danger bg-opacity-10 text-danger rounded-circle inline-flex align-items-center justify-content-center mb-2 mx-auto"
+                                        style="width:60px; height:60px;">
+                                        <i class="fas fa-ban fa-2x"></i>
+                                    </div>
+                                    <h5 class="text-dark mb-1"
+                                        th:text="${conge.employe.nom + ' ' + conge.employe.prenom}">
+                                        Nom</h5>
+                                    <p class="text-secondary small mb-0">Demande de congé :
+                                        <span th:text="${conge.typeConge}">Type</span>
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-danger">Motif du refus
+                                        <span class="text-muted small">(Obligatoire)</span></label>
+                                    <textarea name="motifRefus" class="form-control" rows="3" required
+                                        placeholder="Expliquez la raison du refus..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light p-3">
+                                <button type="button" class="btn btn-link text-muted"
+                                    data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-danger px-4">Confirmer le
+                                    refus</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+        </div>
+        </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="employe-footer">
+    <footer class="footer mt-5 py-3 border-top">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <span class="text-muted">
+                        © 2025 HR Manager - Système de Gestion des Ressources Humaines
+                    </span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Sécurisé avec Spring Security
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+
+            document.addEventListener('click', function(event) {
+                if (!sidebar) return;
+                if (!event.target.closest('.sidebar') && !event.target.closest('.menu-toggle')) {
+                    sidebar.classList.remove('active');
+                }
+            });
+
+            const logoutForms = document.querySelectorAll('.logout-form');
+            logoutForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    if (!confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+        /*]]>*/
+    </script>
+</div>
+
+</body>
+</html>

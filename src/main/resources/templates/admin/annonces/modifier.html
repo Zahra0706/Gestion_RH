@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="admin/header :: head">
+    <title>Modifier l'Annonce - Administration</title>
+    <style>
+        .form-required:after {
+            content: " *";
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="admin/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="admin/header :: admin-header" th:with="pageTitle='Modifier l\'Annonce'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="container-fluid mt-3">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Modifier l'Annonce
+                </h5>
+                <p class="text-muted mb-0">Modifiez les informations de l'annonce</p>
+            </div>
+            <div>
+                <a th:href="@{/admin/annonces}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/admin/annonces/{id}/modifier(id=${annonce.id})}"
+                      method="post"
+                      th:object="${annonce}">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label form-required">Titre</label>
+                                <input type="text"
+                                       class="form-control"
+                                       th:field="*{titre}"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label form-required">Type</label>
+                                <select class="form-select" th:field="*{type}" required>
+                                    <option th:each="type : ${typesAnnonce}"
+                                            th:value="${type}"
+                                            th:text="${type}"
+                                            th:selected="${annonce.type == type}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Département</label>
+                                <select class="form-select" name="departementId">
+                                    <option value="0">Tous les départements (annonce générale)</option>
+                                    <option th:each="dept : ${departements}"
+                                            th:value="${dept.id}"
+                                            th:text="${dept.nom}"
+                                            th:selected="${annonce.departement != null && annonce.departement.id == dept.id}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label form-required">Contenu</label>
+                        <textarea class="form-control"
+                                  th:field="*{contenu}"
+                                  rows="10"
+                                  required></textarea>
+                    </div>
+
+                    <!-- Annonce Info -->
+                    <div class="alert alert-secondary">
+                        <h6><i class="fas fa-info-circle me-2"></i>Informations sur l'annonce</h6>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Créée par :</strong> <span th:text="${annonce.createur.prenom + ' ' + annonce.createur.nom}"></span></li>
+                            <li><strong>Date de création :</strong> <span th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy HH:mm')}"></span></li>
+                            <li><strong>Dernière modification :</strong> Maintenant</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a th:href="@{/admin/annonces}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="admin/footer :: admin-footer"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="admin/footer :: scripts"></div>
+</body>
+</html>

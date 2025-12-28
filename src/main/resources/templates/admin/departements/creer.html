@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      lang="fr">
+<head th:replace="admin/header :: head">
+    <title>Créer un Département - Administration</title>
+</head>
+<body>
+<!-- Sidebar Menu -->
+<div th:replace="admin/menu :: sidebar"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <div th:replace="admin/header :: admin-header" th:with="pageTitle='Créer un Département'"></div>
+
+    <!-- Alert Messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Creation Form -->
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0 text-white">
+                            <i class="fas fa-plus-circle me-2"></i>Nouveau Département
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/departements/creer}" method="post" th:object="${departement}">
+                            <!-- Basic Information -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-info-circle me-2"></i>Informations de Base
+                                    </h6>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="code" class="form-label">Code *</label>
+                                    <input type="text" class="form-control" id="code"
+                                           th:field="*{code}" required
+                                           placeholder="Ex: IT, HR, FIN, MKT"
+                                           maxlength="10">
+                                    <div class="invalid-feedback">
+                                        Le code du département est requis (max 10 caractères).
+                                    </div>
+                                    <small class="text-muted">Code unique d'identification du département</small>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="nom" class="form-label">Nom *</label>
+                                    <input type="text" class="form-control" id="nom"
+                                           th:field="*{nom}" required
+                                           placeholder="Ex: Informatique, Ressources Humaines"
+                                           maxlength="100">
+                                    <div class="invalid-feedback">
+                                        Le nom du département est requis.
+                                    </div>
+                                </div>
+
+                                <div class="col-12 mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description"
+                                              th:field="*{description}"
+                                              rows="3"
+                                              placeholder="Description du département, ses missions et objectifs..."></textarea>
+                                    <small class="text-muted">Optionnel - Décrivez les responsabilités du département</small>
+                                </div>
+                            </div>
+
+                            <!-- Manager Assignment -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-user-tie me-2"></i>Assignation du Manager
+                                    </h6>
+                                </div>
+
+                                <div class="col-12 mb-3">
+                                    <label for="manager" class="form-label">Manager du Département</label>
+                                    <select class="form-select" id="manager" th:field="*{manager}">
+                                        <option value="">Sélectionnez un manager</option>
+                                        <option th:each="manager : ${managers}"
+                                                th:value="${manager.id}"
+                                                th:text="${manager.prenom + ' ' + manager.nom + ' (' + manager.email + ')'}">
+                                        </option>
+                                    </select>
+                                    <small class="text-muted">
+                                        Optionnel - Vous pourrez assigner un manager plus tard.
+                                        Seuls les employés avec le rôle MANAGER apparaissent ici.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Status Settings -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2 mb-3">
+                                        <i class="fas fa-cog me-2"></i>Paramètres
+                                    </h6>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               th:field="*{isActif}"
+                                               id="isActif" checked value="true">
+                                        <label class="form-check-label" for="isActif">
+                                            Département actif
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">
+                                        Si désactivé, le département ne sera pas disponible pour l'assignation des employés.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between">
+                                        <a th:href="@{/admin/departements}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>Retour
+                                        </a>
+                                        <div>
+                                            <button type="reset" class="btn btn-outline-warning me-2">
+                                                <i class="fas fa-redo me-2"></i>Réinitialiser
+                                            </button>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-2"></i>Créer le Département
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            * Champs obligatoires. Le code doit être unique.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="admin/footer :: admin-footer"></div>
+</main>
+
+<!-- Scripts -->
+<div th:replace="admin/footer :: scripts"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                form.classList.add('was-validated');
+            }, false);
+        }
+
+        // Auto-format code to uppercase
+        const codeInput = document.getElementById('code');
+        if (codeInput) {
+            codeInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        }
+
+        // Character counter for description
+        const descriptionInput = document.getElementById('description');
+        if (descriptionInput) {
+            const counter = document.createElement('div');
+            counter.className = 'form-text text-end';
+            counter.id = 'descriptionCounter';
+            descriptionInput.parentNode.appendChild(counter);
+
+            function updateCounter() {
+                const length = descriptionInput.value.length;
+                counter.textContent = `${length} / 500 caractères`;
+
+                if (length > 500) {
+                    counter.classList.add('text-danger');
+                    counter.classList.remove('text-muted');
+                } else {
+                    counter.classList.remove('text-danger');
+                    counter.classList.add('text-muted');
+                }
+            }
+
+            descriptionInput.addEventListener('input', updateCounter);
+            updateCounter(); // Initial count
+        }
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+    lang="fr">
+
+<head th:replace="layouts/header :: head">
+    <title>Créer Réunion - Manager</title>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div th:replace="layouts/menu-manager :: sidebar"></div>
+
+    <main class="main-content">
+
+        <!-- Header -->
+        <div th:replace="layouts/header :: admin-header"></div>
+
+        <!-- Title -->
+        <div class="page-header mb-4">
+            <h2><i class="fas fa-plus-circle me-2"></i>Créer une réunion</h2>
+            <p class="text-muted">Planifiez une réunion pour votre département</p>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Form -->
+        <div class="chart-card">
+
+            <h6 class="chart-title mb-3">
+                <i class="fas fa-calendar-plus"></i> Informations réunion
+            </h6>
+
+            <form th:action="@{/manager/reunions/creer}" method="post" class="row g-3">
+
+                <!-- ✅ CSRF (important avec Spring Security) -->
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                <div class="col-md-6">
+                    <label class="form-label">Titre</label>
+                    <input type="text" name="titre" class="form-control" required placeholder="Ex: Planning semaine">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Type de Lieu</label>
+                    <select id="typeLieu" name="typeLieu" class="form-select" onchange="toggleLieu()">
+                        <option value="SALLE">Salle de Réunion</option>
+                        <option value="MEET">Google Meet</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6" id="divSalle">
+                    <label class="form-label">Nom de la Salle</label>
+                    <input type="text" id="lieuSalle" name="lieuSalle" class="form-control" placeholder="Ex: Salle B">
+                </div>
+
+                <div class="col-md-6 d-none" id="divMeet">
+                    <label class="form-label">Lien Google Meet</label>
+                    <input type="url" id="lienMeet" name="lienMeet" class="form-control"
+                        placeholder="https://meet.google.com/..." pattern="^https://meet\.google\.com/[a-z0-9-]+$">
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="3"
+                        placeholder="Description de la réunion..."></textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Date/Heure début</label>
+                    <input type="datetime-local" name="dateHeureDebut" class="form-control" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Date/Heure fin</label>
+                    <input type="datetime-local" name="dateHeureFin" class="form-control" required>
+                </div>
+
+                <!-- Participants -->
+                <div class="col-md-12">
+                    <label class="form-label">Participants (optionnel)</label>
+                    <select name="participantIds" class="form-select" multiple>
+                        <option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.prenom + ' ' + e.nom}">
+                        </option>
+                    </select>
+                    <small class="text-muted">
+                    </small>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+                    <a th:href="@{/manager/reunions}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Créer
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div th:replace="layouts/footer :: admin-footer"></div>
+
+    </main>
+
+</body>
+
+<script>
+    function toggleLieu() {
+        var type = document.getElementById('typeLieu').value;
+        var divSalle = document.getElementById('divSalle');
+        var divMeet = document.getElementById('divMeet');
+        var inputSalle = document.getElementById('lieuSalle');
+        var inputMeet = document.getElementById('lienMeet');
+
+        if (type === 'SALLE') {
+            divSalle.classList.remove('d-none');
+            divMeet.classList.add('d-none');
+            inputSalle.required = true;
+            inputMeet.required = false;
+        } else {
+            divSalle.classList.add('d-none');
+            divMeet.classList.remove('d-none');
+            inputSalle.required = false;
+            inputMeet.required = true;
+        }
+    }
+    // Init on load
+    document.addEventListener("DOMContentLoaded", function () {
+        toggleLieu();
+    });
+</script>
+
+</html>

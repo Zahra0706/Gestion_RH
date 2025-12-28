@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+
+<head th:replace="employe/header :: head">
+    <title>Mes Contrats</title>
+</head>
+
+<body>
+<div th:replace="employe/menu :: sidebar"></div>
+
+<main class="main-content">
+    <div th:replace="employe/header :: employe-header" th:with="pageTitle='Mes Contrats'"></div>
+
+    <!-- Flash messages -->
+    <div class="container-fluid mt-3">
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    </div>
+
+    <div class="container-fluid mt-3">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-file-contract me-2 text-white"></i>Mes contrats
+                </h5>
+                <span class="badge bg-primary" th:text="${#lists.size(contrats)} + ' contrat(s)'">0 contrat(s)</span>
+            </div>
+
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(contrats)}" class="text-muted">
+                    Aucun contrat disponible pour le moment.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(contrats)}" class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Référence</th>
+                            <th>Type</th>
+                            <th>Début</th>
+                            <th>Fin</th>
+                            <th>Statut</th>
+                            <th>Signé</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="c : ${contrats}">
+                            <td>
+                                <span th:text="${c.reference != null ? c.reference : ('CTR-' + c.id)}">CTR-1</span>
+                            </td>
+                            <td th:text="${c.typeContrat != null ? c.typeContrat : '—'}">CDI</td>
+                            <td th:text="${c.dateDebut != null ? #temporals.format(c.dateDebut, 'dd/MM/yyyy') : '—'}">—</td>
+                            <td th:text="${c.dateFin != null ? #temporals.format(c.dateFin, 'dd/MM/yyyy') : '—'}">—</td>
+
+                            <td>
+                                <span class="badge bg-secondary"
+                                      th:text="${c.statut != null ? c.statut : '—'}">BROUILLON</span>
+                            </td>
+
+                            <td>
+                                <span th:if="${c.estSigne}" class="badge bg-success">Oui</span>
+                                <span th:unless="${c.estSigne}" class="badge bg-warning text-dark">Non</span>
+                            </td>
+
+                            <td class="text-end">
+                                <!-- Télécharger PDF si dispo -->
+                                <a class="btn btn-sm btn-outline-primary"
+                                   th:if="${c.fichierPdfPath != null}"
+                                   th:href="@{/employe/contrats/{id}/pdf(id=${c.id})}">
+                                    <i class="fas fa-download me-1"></i> PDF
+                                </a>
+
+                                <!-- Signer via lien token (si token existe et pas signé) -->
+                                <a class="btn btn-sm btn-primary"
+                                   th:if="${!c.estSigne and c.signatureToken != null}"
+                                   th:href="@{/employe/contrats/signer(token=${c.signatureToken})}">
+                                    <i class="fas fa-pen-nib me-1"></i> Signer
+                                </a>
+
+                                <!-- Déjà signé -->
+                                <span class="text-success ms-2" th:if="${c.estSigne}">
+                                    <i class="fas fa-check-circle me-1"></i>Signé
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3 text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Si un contrat est en attente de signature, utilisez le bouton <b>Signer</b> (ou le lien reçu par email).
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

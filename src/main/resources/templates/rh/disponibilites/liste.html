@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="~{rh/layouts/header :: head}">
+    <title>Suivi des Présences - RH</title>
+</head>
+
+<body>
+    <div th:replace="~{rh/layouts/menu :: sidebar}"></div>
+
+    <main class="main-content">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2"><i class="fas fa-calendar-check me-2 text-primary"></i>Suivi des Présences</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                    data-bs-target="#modalPeriode">
+                    <i class="fas fa-clock me-2"></i>Appliquer sur période
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters & Stats -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <form th:action="@{/rh/disponibilites}" method="get" class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label class="form-label mb-1 small text-muted">Date</label>
+                                <input type="date" name="date" class="form-control" th:value="${selectedDate}"
+                                    onchange="this.form.submit()">
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label mb-1 small text-muted">Département</label>
+                                <select name="departementId" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Tous les départements</option>
+                                    <option th:each="dept : ${departements}" th:value="${dept.id}" th:text="${dept.nom}"
+                                        th:selected="${dept.id == selectedDepartementId}">IT</option>
+                                </select>
+                            </div>
+                            <div class="col-auto align-self-end">
+                                <a th:href="@{/rh/disponibilites(date=${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')})}"
+                                    class="btn btn-outline-secondary">Aujourd'hui</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h6 class="text-white-50 mb-1">Taux de Présence</h6>
+                        <h2 class="mb-0" th:text="${#numbers.formatDecimal(stats.presencePercent, 1, 1)} + '%'">95.5%
+                        </h2>
+                        <small
+                            th:text="${stats.counts['PRESENT'] ?: 0} + ' présent(s) sur ' + ${stats.total} + ' total'">10/12</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Employé</th>
+                                <th>Département</th>
+                                <th>Statut</th>
+                                <th>Détails / Raison</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="dispo : ${disponibilites}">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div
+                                            class="avatar-sm me-3 border rounded-circle d-flex align-items-center justify-content-center bg-light">
+                                            <i class="fas fa-user text-muted"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold"
+                                                th:text="${dispo.employe.nom} + ' ' + ${dispo.employe.prenom}">Dupont
+                                                Jean</div>
+                                            <small class="text-muted"
+                                                th:text="${dispo.employe.poste}">Développeur</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-soft-info text-info"
+                                        th:text="${dispo.employe.departement != null ? dispo.employe.departement.nom : '-'}">IT</span>
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch d-inline-block me-2">
+                                        <input class="form-check-input status-toggle" type="checkbox"
+                                            th:id="'check_' + ${dispo.employe.id}"
+                                            th:checked="${dispo.statut.name() == 'PRESENT' || dispo.statut.name() == 'TELETRAVAIL'}"
+                                            th:data-emp-id="${dispo.employe.id}" th:data-date="${selectedDate}">
+                                    </div>
+                                    <span
+                                        th:class="'badge rounded-pill badge-status ' + ${dispo.statut.name().toLowerCase()}"
+                                        th:text="${dispo.statut}" th:id="'badge_' + ${dispo.employe.id}">PRESENT</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted d-block" th:if="${dispo.congeLien != null}">
+                                        <i class="fas fa-link me-1"></i> <span th:text="${dispo.raison}">Congé
+                                            payé</span>
+                                    </small>
+                                    <small class="text-muted d-block"
+                                        th:if="${dispo.raison != null && dispo.congeLien == null}">
+                                        <span th:text="${dispo.raison}">Mission externe</span>
+                                    </small>
+                                    <small class="text-muted italic" th:if="${dispo.commentaire != null}"
+                                        th:text="${dispo.commentaire}"></small>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-link text-primary btn-edit-status"
+                                        th:data-emp-id="${dispo.employe.id}"
+                                        th:data-emp-name="${dispo.employe.nom} + ' ' + ${dispo.employe.prenom}"
+                                        th:data-statut="${dispo.statut.name()}" th:data-raison="${dispo.raison}"
+                                        data-bs-toggle="modal" data-bs-target="#modalEdit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Edit Single -->
+    <div class="modal fade" id="modalEdit" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title" id="modalEmpName">Modifier le statut</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formEditStatus">
+                    <div class="modal-body">
+                        <input type="hidden" name="employeId" id="editEmpId">
+                        <input type="hidden" name="date" th:value="${selectedDate}">
+                        <div class="mb-3">
+                            <label class="form-label">Statut</label>
+                            <select name="statut" class="form-select" id="editStatut">
+                                <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}">PRESENT</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Raison / Motif</label>
+                            <input type="text" name="raison" class="form-control" id="editRaison"
+                                placeholder="Ex: Mission chez client X">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Commentaire interne</label>
+                            <textarea name="commentaire" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Periode -->
+    <div class="modal fade" id="modalPeriode" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Appliquer sur une période</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/rh/disponibilites/appliquer-periode}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Employé</label>
+                            <select name="employeId" class="form-select" required>
+                                <option value="">Sélectionner un employé...</option>
+                                <option th:each="dispo : ${disponibilites}" th:value="${dispo.employe.id}"
+                                    th:text="${dispo.employe.nom} + ' ' + ${dispo.employe.prenom}"></option>
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Date Début</label>
+                                <input type="date" name="debut" class="form-control" th:value="${selectedDate}"
+                                    required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Date Fin</label>
+                                <input type="date" name="fin" class="form-control" th:value="${selectedDate}" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Statut à appliquer</label>
+                            <select name="statut" class="form-select">
+                                <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}">MISSION</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Raison</label>
+                            <input type="text" name="raison" class="form-control"
+                                placeholder="Motif de l'absence planifiée">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Appliquer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Styles and Scripts -->
+    <style>
+        .badge-status {
+            font-weight: 500;
+            font-size: 0.75rem;
+            padding: 0.35em 0.8em;
+        }
+
+        .present {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .absent {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .conge {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+
+        .mission {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .formation {
+            background-color: #e0cffc;
+            color: #432b6d;
+        }
+
+        .maladie {
+            background-color: #fce4ec;
+            color: #c2185b;
+        }
+
+        .teletravail {
+            background-color: #e1f5fe;
+            color: #01579b;
+        }
+
+        .repos {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+        }
+
+        .bg-soft-info {
+            background-color: rgba(13, 202, 240, 0.1);
+        }
+
+        .form-switch .form-check-input {
+            width: 2.5em;
+            height: 1.25em;
+            cursor: pointer;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            // Handle Toggle Switches
+            const toggles = document.querySelectorAll('.status-toggle');
+            toggles.forEach(toggle => {
+                toggle.addEventListener('change', function () {
+                    const empId = this.dataset.empId;
+                    const date = this.dataset.date;
+                    const isPresent = this.checked;
+                    const statut = isPresent ? 'PRESENT' : 'ABSENT';
+
+                    updateStatus(empId, date, statut, isPresent ? 'Toggle: Présent' : 'Toggle: Absent');
+                });
+            });
+
+            // Handle Modal Open
+            const editButtons = document.querySelectorAll('.btn-edit-status');
+            editButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    document.getElementById('modalEmpName').textContent = this.dataset.empName;
+                    document.getElementById('editEmpId').value = this.dataset.empId;
+                    document.getElementById('editStatut').value = this.dataset.statut;
+                    document.getElementById('editRaison').value = this.dataset.raison || '';
+                });
+            });
+
+            // Handle Modal Submit
+            document.getElementById('formEditStatus').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const params = new URLSearchParams(formData);
+
+                fetch('/rh/disponibilites/modifier', {
+                    method: 'POST',
+                    body: params
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload(); // Reload to see badge changes and stats update
+                        } else {
+                            alert('Erreur: ' + data.message);
+                        }
+                    });
+            });
+
+            function updateStatus(empId, date, statut, raison) {
+                const params = new URLSearchParams();
+                params.append('employeId', empId);
+                params.append('date', date);
+                params.append('statut', statut);
+                params.append('raison', raison);
+
+                fetch('/rh/disponibilites/modifier', {
+                    method: 'POST',
+                    body: params
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const badge = document.getElementById('badge_' + empId);
+                            badge.textContent = data.statut;
+                            badge.className = 'badge rounded-pill badge-status ' + data.statut.toLowerCase();
+                        } else {
+                            alert('Erreur: ' + data.message);
+                        }
+                    });
+            }
+        });
+    </script>
+</body>
+
+</html>

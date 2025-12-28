@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<head th:replace="~{rh/layouts/header :: head}">
+    <title>Historique Employé</title>
+</head>
+
+<body>
+    <div th:replace="~{rh/layouts/menu :: sidebar}"></div>
+
+    <main class="main-content">
+        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Historique d'Évaluation</h1>
+            <a th:href="@{/rh/evaluations/campagnes}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour
+            </a>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item" th:each="evaluation : ${historique}">
+                        <div class="row">
+                            <div class="col-md-2 text-end">
+                                <span class="badge bg-primary" th:text="${evaluation.campagne.annee}">2024</span>
+                            </div>
+                            <div class="col-md-10">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 th:text="${evaluation.campagne.nomCampagne}">Évaluation 2024</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p class="mb-1"><strong>Manager:</strong>
+                                                    <span
+                                                        th:text="${evaluation.manager.nom} + ' ' + ${evaluation.manager.prenom}">Manager</span>
+                                                </p>
+                                                <p class="mb-1"><strong>Date:</strong>
+                                                    <span
+                                                        th:text="${#temporals.format(evaluation.dateCompletion, 'dd/MM/yyyy')}">25/12/2024</span>
+                                                </p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p class="mb-1"><strong>Score Global:</strong>
+                                                    <span class="text-primary fs-4"
+                                                        th:text="${evaluation.scoreGlobal != null ? (#numbers.formatDecimal(evaluation.scoreGlobal, 1, 2) + ' / 5.0') : 'Non évalué'}">4.2
+                                                        / 5.0</span>
+                                                </p>
+                                                <div class="progress" style="height: 25px;">
+                                                    <div class="progress-bar bg-primary" role="progressbar"
+                                                        th:style="${evaluation.scoreGlobal != null ? ('width: ' + (evaluation.scoreGlobal * 20) + '%') : 'width: 0%'}"
+                                                        th:text="${evaluation.scoreGlobal != null ? evaluation.scoreGlobal : '-'}">
+                                                        4.2</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Performance</small>
+                                                <p class="mb-0"
+                                                    th:text="${evaluation.scorePerformance != null ? #numbers.formatDecimal(evaluation.scorePerformance, 1, 2) : '-'}">
+                                                    4.0</p>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Compétences</small>
+                                                <p class="mb-0"
+                                                    th:text="${evaluation.scoreCompetences != null ? #numbers.formatDecimal(evaluation.scoreCompetences, 1, 2) : '-'}">
+                                                    4.5</p>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Objectifs</small>
+                                                <p class="mb-0"
+                                                    th:text="${evaluation.scoreObjectifs != null ? #numbers.formatDecimal(evaluation.scoreObjectifs, 1, 2) : '-'}">
+                                                    4.3</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3" th:if="${evaluation.commentairesManager}">
+                                            <strong>Commentaires Manager:</strong>
+                                            <p class="text-muted" th:text="${evaluation.commentairesManager}"></p>
+                                        </div>
+
+                                        <!-- Form to add RH comment -->
+                                        <form th:action="@{/rh/evaluations/{id}/commenter(id=${evaluation.id})}"
+                                            method="post" class="mt-3">
+                                            <div class="mb-2">
+                                                <label class="form-label"><strong>Commentaire RH:</strong></label>
+                                                <textarea name="commentairesRH" class="form-control" rows="2"
+                                                    th:text="${evaluation.commentairesRH}"
+                                                    placeholder="Ajouter un commentaire RH..."></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-save me-1"></i>Sauvegarder Commentaire
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(historique)}" class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Aucun historique d'évaluation</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .timeline-item {
+            margin-bottom: 2rem;
+        }
+    </style>
+
+    <div th:replace="rh/layouts/footer :: footer"></div>
+</body>
+
+</html>
